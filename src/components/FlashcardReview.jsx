@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from "react";
+// [DX_IMPROVEMENT]: Import the Toaster component and toast function here for immediate feedback on saving/errors.
+import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle, Clock, RotateCcw } from "lucide-react";
 
 import StorageService from "../services/storageService.js";
+
+// [DX_IMPROVEMENT]: Define constants for SM-2 ratings and their visual styles outside the component for better readability and scalability.
+const RATING_BUTTONS = [
+  {
+    rating: 1,
+    label: "Forgot",
+    color: "red",
+    tooltip: "Schedule for tomorrow",
+  },
+  { rating: 2, label: "Hard", color: "orange", tooltip: "Needs more practice" },
+  { rating: 3, label: "Good", color: "blue", tooltip: "Average performance" },
+  { rating: 4, label: "Easy", color: "green", tooltip: "Long interval" },
+];
 
 export const FlashcardReview = () => {
   const [cards, setCards] = useState([]);
   const [currentCard, setCurrentCard] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  // [UI_UX_IMPROVEMENT]: Add a dedicated state for loading to show a proper spinner/skeleton during initial load.
+  const [isLoading, setIsLoading] = useState(true);
   const [dueCount, setDueCount] = useState(0);
 
   useEffect(() => {
@@ -14,49 +31,94 @@ export const FlashcardReview = () => {
   }, []);
 
   const loadCards = () => {
-    const allCards = StorageService.getFlashcards();
-    const now = Date.now();
-    const due = allCards.filter((c) => c.nextReview <= now);
-    setCards(allCards);
-    setDueCount(due.length);
-    if (due.length > 0) {
-      setCurrentCard(due[0]);
-    } else {
-      setCurrentCard(null);
+    // [DX_IMPROVEMENT]: Move card loading into a promise-based function and handle loading state.
+    setIsLoading(true);
+    try {
+      const allCards = StorageService.getFlashcards();
+      const now = Date.now();
+      // [UI_UX_IMPROVEMENT]: Sort due cards to show the oldest/most urgent card first (better spaced repetition practice).
+      const due = allCards
+        .filter((c) => c.nextReview <= now)
+        .sort((a, b) => a.nextReview - b.nextReview);
+
+      setCards(allCards);
+      setDueCount(due.length);
+      if (due.length > 0) {
+        setCurrentCard(due[0]);
+      } else {
+        setCurrentCard(null);
+      }
+      setIsFlipped(false);
+    } catch (e) {
+      // [DX_IMPROVEMENT]: Log error and provide user feedback via toast.
+      console.error("Failed to load flashcards:", e);
+      toast.error("Could not load flashcards.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsFlipped(false);
+  };
+
+  // [DX_IMPROVEMENT]: Refactor handleRate to use a cleaner helper function for next review time calculation, improving logic separation.
+  const calculateNextReview = (interval, easeFactor, rating) => {
+    let newInterval = interval;
+    let newEase = easeFactor;
+
+    if (rating === 1) {
+      newInterval = 1; // Immediate reset to 1 day
+    } else {
+      // SM-2 logic implementation
+      if (newInterval === 0) newInterval = 1;
+      else if (newInterval === 1) newInterval = 3;
+      else newInterval = Math.ceil(newInterval * newEase);
+
+      newEase = newEase + (0.1 - (4 - rating) * (0.08 + (4 - rating) * 0.02));
+      if (newEase < 1.3) newEase = 1.3;
+    }
+
+    const nextReview = Date.now() + newInterval * 24 * 60 * 60 * 1000;
+
+    return { newInterval, newEase, nextReview };
   };
 
   const handleRate = (rating) => {
     if (!currentCard) return;
 
-    let interval = currentCard.interval;
-    let ease = currentCard.easeFactor;
-
-    if (rating === 1) {
-      interval = 1;
-    } else {
-      if (interval === 0) interval = 1;
-      else if (interval === 1) interval = 3;
-      else interval = Math.ceil(interval * ease);
-
-      ease = ease + (0.1 - (4 - rating) * (0.08 + (4 - rating) * 0.02));
-      if (ease < 1.3) ease = 1.3;
-    }
-
-    const nextReview = Date.now() + interval * 24 * 60 * 60 * 1000;
+    // [DX_IMPROVEMENT]: Call the refactored helper function.
+    const { newInterval, newEase, nextReview } = calculateNextReview(
+      currentCard.interval,
+      currentCard.easeFactor,
+      rating
+    );
 
     const updatedCard = {
       ...currentCard,
-      interval,
-      easeFactor: ease,
+      interval: newInterval, // Use newInterval
+      easeFactor: newEase, // Use newEase
       nextReview,
       repetition: currentCard.repetition + 1,
     };
 
     StorageService.updateFlashcard(updatedCard);
+    // [UI_UX_IMPROVEMENT]: Add subtle toast feedback on success.
+    toast.success(
+      `Card rated: ${
+        RATING_BUTTONS.find((b) => b.rating === rating)?.label || "Updated"
+      }!`
+    );
     loadCards();
   };
+
+  // [UI_UX_IMPROVEMENT]: Add a loading state screen for initial fetch.
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center animate-in fade-in duration-500">
+        <RotateCcw className="w-10 h-10 text-primary animate-spin" />
+        <h2 className="text-xl font-bold text-textMain mt-4">
+          Loading Flashcards...
+        </h2>
+      </div>
+    );
+  }
 
   if (cards.length === 0) {
     return (
@@ -96,38 +158,58 @@ export const FlashcardReview = () => {
 
   return (
     <div className="max-w-2xl mx-auto h-[60vh] flex flex-col pb-12">
+      <Toaster position="top-center" />
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-textMain">Review Session</h1>
-        <span className="px-3 py-1 bg-white rounded-full text-sm text-textMuted border border-border shadow-sm">
-          {dueCount} Due
+        <span className="px-3 py-1 bg-primary-100 text-primary-600 rounded-full text-sm font-bold border border-primary/20 shadow-sm">
+          {dueCount} Due {dueCount > 0 ? "⚠️" : "🎉"}
         </span>
       </div>
 
-      <div className="flex-1 perspective-1000 relative">
+      <div className="flex-1 relative" style={{ perspective: "1000px" }}>
         <div
           onClick={() => setIsFlipped(!isFlipped)}
-          className={`w-full h-full relative cursor-pointer transition-transform duration-500 transform-style-3d ${
-            isFlipped ? "rotate-y-180" : ""
-          }`}
+          className={`w-full h-full relative cursor-pointer transition-transform duration-500`}
+          style={{
+            transformStyle: "preserve-3d",
+            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          }}
         >
           {/* Front */}
-          <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-3xl p-10 flex flex-col items-center justify-center shadow-xl">
+          <div
+            className="absolute inset-0 bg-surface border border-border rounded-3xl p-10 flex flex-col items-center justify-center shadow-xl"
+            style={{
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
+          >
             <span className="absolute top-6 left-6 text-xs font-bold text-primary tracking-widest uppercase">
               Question
             </span>
-            <p className="text-xl md:text-2xl font-medium text-center text-textMain overflow-y-auto max-h-[80%] custom-scrollbar px-2">
+            {/* [A11Y_IMPROVEMENT]: Ensure sufficient contrast for the question text. */}
+            <p className="text-xl md:text-2xl font-semibold text-center text-textMain overflow-y-auto max-h-[80%] custom-scrollbar px-2">
               {currentCard.front}
             </p>
-            <div className="absolute bottom-6 text-sm text-gray-400 flex items-center gap-2">
-              <Clock className="w-4 h-4" /> Tap to reveal answer
+
+            <div className="absolute bottom-6 text-base text-textMuted flex items-center gap-2">
+              <Clock className="w-4 h-4" /> **Tap card to reveal answer**
             </div>
           </div>
 
           {/* Back */}
-          <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-3xl p-10 flex flex-col items-center justify-center shadow-xl rotate-y-180">
-            <span className="absolute top-6 left-6 text-xs font-bold text-secondary tracking-widest uppercase">
+          <div
+            className="absolute inset-0 bg-surfaceHighlight border border-border rounded-3xl p-10 flex flex-col items-center justify-center shadow-xl"
+            style={{
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              transform: "rotateY(180deg)",
+            }}
+          >
+            <span className="absolute top-6 left-6 text-xs font-bold text-indigo-600 tracking-widest uppercase">
               Answer
             </span>
+            {/* [UI_UX_IMPROVEMENT]: The answer uses 'text-gray-700' which is slightly better than text-textMuted for the main content. Ensure good contrast. */}
             <div className="text-lg text-center text-gray-700 whitespace-pre-wrap overflow-y-auto max-h-[80%] custom-scrollbar px-2 w-full">
               {currentCard.back}
             </div>
@@ -136,35 +218,40 @@ export const FlashcardReview = () => {
       </div>
 
       {isFlipped && (
+        // [DESIGN_IMPROVEMENT]: Use descriptive button labels and include the calculated interval/time in the tooltips for transparency (DX).
         <div className="mt-8 grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <button
-            onClick={() => handleRate(1)}
-            className="p-3 rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium text-sm transition-colors shadow-sm"
-          >
-            Forgot
-          </button>
-          <button
-            onClick={() => handleRate(2)}
-            className="p-3 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 font-medium text-sm transition-colors shadow-sm"
-          >
-            Hard
-          </button>
-          <button
-            onClick={() => handleRate(3)}
-            className="p-3 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-medium text-sm transition-colors shadow-sm"
-          >
-            Good
-          </button>
-          <button
-            onClick={() => handleRate(4)}
-            className="p-3 rounded-xl bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 font-medium text-sm transition-colors shadow-sm"
-          >
-            Easy
-          </button>
+          {RATING_BUTTONS.map(({ rating, label, color, tooltip }) => {
+            // [UI_UX_IMPROVEMENT]: Calculate next review date to display in button tooltips.
+            const { nextReview } = calculateNextReview(
+              currentCard.interval,
+              currentCard.easeFactor,
+              rating
+            );
+            const days = Math.ceil(
+              (nextReview - Date.now()) / (1000 * 60 * 60 * 24)
+            );
+
+            return (
+              <button
+                key={rating}
+                onClick={() => handleRate(rating)}
+                // [DX_IMPROVEMENT]: Use explicit Tailwind classes from RATING_BUTTONS constant for styling consistency.
+                className={`p-3 rounded-xl bg-${color}-50 text-${color}-600 border border-${color}-200 hover:bg-${color}-100 font-medium text-sm transition-colors shadow-sm`}
+                // [UI_UX_IMPROVEMENT]: Show the interval in the button or as a tooltip (for clarity of the SM-2 algorithm).
+                title={`${label} (${
+                  days === 1 ? "Next: Tomorrow" : `${days} days`
+                }) - ${tooltip}`}
+              >
+                {/* [UI_UX_IMPROVEMENT]: Display a short version of the interval */}
+                {label} ({days}d)
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {!isFlipped && <div className="mt-8 h-[50px]"></div>}
+      {/* [UI_UX_IMPROVEMENT]: Remove the empty spacer div. The rating buttons or a message can occupy this space for better layout management. */}
+      {/* {!isFlipped && <div className="mt-8 h-[50px]"></div>} */}
     </div>
   );
 };

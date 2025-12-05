@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/auth`;
 
-const Login = ({ onLogin }) => {
+const AuthForm = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -305,4 +305,4 @@ const Login = ({ onLogin }) => {
   );
 };
 
-export default Login;
+export default AuthForm;

@@ -2,6 +2,44 @@ import React from "react";
 
 import { QuestionType } from "../../server/config/types.js";
 
+// DX: Local component to handle rendering answer lines for short/long answer questions
+const AnswerLines = ({ marks, type }) => {
+  // UX/Design: Base height is calculated based on marks for visual cue
+  // Short Answer (non-MCQ/TF) uses 2 lines per mark as a base. Long Answer uses 4 lines per mark.
+  const linesPerMark = type === QuestionType.LongAnswer ? 4 : 2;
+  const numLines = marks * linesPerMark || 3; // Ensure minimum 3 lines if marks is missing/zero
+
+  // Use a minimal line height for clean print lines
+  const lineStyle = "border-b border-black/50 h-6"; // Use /50 for a clean gray line
+
+  return (
+    <div className="mt-4 space-y-3">
+      {[...Array(numLines)].map((_, i) => (
+        <div key={i} className={lineStyle}></div>
+      ))}
+    </div>
+  );
+};
+
+// DX: Local component to handle rendering MCQ/TrueFalse options
+const MCQOptions = ({ options }) => {
+  const opts = options || ["True", "False"]; // Fallback for TrueFalse
+
+  return (
+    <div className="grid grid-cols-1 gap-3 mt-3">
+      {" "}
+      {/* UX: Increased gap slightly */}
+      {opts.map((opt, i) => (
+        <div key={i} className="flex items-center gap-3">
+          {/* Design: Square box for check mark */}
+          <div className="w-4 h-4 border border-black/70 rounded-sm"></div>
+          <span>{opt}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const PrintView = ({ quiz }) => {
   if (!quiz) return null;
 
@@ -32,9 +70,10 @@ const PrintView = ({ quiz }) => {
       </div>
 
       {/* Instructions */}
-      <div className="mb-8 p-4 border border-black rounded-lg bg-gray-50">
-        <h3 className="font-bold uppercase text-xs mb-2">Instructions:</h3>
-        <ul className="list-disc list-inside text-sm space-y-1">
+      {/* UX/Design: Ensured high contrast border/text for instructions */}
+      <div className="mb-8 p-4 border-2 border-black rounded-lg bg-gray-100">
+        <h3 className="font-bold uppercase text-xs mb-2">INSTRUCTIONS:</h3>
+        <ul className="list-disc list-inside text-sm space-y-1 text-gray-900">
           <li>Answer all questions.</li>
           <li>Write your answers clearly in the spaces provided.</li>
           {quiz.examStyle?.includes("caie") && (
@@ -53,7 +92,8 @@ const PrintView = ({ quiz }) => {
                 <span className="font-bold">{idx + 1}.</span>
                 <span className="font-medium">{q.text}</span>
               </div>
-              <span className="text-xs font-bold whitespace-nowrap">
+              {/* UX/Design: Increased font size for marks allocation */}
+              <span className="text-sm font-bold whitespace-nowrap text-gray-900">
                 [{q.marks || 1} {q.marks === 1 ? "mark" : "marks"}]
               </span>
             </div>
@@ -62,36 +102,19 @@ const PrintView = ({ quiz }) => {
             <div className="ml-6">
               {q.type === QuestionType.MCQ ||
               q.type === QuestionType.TrueFalse ? (
-                <div className="grid grid-cols-1 gap-2 mt-2">
-                  {(q.options || ["True", "False"]).map((opt, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-4 h-4 border border-black rounded-full"></div>
-                      <span>{opt}</span>
-                    </div>
-                  ))}
-                </div>
+                // DX: Use local MCQOptions component
+                <MCQOptions options={q.options} />
               ) : (
-                <div className="mt-4 space-y-3">
-                  {/* Lines for writing */}
-                  <div className="border-b border-black/20 h-6"></div>
-                  <div className="border-b border-black/20 h-6"></div>
-                  <div className="border-b border-black/20 h-6"></div>
-                  {q.type === QuestionType.LongAnswer && (
-                    <>
-                      <div className="border-b border-black/20 h-6"></div>
-                      <div className="border-b border-black/20 h-6"></div>
-                      <div className="border-b border-black/20 h-6"></div>
-                    </>
-                  )}
-                </div>
+                // DX: Use local AnswerLines component with dynamic height calculation
+                <AnswerLines marks={q.marks || 1} type={q.type} />
               )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Answer Key Page Break */}
-      <div className="page-break mt-12"></div>
+      {/* Answer Key Page Break - Print UX: Ensures key always starts on new page */}
+      <div className="break-before-page pt-12"></div>
 
       {/* Answer Key */}
       <div className="pt-8">
@@ -103,11 +126,12 @@ const PrintView = ({ quiz }) => {
             <div key={q.id} className="break-inside-avoid">
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="font-bold text-sm">{idx + 1}.</span>
-                <span className="font-bold text-sm">
+                <span className="font-bold text-sm text-green-700">
                   Answer: {q.correctAnswer}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 ml-5">{q.explanation}</p>
+              {/* Design: Ensured high-contrast text for explanations */}
+              <p className="text-sm text-gray-900 ml-5">{q.explanation}</p>
             </div>
           ))}
         </div>

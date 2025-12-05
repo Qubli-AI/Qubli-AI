@@ -22,6 +22,288 @@ import StorageService from "../services/storageService.js";
 import { QuestionType } from "../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 
+// DX: Move rendering utility outside the component scope
+const parseBoldText = (text) => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
+const truncateText = (text, maxLength) => {
+  if (!text) return "";
+  return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+};
+
+const TrueFalseOptions = ["True", "False"]; // DX: Hardcoded values extracted
+
+// --- Extracted Components (DX) ---
+
+const QuizIntroView = ({ quiz, startQuiz }) => (
+  <div className="bg-surface p-8 rounded-2xl border border-border shadow-xl text-center">
+    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
+      <Layers className="w-10 h-10" />
+    </div>
+    <h2 className="text-2xl font-bold text-textMain mb-2">Ready to start?</h2>
+    <p className="text-textMuted mb-8 max-w-md mx-auto">
+      This quiz contains <strong>{quiz.questions.length}</strong> questions
+      covering <strong>{truncateText(quiz.topic, 20)}</strong>. There is no time
+      limit, but try to answer as accurately as possible.
+    </p>
+
+    <div className="grid grid-cols-3 gap-4 mb-8 max-w-lg mx-auto">
+      <div className="p-4 bg-surfaceHighlight rounded-xl">
+        <HelpCircle className="w-6 h-6 text-primary mx-auto mb-2" />
+        <div className="font-bold text-textMain">{quiz.questions.length}</div>
+        <div className="text-xs text-textMuted">Questions</div>
+      </div>
+      <div className="p-4 bg-surfaceHighlight rounded-xl">
+        <BarChart2 className="w-6 h-6 text-primary mx-auto mb-2" />
+        <div className="font-bold text-textMain">{quiz.totalMarks || "-"}</div>
+        <div className="text-xs text-textMuted">Marks</div>
+      </div>
+      <div className="p-4 bg-surfaceHighlight rounded-xl">
+        <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
+        <div className="font-bold text-textMain">
+          ~{Math.ceil(quiz.questions.length * 0.5)}m
+        </div>
+        <div className="text-xs text-textMuted">Est. Time</div>
+      </div>
+    </div>
+
+    <div className="flex flex-col md:flex-row gap-4 justify-center">
+      <button
+        onClick={startQuiz}
+        className="w-full md:w-auto px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+      >
+        <Play className="w-5 h-5 fill-current" /> Start Quiz
+      </button>
+    </div>
+  </div>
+);
+
+const QuizResultsView = ({
+  quiz,
+  quizFlashcards,
+  navigate,
+  manualCreateFlashcards,
+  setActiveTab,
+}) => (
+  <div className="space-y-6">
+    {/* Summary Card */}
+    <div className="bg-surface p-6 md:p-8 rounded-2xl border border-border shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="text-center md:text-left">
+        <h2 className="text-xl font-bold text-textMain mb-1">
+          Quiz Completed!
+        </h2>
+        <p className="text-textMuted">Here is how you performed.</p>
+      </div>
+      <div className="flex flex-col sm:flex-row items-center gap-6 w-full md:w-auto">
+        <div className="text-center md:text-right">
+          <div className="text-4xl font-bold text-primary">{quiz.score}%</div>
+          <p className="text-xs text-textMuted uppercase tracking-wide font-semibold">
+            Final Score
+          </p>
+        </div>
+        <div className="hidden sm:block h-12 w-px bg-border"></div>
+        <div className="flex flex-col gap-2 w-full sm:w-auto">
+          {quizFlashcards.length === 0 || !quiz.isFlashcardSet ? (
+            <button
+              onClick={manualCreateFlashcards}
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100"
+            >
+              <Layers className="w-4 h-4" /> Create Flashcards
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveTab("flashcards")}
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm font-bold shadow-md shadow-indigo-200 transition-colors"
+            >
+              <BookOpen className="w-4 h-4" /> Study Flashcards
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Review Questions List */}
+    <div className="space-y-6">
+      {quiz.questions.map((q, idx) => (
+        <div
+          key={q.id}
+          // UX: Apply stronger background tint to highlight correct/incorrect status
+          className={`p-6 rounded-xl border transition-all shadow-xl ${
+            q.isCorrect
+              ? "bg-green-100/70 border-green-300 hover:bg-green-100"
+              : "bg-red-100/70 border-red-300 hover:bg-red-100"
+          }`}
+        >
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex gap-3">
+              <span
+                className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  q.isCorrect
+                    ? "bg-green-300 text-green-800"
+                    : "bg-red-300 text-red-800"
+                }`}
+              >
+                {idx + 1}
+              </span>
+              <h3 className="font-medium text-textMain pt-[3px]">{q.text}</h3>
+            </div>
+            {q.marks && (
+              <span
+                className={`text-sm font-semibold bg-white/50 mt-[3px] px-2 py-1 rounded border border-black/5 ${
+                  q.marks === 1 ? "min-w-18" : "min-w-20"
+                } text-center`}
+              >
+                {q.marks} {q.marks === 1 ? "mark" : "marks"}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 text-sm ml-0 md:ml-11">
+            <div className="p-3 rounded-lg border border-border/50 bg-white">
+              <span className="block text-xs text-textMuted mb-1 uppercase tracking-wide">
+                Your Answer
+              </span>
+              <div
+                className={
+                  q.isCorrect
+                    ? "text-green-700 font-medium"
+                    : "text-red-700 font-medium"
+                }
+              >
+                {q.userAnswer || "(No answer)"}
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded-lg border border-border/50">
+              <span className="block text-xs text-textMuted mb-1 uppercase tracking-wide">
+                Correct Answer
+              </span>
+              <div className="text-green-700 font-medium">
+                {q.correctAnswer}
+              </div>
+            </div>
+          </div>
+          <div className="pt-3 border-t border-black/10 text-sm text-textMuted ml-0 md:ml-11">
+            <span className="font-semibold text-textMain">Explanation:</span>{" "}
+            {q.explanation}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <button
+      onClick={() => navigate("/")}
+      className="w-full py-4 bg-white hover:bg-surfaceHighlight text-textMain rounded-xl font-bold transition-colors border border-border shadow-sm"
+    >
+      Back to Dashboard
+    </button>
+  </div>
+);
+
+// DX: Extracted Flashcard view
+const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
+  const [cardIndex, setCardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+
+  if (quizFlashcards.length === 0 || !quiz.isFlashcardSet) {
+    return (
+      <div className="text-center py-12 bg-surface rounded-2xl border border-border">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Layers className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-xl font-bold text-textMain mb-2">
+          No Flashcards Created
+        </h3>
+        <p className="text-textMuted mb-6">
+          Flashcards were not generated for this quiz.
+        </p>
+        <button
+          onClick={manualCreateFlashcards}
+          className="px-6 py-2 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors text-sm"
+        >
+          Generate Flashcards Now
+        </button>
+      </div>
+    );
+  }
+
+  const card = quizFlashcards[cardIndex];
+
+  const nextCard = () => {
+    setFlipped(false);
+    setCardIndex((prev) => (prev + 1) % quizFlashcards.length);
+  };
+
+  const prevCard = () => {
+    setFlipped(false);
+    setCardIndex(
+      (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
+    );
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto h-[65vh] flex flex-col">
+      <div className="flex justify-between items-center mb-4 text-textMuted text-sm">
+        {/* UX: Ensure card index count is bold and prominent */}
+        <span>
+          Card <strong>{cardIndex + 1}</strong> of{" "}
+          <strong>{quizFlashcards.length}</strong>
+        </span>
+        <span className="text-textMuted">Tap card to flip</span>
+      </div>
+      <div className="flex-1 perspective-1000 relative mb-8">
+        <div
+          onClick={() => setFlipped(!flipped)}
+          className={`w-full h-full relative cursor-pointer transition-transform duration-500 transform-style-3d ${
+            flipped ? "rotate-y-180" : ""
+          }`}
+        >
+          <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold text-primary tracking-widest uppercase">
+              Question
+            </span>
+            <div className="text-xl font-medium text-textMain overflow-y-auto max-h-full custom-scrollbar">
+              {parseBoldText(card.front)}
+            </div>
+          </div>
+          <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center rotate-y-180">
+            <span className="absolute top-4 left-4 text-xs font-bold text-secondary tracking-widest uppercase">
+              Answer
+            </span>
+            <div className="text-lg text-textMain overflow-y-auto max-h-full whitespace-pre-wrap custom-scrollbar">
+              {parseBoldText(card.back)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center gap-4">
+        <button
+          onClick={prevCard}
+          className="flex-1 py-3 rounded-xl bg-surfaceHighlight hover:bg-white border border-transparent hover:border-border transition-all font-medium text-textMain flex items-center justify-center gap-2"
+        >
+          <ChevronLeft className="w-4 h-4" /> Previous
+        </button>
+        <button
+          onClick={nextCard}
+          className="flex-1 py-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 hover:bg-blue-700 transition-all font-bold flex items-center justify-center gap-2"
+        >
+          Next Card <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Component ---
+
 const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -78,7 +360,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     fetchQuiz();
   }, [id, navigate, user, status]);
 
-  if (isFetching) {
+  if (isFetching || !quiz) {
     return (
       <div className="flex justify-center items-center h-screen">
         <CircularProgress sx={{ color: "#2563eb" }} />
@@ -174,139 +456,36 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     setActiveTab("flashcards");
   };
 
-  const parseBoldText = (text) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-  };
-
   const currentQ = quiz.questions[currentIdx];
   const isLast = currentIdx === quiz.questions.length - 1;
   const hasAnsweredCurrent =
     !!answers[currentQ.id] && answers[currentQ.id].trim() !== "";
 
-  const displayTitle =
-    quiz.title.length > 40 ? quiz.title.substring(0, 40) + "..." : quiz.title;
-
-  const StudyFlashcards = () => {
-    const [cardIndex, setCardIndex] = useState(0);
-    const [flipped, setFlipped] = useState(false);
-
-    if (quizFlashcards.length === 0) {
-      return (
-        <div className="text-center py-12 bg-surface rounded-2xl border border-border">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Layers className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-bold text-textMain mb-2">
-            No Flashcards Created
-          </h3>
-          <p className="text-textMuted mb-6">
-            Flashcards were not generated for this quiz.
-          </p>
-          <button
-            onClick={manualCreateFlashcards}
-            className="px-6 py-2 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
-          >
-            Generate Flashcards Now
-          </button>
-        </div>
-      );
-    }
-
-    const card = quizFlashcards[cardIndex];
-
-    const nextCard = () => {
-      setFlipped(false);
-      setCardIndex((prev) => (prev + 1) % quizFlashcards.length);
-    };
-
-    const prevCard = () => {
-      setFlipped(false);
-      setCardIndex(
-        (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
-      );
-    };
-
-    return (
-      <div className="max-w-2xl mx-auto h-[65vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4 text-textMuted text-sm">
-          <span>
-            Card <strong>{cardIndex + 1}</strong> of{" "}
-            <strong>{quizFlashcards.length}</strong>
-          </span>
-          <span>Tap card to flip</span>
-        </div>
-        <div className="flex-1 perspective-1000 relative mb-8">
-          <div
-            onClick={() => setFlipped(!flipped)}
-            className={`w-full h-full relative cursor-pointer transition-transform duration-500 transform-style-3d ${
-              flipped ? "rotate-y-180" : ""
-            }`}
-          >
-            <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center">
-              <span className="absolute top-4 left-4 text-xs font-bold text-primary tracking-widest uppercase">
-                Question
-              </span>
-              <div className="text-xl font-medium text-textMain overflow-y-auto max-h-full custom-scrollbar">
-                {parseBoldText(card.front)}
-              </div>
-            </div>
-            <div className="absolute inset-0 backface-hidden bg-white border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center rotate-y-180">
-              <span className="absolute top-4 left-4 text-xs font-bold text-secondary tracking-widest uppercase">
-                Answer
-              </span>
-              <div className="text-lg text-textMain overflow-y-auto max-h-full whitespace-pre-wrap custom-scrollbar">
-                {parseBoldText(card.back)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center gap-4">
-          <button
-            onClick={prevCard}
-            className="flex-1 py-3 rounded-xl bg-surfaceHighlight hover:bg-white border border-transparent hover:border-border transition-all font-medium text-textMain flex items-center justify-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" /> Previous
-          </button>
-          <button
-            onClick={nextCard}
-            className="flex-1 py-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 hover:bg-blue-700 transition-all font-bold flex items-center justify-center gap-2"
-          >
-            Next Card <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  };
+  const fullTitle = quiz.title;
 
   return (
     <>
       <PrintView quiz={quiz} />
-      <div className="max-w-3xl mx-auto no-print animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12">
+      <div className="max-w-2xl mx-auto no-print animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12">
         {/* Common Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="overflow-hidden">
             <div className="flex items-center gap-2 mb-1">
               <button
                 onClick={() => navigate("/")}
-                className="text-textMuted hover:text-textMain"
+                className="text-textMuted hover:text-textMain flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-surfaceHighlight"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <h1
                 className="text-2xl font-bold text-textMain truncate"
-                title={quiz.title}
+                title={fullTitle}
               >
-                {displayTitle}
+                {/* UX: Reliance on CSS truncation utility */}
+                {fullTitle}
               </h1>
             </div>
-            <div className="flex gap-2 mt-1 ml-6 flex-wrap">
+            <div className="flex gap-2 mt-1 ml-10 flex-wrap">
               <span
                 className={`px-2 py-0.5 rounded text-xs font-bold ${
                   quiz.difficulty === "Easy"
@@ -370,7 +549,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               activeTab === "flashcards"
                 ? "bg-white text-primary shadow-sm"
                 : status !== "completed"
-                ? "text-gray-400 cursor-not-allowed opacity-60"
+                ? "text-gray-500 cursor-not-allowed"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -381,174 +560,27 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
         {/* --- CONTENT BASED ON TAB --- */}
         {activeTab === "flashcards" ? (
-          <StudyFlashcards />
+          <StudyFlashcards
+            quizFlashcards={quizFlashcards}
+            quiz={quiz}
+            manualCreateFlashcards={manualCreateFlashcards}
+          />
         ) : (
           <>
             {/* --- INTRO VIEW --- */}
             {status === "intro" && (
-              <div className="bg-surface p-8 rounded-2xl border border-border shadow-xl text-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
-                  <Layers className="w-10 h-10" />
-                </div>
-                <h2 className="text-2xl font-bold text-textMain mb-2">
-                  Ready to start?
-                </h2>
-                <p className="text-textMuted mb-8 max-w-md mx-auto">
-                  This quiz contains <strong>{quiz.questions.length}</strong>{" "}
-                  questions covering <strong>{quiz.topic}</strong>. There is no
-                  time limit, but try to answer as accurately as possible.
-                </p>
-
-                <div className="grid grid-cols-3 gap-4 mb-8 max-w-lg mx-auto">
-                  <div className="p-4 bg-surfaceHighlight rounded-xl">
-                    <HelpCircle className="w-6 h-6 text-primary mx-auto mb-2" />
-                    <div className="font-bold text-textMain">
-                      {quiz.questions.length}
-                    </div>
-                    <div className="text-xs text-textMuted">Questions</div>
-                  </div>
-                  <div className="p-4 bg-surfaceHighlight rounded-xl">
-                    <BarChart2 className="w-6 h-6 text-primary mx-auto mb-2" />
-                    <div className="font-bold text-textMain">
-                      {quiz.totalMarks || "-"}
-                    </div>
-                    <div className="text-xs text-textMuted">Marks</div>
-                  </div>
-                  <div className="p-4 bg-surfaceHighlight rounded-xl">
-                    <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
-                    <div className="font-bold text-textMain">
-                      ~{Math.ceil(quiz.questions.length * 0.5)}m
-                    </div>
-                    <div className="text-xs text-textMuted">Est. Time</div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4 justify-center">
-                  <button
-                    onClick={startQuiz}
-                    className="w-full md:w-auto px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-5 h-5 fill-current" /> Start Quiz
-                  </button>
-                </div>
-              </div>
+              <QuizIntroView quiz={quiz} startQuiz={startQuiz} />
             )}
 
             {/* --- RESULTS VIEW --- */}
             {status === "completed" && (
-              <div className="space-y-6">
-                {/* Summary Card */}
-                <div className="bg-surface p-6 md:p-8 rounded-2xl border border-border shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="text-center md:text-left">
-                    <h2 className="text-xl font-bold text-textMain mb-1">
-                      Quiz Completed!
-                    </h2>
-                    <p className="text-textMuted">Here is how you performed.</p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-center gap-6 w-full md:w-auto">
-                    <div className="text-center md:text-right">
-                      <div className="text-4xl font-bold text-primary">
-                        {quiz.score}%
-                      </div>
-                      <p className="text-xs text-textMuted uppercase tracking-wide font-semibold">
-                        Final Score
-                      </p>
-                    </div>
-                    <div className="hidden sm:block h-12 w-px bg-border"></div>
-                    <div className="flex flex-col gap-2 w-full sm:w-auto">
-                      {quizFlashcards.length === 0 && !quiz.isFlashcardSet ? (
-                        <button
-                          onClick={manualCreateFlashcards}
-                          className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100"
-                        >
-                          <Layers className="w-4 h-4" /> Create Flashcards
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setActiveTab("flashcards")}
-                          className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm font-bold shadow-md shadow-indigo-200 transition-colors"
-                        >
-                          <BookOpen className="w-4 h-4" /> Study Flashcards
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Review Questions List */}
-                <div className="space-y-4">
-                  {quiz.questions.map((q, idx) => (
-                    <div
-                      key={q.id}
-                      className={`p-6 rounded-xl border transition-all ${
-                        q.isCorrect
-                          ? "bg-green-50/50 border-green-200 hover:bg-green-50"
-                          : "bg-red-50/50 border-red-200 hover:bg-red-50"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3 gap-3">
-                        <div className="flex gap-3">
-                          <span
-                            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                              q.isCorrect
-                                ? "bg-green-200 text-green-700"
-                                : "bg-red-200 text-red-700"
-                            }`}
-                          >
-                            {idx + 1}
-                          </span>
-                          <h3 className="font-medium text-textMain pt-[3px]">
-                            {q.text}
-                          </h3>
-                        </div>
-                        {q.marks && (
-                          <span className="text-xs font-semibold bg-white/50 mt-[3px] px-2 py-1 rounded border border-black/5 min-w-[65px]">
-                            {q.marks} {q.marks === 1 ? "marks" : "marks"}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm ml-0 md:ml-11">
-                        <div className="p-3 bg-white/60 rounded-lg border border-border/50">
-                          <span className="block text-xs text-textMuted mb-1 uppercase tracking-wide">
-                            Your Answer
-                          </span>
-                          <div
-                            className={
-                              q.isCorrect
-                                ? "text-green-700 font-medium"
-                                : "text-red-600 font-medium"
-                            }
-                          >
-                            {q.userAnswer || "(No answer)"}
-                          </div>
-                        </div>
-                        <div className="p-3 bg-white/60 rounded-lg border border-border/50">
-                          <span className="block text-xs text-textMuted mb-1 uppercase tracking-wide">
-                            Correct Answer
-                          </span>
-                          <div className="text-green-700 font-medium">
-                            {q.correctAnswer}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-black/5 text-sm text-textMuted ml-0 md:ml-11">
-                        <span className="font-semibold text-textMain">
-                          Explanation:
-                        </span>{" "}
-                        {q.explanation}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => navigate("/")}
-                  className="w-full py-4 bg-white hover:bg-surfaceHighlight text-textMain rounded-xl font-bold transition-colors border border-border shadow-sm"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
+              <QuizResultsView
+                quiz={quiz}
+                quizFlashcards={quizFlashcards}
+                navigate={navigate}
+                manualCreateFlashcards={manualCreateFlashcards}
+                setActiveTab={setActiveTab}
+              />
             )}
 
             {/* --- QUIZ ACTIVE VIEW --- */}
@@ -591,43 +623,36 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     {currentQ.type === QuestionType.MCQ ||
                     currentQ.type === QuestionType.TrueFalse ? (
                       <div className="grid grid-cols-1 gap-3">
-                        {currentQ.type === QuestionType.TrueFalse
-                          ? ["True", "False"].map((opt) => (
-                              <button
-                                key={opt}
-                                onClick={() => handleAnswer(opt)}
-                                className={`p-4 text-left rounded-xl border transition-all ${
-                                  answers[currentQ.id] === opt
-                                    ? "bg-primary/10 border-primary text-primary shadow-sm ring-1 ring-primary"
-                                    : "bg-white border-border text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            ))
-                          : currentQ.options?.map((opt, i) => (
-                              <button
-                                key={i}
-                                onClick={() => handleAnswer(opt)}
-                                className={`p-4 text-left rounded-xl border transition-all ${
-                                  answers[currentQ.id] === opt
-                                    ? "bg-primary/10 border-primary text-primary shadow-sm ring-1 ring-primary"
-                                    : "bg-white border-border text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
-                                }`}
-                              >
-                                <span className="inline-block w-6 font-mono text-gray-400 mr-2">
-                                  {String.fromCharCode(65 + i)}.
-                                </span>
-                                {opt}
-                              </button>
-                            ))}
+                        {(currentQ.type === QuestionType.TrueFalse
+                          ? TrueFalseOptions
+                          : currentQ.options
+                        )?.map((opt, i) => (
+                          <button
+                            key={opt}
+                            onClick={() => handleAnswer(opt)}
+                            className={`p-4 text-left rounded-xl border transition-all ${
+                              answers[currentQ.id] === opt
+                                ? "bg-primary/10 border-primary text-primary shadow-sm ring-1 ring-primary font-semibold"
+                                : "bg-white border-border text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
+                            }`}
+                          >
+                            <span className="inline-block w-6 font-mono text-gray-400 mr-2 font-bold">
+                              {currentQ.type === QuestionType.MCQ ||
+                              currentQ.type === QuestionType.TrueFalse
+                                ? String.fromCharCode(65 + i) + "."
+                                : ""}
+                            </span>
+                            {opt}
+                          </button>
+                        ))}
                       </div>
                     ) : (
                       <textarea
                         value={answers[currentQ.id] || ""}
                         onChange={(e) => handleAnswer(e.target.value)}
                         placeholder="Type your answer here..."
-                        className="w-full h-32 p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain resize-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                        // UX: Improved focus styling and min-height
+                        className="w-full min-h-[150px] p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
                       />
                     )}
                   </div>

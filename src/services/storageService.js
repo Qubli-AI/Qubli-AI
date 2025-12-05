@@ -1,4 +1,5 @@
 const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api`;
+const LAST_QUIZ_KEY = "af23a858-2127-4780-b950-bed653ef5874";
 
 /** Generic request helper with auto user storage */
 async function request(endpoint, method = "GET", body) {
@@ -91,6 +92,17 @@ const StorageService = {
   saveQuiz: async (quiz) => {
     if (quiz._id) return request(`/quizzes/${quiz._id}`, "PUT", quiz);
     return request("/quizzes", "POST", quiz);
+  },
+
+  getLastGeneratedQuiz: () => {
+    const raw = localStorage.getItem(LAST_QUIZ_KEY);
+    return raw ? JSON.parse(raw) : null;
+  },
+  setLastGeneratedQuiz: (quiz) => {
+    localStorage.setItem(LAST_QUIZ_KEY, JSON.stringify(quiz));
+  },
+  clearLastGeneratedQuiz: () => {
+    localStorage.removeItem(LAST_QUIZ_KEY);
   },
 
   deleteQuiz: async (quizId) => request(`/quizzes/${quizId}`, "DELETE"),

@@ -220,9 +220,18 @@ Include a mix of the following question types: ${typeString}.
       result = null;
     }
 
-    const candidate = result?.candidates?.[0];
-    if (!candidate || !candidate.content?.parts?.[0]?.text)
-      throw new Error("No valid response content from AI");
+    const candidate = result.candidates.find((c) => {
+      const text = c.content?.parts?.[0]?.text;
+      if (!text) return false;
+      try {
+        const data = JSON.parse(text);
+        return Array.isArray(data.questions) && data.questions.length;
+      } catch {
+        return false;
+      }
+    });
+
+    if (!candidate) throw new Error("No valid AI candidate found");
 
     let data;
     try {
@@ -319,9 +328,6 @@ Output: A sharp, direct, high-impact review.
     }
 
     const review = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    console.log("Raw AI Review:", review);
-    console.log("Type:", typeof review);
 
     return review;
   } catch (e) {

@@ -165,12 +165,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           repetition: 0,
           easeFactor: 2.5,
         }));
-        StorageService.saveFlashcards(cards);
+        await StorageService.saveFlashcards(cards);
       }
 
-      StorageService.decrementGeneration();
-      if (generateFlashcards) StorageService.decrementFlashcardGeneration();
-      if (mode === "pdf") StorageService.decrementPdfUpload();
+      await StorageService.decrementGeneration();
+      if (generateFlashcards)
+        await StorageService.decrementFlashcardGeneration();
+      if (mode === "pdf") await StorageService.decrementPdfUpload();
       onGenerateSuccess();
       navigate(`/quiz/${savedQuiz._id}`);
     } catch (err) {

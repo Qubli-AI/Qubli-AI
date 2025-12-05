@@ -14,7 +14,7 @@ import Dashboard from "./components/Dashboard.jsx";
 import QuizGenerator from "./components/QuizGenerator.jsx";
 import QuizTaker from "./components/QuizTaker.jsx";
 import Overview from "./components/Overview.jsx";
-import Login from "./components/Login.jsx";
+import AuthForm from "./components/AuthForm.jsx";
 import StorageService from "./services/storageService.js";
 
 // Protected Route Wrapper
@@ -80,7 +80,7 @@ const App = () => {
             auth.isAuthenticated ? (
               <Navigate to="/" replace />
             ) : (
-              <Login onLogin={handleLoginSuccess} />
+              <AuthForm onLogin={handleLoginSuccess} />
             )
           }
         />

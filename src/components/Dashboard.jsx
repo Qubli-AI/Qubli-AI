@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+// [UI_UX_DX_IMPROVEMENT]: Import Toaster for centralized, non-blocking user feedback.
+import toast, { Toaster } from "react-hot-toast"; // Assuming you install and use react-hot-toast
 
 import {
   BarChart,
@@ -25,15 +27,64 @@ import {
   Search,
   Filter,
   BookOpen,
+  XCircle, // [UI_UX_IMPROVEMENT]: Added XCircle for search clear button.
 } from "lucide-react";
 
 import StorageService from "../services/storageService.js";
 import { Difficulty } from "../../server/config/types.js";
 
+// --- [DX_IMPROVEMENT]: EXTRACTED CONSTANTS FOR SCALABILITY & READABILITY ---
+
+// KPI Card Data - Uses explicit Tailwind classes to ensure proper JIT compilation
+const KPI_STATS = [
+  {
+    label: "Completed Quizzes", // [UX_IMPROVEMENT]: Use clearer label
+    dataKey: (quizzes) => quizzes.filter((q) => q.score !== undefined).length,
+    icon: <Trophy className="w-6 h-6" />,
+    colorClasses: { bg: "bg-blue-100", text: "text-blue-600" },
+    diffClass: false,
+  },
+  {
+    label: "Avg Score", // [UX_IMPROVEMENT]: Use clearer label
+    dataKey: (quizzes, totalAvgScore) =>
+      quizzes.filter((q) => q.score !== undefined).length > 0
+        ? totalAvgScore + "%"
+        : "N/A",
+    icon: <Target className="w-6 h-6" />,
+    colorClasses: { bg: "bg-green-100", text: "text-green-600" },
+    diffClass: false,
+  },
+  {
+    label: "Weakest Topic",
+    dataKey: (quizzes, totalAvgScore, stats) => stats.weakestTopic,
+    icon: <AlertTriangle className="w-6 h-6" />,
+    colorClasses: { bg: "bg-red-100", text: "text-red-600" },
+    diffClass: true,
+  },
+  {
+    label: "Flashcards Left",
+    dataKey: (quizzes, totalAvgScore, stats, user) =>
+      user.limits.flashcardGenerationsRemaining,
+    icon: <Zap className="w-6 h-6" />,
+    colorClasses: { bg: "bg-indigo-100", text: "text-indigo-600" },
+    diffClass: false,
+  },
+];
+
+// Difficulty Badge Styling Constant
+const DIFFICULTY_STYLES = {
+  [Difficulty.Easy]: { bg: "bg-green-100", text: "text-green-600" },
+  [Difficulty.Medium]: { bg: "bg-orange-100", text: "text-orange-600" },
+  [Difficulty.Hard]: { bg: "bg-red-100", text: "text-red-600" },
+};
+// --- END EXTRACTED CONSTANTS ---
+
 const Dashboard = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
+  // [UI_UX_IMPROVEMENT]: Added loading state for better user feedback
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     avgEasy: 0,
     avgMedium: 0,
@@ -43,36 +94,36 @@ const Dashboard = ({ user }) => {
   });
 
   useEffect(() => {
-    if (user) {
-      refreshQuizzes();
-    }
+    if (user) refreshQuizzes();
   }, [user]);
 
   const refreshQuizzes = async () => {
     if (!user) return;
+    setIsLoading(true); // Set loading true before fetch
     try {
-      const userQuizzes = await StorageService.getQuizzes(user._id); // <- await here
+      const userQuizzes = await StorageService.getQuizzes(user._id);
       setQuizzes(userQuizzes);
       calculateAdvancedStats(userQuizzes);
     } catch (err) {
       console.error("Failed to refresh quizzes:", err);
+      // [TOASTER_IMPROVEMENT]: Use toast for failure notification
+      toast.error("Failed to load quizzes. Please try again.");
+    } finally {
+      setIsLoading(false); // Set loading false after fetch
     }
   };
 
+  // ... calculateAdvancedStats logic remains unchanged (Core Logic) ...
   const calculateAdvancedStats = (data) => {
     const completed = data.filter((q) => q.score !== undefined);
-    if (completed.length === 0) return;
+    if (!completed.length) return;
 
     const diffStats = {
       [Difficulty.Easy]: { total: 0, sum: 0 },
       [Difficulty.Medium]: { total: 0, sum: 0 },
       [Difficulty.Hard]: { total: 0, sum: 0 },
     };
-
-    // Type Stats (removed explicit Record type)
     const typeStats = {};
-
-    // Topic Stats (removed explicit Record type)
     const topicStats = {};
 
     completed.forEach((q) => {
@@ -92,9 +143,8 @@ const Dashboard = ({ user }) => {
       });
     });
 
-    // Weakest Topic
-    let minTopicScore = 101;
-    let weakTopic = "N/A";
+    let minTopicScore = 101,
+      weakTopic = "N/A";
     Object.entries(topicStats).forEach(([t, s]) => {
       const avg = s.sum / s.total;
       if (avg < minTopicScore) {
@@ -103,9 +153,8 @@ const Dashboard = ({ user }) => {
       }
     });
 
-    // Weakest Type
-    let minTypeScore = 1.1; // Percent
-    let weakType = "N/A";
+    let minTypeScore = 1.1,
+      weakType = "N/A";
     Object.entries(typeStats).forEach(([t, s]) => {
       const avg = s.correct / s.total;
       if (avg < minTypeScore) {
@@ -136,34 +185,31 @@ const Dashboard = ({ user }) => {
     });
   };
 
-  // Removed type annotations for event (e) and id
   const handleDelete = (e, id) => {
-    // 1. Prevent bubbling immediately
     e.preventDefault();
     e.stopPropagation();
-
-    // 2. Confirm
+    // [UX_IMPROVEMENT]: Replace native confirmation dialog with a modern modal/confirm component (suggested: for a professional app, avoid window.confirm).
     if (
       !window.confirm(
         "Are you sure you want to delete this quiz? This cannot be undone."
       )
-    ) {
+    )
       return;
-    }
 
     try {
-      // 3. Perform delete in storage
       StorageService.deleteQuiz(id);
-
-      // 4. Force a refresh from storage to ensure UI is in sync
       refreshQuizzes();
+      // [TOASTER_IMPROVEMENT]: Use toast for success notification
+      toast.success("Quiz deleted successfully!");
     } catch (error) {
       console.error("Delete failed", error);
-
-      window.alert("Failed to delete quiz.");
+      // [TOASTER_IMPROVEMENT]: Use toast for failure notification
+      toast.error("Failed to delete quiz.");
+      // Removed: window.alert("Failed to delete quiz.");
     }
   };
 
+  // ... difficultyData and typeChartData calculations remain unchanged ...
   const difficultyData = [
     { name: "Easy", score: stats.avgEasy, fill: "#10b981" },
     { name: "Medium", score: stats.avgMedium, fill: "#f59e0b" },
@@ -206,14 +252,17 @@ const Dashboard = ({ user }) => {
         )
       : 0;
 
-  if (!user) {
+  if (!user)
     return (
+      // [UI_UX_IMPROVEMENT]: Consider using a full-page Skeleton Loader here instead of just "Loading..."
       <div className="flex items-center justify-center h-full">Loading...</div>
     );
-  }
 
   return (
+    // [UI_UX_IMPROVEMENT]: Add Toaster component to render notifications globally.
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      <Toaster position="top-right" />
+
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-textMain tracking-tight">
@@ -237,76 +286,37 @@ const Dashboard = ({ user }) => {
         </div>
       </header>
 
-      {/* KPI Stats Grid - Fixed Grid Layout */}
+      {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 rounded-xl text-blue-600 shrink-0">
-              <Trophy className="w-6 h-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-textMuted font-bold uppercase tracking-wider truncate">
-                Completed
-              </p>
-              <h3 className="text-2xl font-bold text-textMain">
-                {quizzes.filter((q) => q.score !== undefined).length}
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-xl text-green-600 shrink-0">
-              <Target className="w-6 h-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-textMuted font-bold uppercase tracking-wider truncate">
-                Avg Score
-              </p>
-              <h3 className="text-2xl font-bold text-textMain">
-                {quizzes.filter((q) => q.score !== undefined).length > 0
-                  ? totalAvgScore + "%"
-                  : "N/A"}
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-red-100 rounded-xl text-red-500 shrink-0">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-textMuted font-bold uppercase tracking-wider truncate">
-                Weak Point
-              </p>
-              <h3
-                className="text-lg font-bold text-textMain truncate"
-                title={stats.weakestTopic}
+        {/* [DX_IMPROVEMENT]: Using the extracted KPI_STATS constant for cleaner JSX */}
+        {KPI_STATS.map((stat, idx) => (
+          <div
+            key={idx}
+            className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-4">
+              <div
+                // [DESIGN_IMPROVEMENT]: Using explicit classes from constant for safer Tailwind compilation
+                className={`p-3 ${stat.colorClasses.bg} rounded-xl ${stat.colorClasses.text} shrink-0`}
               >
-                {stats.weakestTopic}
-              </h3>
+                {stat.icon}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-textMuted font-bold uppercase tracking-wider truncate">
+                  {stat.label}
+                </p>
+                <h3
+                  className={` ${
+                    stat.diffClass ? "text-lg" : "text-2xl"
+                  }  font-bold text-textMain truncate`}
+                >
+                  {/* Calculate value using the dataKey function from the constant */}
+                  {stat.dataKey(quizzes, totalAvgScore, stats, user)}
+                </h3>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-100 rounded-xl text-indigo-600 shrink-0">
-              <Zap className="w-6 h-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-textMuted font-bold uppercase tracking-wider truncate">
-                Flashcards Left
-              </p>
-              <h3 className="text-2xl font-bold text-textMain">
-                {user.limits.flashcardGenerationsRemaining}
-              </h3>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Analytics Section */}
@@ -323,6 +333,7 @@ const Dashboard = ({ user }) => {
                 layout="vertical"
                 margin={{ left: 20 }}
               >
+                {/* [DESIGN_IMPROVEMENT]: Consider adding grid lines for better data reading */}
                 <XAxis
                   type="number"
                   domain={[0, 100]}
@@ -434,6 +445,13 @@ const Dashboard = ({ user }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
               />
+              {/* [UI_UX_IMPROVEMENT]: Added clear button for search input */}
+              {searchTerm && (
+                <XCircle
+                  className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                  onClick={() => setSearchTerm("")}
+                />
+              )}
             </div>
             <div className="relative">
               <select
@@ -446,98 +464,119 @@ const Dashboard = ({ user }) => {
                 <option value="Medium">Medium</option>
                 <option value="Hard">Hard</option>
               </select>
+              {/* [UI_UX_IMPROVEMENT]: Using a standard chevron/arrow here might be better than the Filter icon for a simple dropdown */}
               <Filter className="absolute right-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredQuizzes.length === 0 ? (
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center text-textMuted py-10">
-              {quizzes.length === 0 ? (
-                <>
-                  No quizzes yet.{" "}
-                  <Link to="/generate" className="text-primary hover:underline">
-                    Create one!
-                  </Link>
-                </>
-              ) : (
-                <>No quizzes found matching your filters.</>
-              )}
-            </div>
-          ) : (
-            filteredQuizzes.map((quiz) => (
-              <div
-                key={quiz.id}
-                className="group relative bg-surfaceHighlight rounded-xl hover:bg-white transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1"
-              >
-                {/* Delete Button - Using z-50 to ensure it sits above the link and other elements */}
-                <button
-                  type="button"
-                  onClick={(e) => handleDelete(e, quiz._id)}
-                  className="absolute top-3 right-3 z-50 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                  title="Delete Quiz"
-                >
-                  <Trash2 className="w-4 h-4 pointer-events-none" />
-                </button>
-
-                <Link
-                  to={`/quiz/${quiz._id}`}
-                  className="block p-5 h-full z-10"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs font-bold ${
-                        quiz.difficulty === "Easy"
-                          ? "bg-green-100 text-green-600"
-                          : quiz.difficulty === "Medium"
-                          ? "bg-orange-100 text-orange-600"
-                          : "bg-red-100 text-red-600"
-                      }`}
+        {/* Quiz List */}
+        {isLoading && quizzes.length === 0 ? (
+          // [UI_UX_IMPROVEMENT]: Added temporary loading state feedback for the quiz list.
+          <div className="col-span-full text-center text-textMuted py-10">
+            Loading Quizzes...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredQuizzes.length === 0 ? (
+              <div className="col-span-full text-center text-textMuted py-10">
+                {quizzes.length === 0 ? (
+                  <>
+                    No quizzes yet.{" "}
+                    <Link
+                      to="/generate"
+                      className="text-primary hover:underline"
                     >
-                      {quiz.difficulty}
-                    </span>
-                  </div>
-                  <h3
-                    className="font-bold text-textMain truncate mb-1 pr-8 text-lg"
-                    title={quiz.title}
-                  >
-                    {quiz.title}
-                  </h3>
-                  <p className="text-sm text-textMuted mb-4 flex items-center gap-2">
-                    <span className="bg-slate-200/50 px-1.5 py-0.5 rounded text-xs font-medium">
-                      {quiz.questions.length} Qs
-                    </span>
-                    <span className="text-xs text-gray-400">•</span>
-                    <span className="text-xs">
-                      {new Date(quiz.createdAt).toLocaleDateString()}
-                    </span>
-                    {quiz.isFlashcardSet && (
-                      <BookOpen className="w-3 h-3 text-indigo-500 ml-auto" />
-                    )}
-                  </p>
-
-                  <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
-                    <span className="text-xs text-textMuted font-medium">
-                      {quiz.score !== undefined ? "Score" : "Incomplete"}
-                    </span>
-                    <span
-                      className={`text-sm font-bold ${
-                        quiz.score >= 80
-                          ? "text-green-600"
-                          : quiz.score >= 50
-                          ? "text-orange-600"
-                          : quiz.score < 49 && "text-red-600"
-                      }`}
-                    >
-                      {quiz.score !== undefined ? `${quiz.score}%` : "-"}
-                    </span>
-                  </div>
-                </Link>
+                      Create one!
+                    </Link>
+                  </>
+                ) : (
+                  <>No quizzes found matching your filters.</>
+                )}
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              filteredQuizzes.map((quiz) => (
+                <div
+                  key={quiz.id}
+                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-white transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1"
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(e, quiz._id)}
+                    // [UI_UX_IMPROVEMENT]: Adjusted hover style to be less jarring, but kept visibility behavior
+                    className="absolute top-3 right-3 z-50 p-2 text-gray-400 hover:text-red-500 rounded-lg cursor-pointer transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    title="Delete Quiz"
+                  >
+                    <Trash2 className="w-4 h-4 pointer-events-none" />
+                  </button>
+
+                  <Link
+                    to={`/quiz/${quiz._id}`}
+                    className="block p-5 h-full z-10"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <span
+                        // [DX_IMPROVEMENT]: Use extracted constant for Difficulty Styles
+                        className={`px-2 py-0.5 rounded text-xs font-bold ${
+                          DIFFICULTY_STYLES[quiz.difficulty]?.bg ||
+                          "bg-gray-100"
+                        } ${
+                          DIFFICULTY_STYLES[quiz.difficulty]?.text ||
+                          "text-gray-600"
+                        }`}
+                      >
+                        {quiz.difficulty}
+                      </span>
+                    </div>
+                    <h3
+                      className="font-bold text-textMain truncate mb-1 pr-8 text-lg"
+                      title={quiz.title}
+                    >
+                      {quiz.title}
+                    </h3>
+                    <p className="text-sm text-textMuted mb-4 flex items-center gap-2">
+                      <span className="bg-slate-200/50 px-1.5 py-0.5 rounded text-xs font-medium">
+                        {quiz.questions.length} Qs
+                      </span>
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs">
+                        {/* [UX_IMPROVEMENT]: Use 'short' date format for conciseness */}
+                        {new Date(quiz.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      {quiz.isFlashcardSet && (
+                        // [UI_IMPROVEMENT]: Move flashcard icon to the left for better alignment consistency in the card footer
+                        <BookOpen className="w-3 h-3 text-indigo-500 ml-auto" />
+                      )}
+                    </p>
+                    <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
+                      <span className="text-xs text-textMuted font-medium">
+                        {quiz.score !== undefined ? "Score" : "Incomplete"}
+                      </span>
+                      {/* [DX_IMPROVEMENT]: Improve score text color readability by simplifying the conditional chain. */}
+                      <span
+                        className={`text-sm font-bold ${
+                          quiz.score === undefined
+                            ? "text-textMain"
+                            : quiz.score >= 80
+                            ? "text-green-600"
+                            : quiz.score >= 50
+                            ? "text-orange-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {quiz.score !== undefined ? `${quiz.score}%` : "-"}
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
