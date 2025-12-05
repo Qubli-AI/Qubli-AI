@@ -1,0 +1,72 @@
+import express from "express";
+const router = express.Router();
+
+import Quiz from "../models/Quiz.js";
+import Flashcard from "../models/Flashcard.js";
+
+import protect from "../middleware/auth.js";
+
+router.get("/", protect, async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ userId: req.userId }).sort({
+      createdAt: -1,
+    });
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch quizzes." });
+  }
+});
+
+router.post("/", protect, async (req, res) => {
+  try {
+    const newQuiz = new Quiz({ ...req.body, userId: req.userId });
+    await newQuiz.save();
+    res.status(201).json(newQuiz);
+  } catch (error) {
+    console.error("Quiz creation error:", error);
+    res.status(400).json({ message: "Error saving quiz." });
+  }
+});
+
+router.put("/:id", protect, async (req, res) => {
+  try {
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!quiz)
+      return res
+        .status(404)
+        .json({ message: "Quiz not found or unauthorized." });
+
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating quiz." });
+  }
+});
+
+router.delete("/:id", protect, async (req, res) => {
+  try {
+    const result = await Quiz.deleteOne({
+      _id: req.params.id,
+      userId: req.userId,
+    });
+    if (result.deletedCount === 0)
+      return res
+        .status(404)
+        .json({ message: "Quiz not found or unauthorized." });
+
+    await Flashcard.deleteMany({
+      quizId: req.params.id,
+      userId: req.userId,
+    });
+
+    res.status(200).json({ message: "Quiz deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting quiz." });
+  }
+});
+
+export default router;

@@ -1,0 +1,308 @@
+import React, { useState, useEffect } from "react";
+
+import {
+  Zap,
+  ArrowRight,
+  Lock,
+  Mail,
+  User,
+  BrainCircuit,
+  Loader2,
+  Check,
+  X,
+} from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
+const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/auth`;
+
+const Login = ({ onLogin }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Validation Logic
+  const validations = {
+    name: (name) => name.length >= 6,
+    email: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+    password: (pass) => /^(?=.*[A-Z])(?=.*\d).{6,}$/.test(pass),
+  };
+
+  // Check form validity in real-time
+  useEffect(() => {
+    if (isLogin) {
+      const emailValid = validations.email(formData.email);
+      const passValid = validations.password(formData.password);
+      setIsFormValid(emailValid && passValid);
+    } else {
+      const nameValid = validations.name(formData.name);
+      const emailValid = validations.email(formData.email);
+      const passValid = validations.password(formData.password);
+      setIsFormValid(nameValid && emailValid && passValid);
+    }
+  }, [formData, isLogin]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/${isLogin ? "login" : "register"}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            isLogin
+              ? { email: formData.email, password: formData.password }
+              : {
+                  name: formData.name,
+                  email: formData.email,
+                  password: formData.password,
+                }
+          ),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Error");
+
+      localStorage.setItem("token", data.token); // store JWT
+      localStorage.setItem("user", JSON.stringify(data.user));
+      onLogin(data.user); // pass logged-in user info
+      setLoading(false);
+
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Helper to render Status Icon
+  const renderStatusIcon = (isValid, value) => {
+    if (!value) return null;
+    return isValid ? (
+      <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 animate-in zoom-in duration-200" />
+    ) : (
+      <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 animate-in zoom-in duration-200" />
+    );
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+
+      <div className="max-w-md w-full bg-surface p-8 rounded-2xl border border-border shadow-2xl z-10 border-main transition-all duration-300">
+        <div className="text-center mb-6">
+          <div className="inline-flex p-3 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-4 shadow-lg shadow-primary/20">
+            <BrainCircuit className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-textMain mb-2">
+            {isLogin ? "Welcome Back" : "Join Quizzy AI"}
+          </h1>
+          <p className="text-textMuted">
+            {isLogin
+              ? "Enter your credentials to access your workspace."
+              : "Start your intelligent learning journey."}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-1 relative group">
+              <label className="text-xs font-medium text-textMuted ml-1">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 disabled:opacity-60 ${
+                    formData.name && !validations.name(formData.name)
+                      ? "border-red-300 bg-red-50/10"
+                      : "border-border"
+                  }`}
+                  placeholder="John Doe"
+                />
+                {renderStatusIcon(
+                  validations.name(formData.name),
+                  formData.name
+                )}
+              </div>
+              {/* Inline Hint - Only show if user has started typing */}
+              {formData.name.length > 0 && (
+                <div
+                  className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-[22px] left-0 w-full truncate ${
+                    !validations.name(formData.name)
+                      ? "text-red-500 font-medium"
+                      : "text-green-600"
+                  }`}
+                >
+                  Full name must be at least 6 characters
+                </div>
+              )}
+            </div>
+          )}
+
+          <div
+            className={`space-y-1 ${
+              formData.name.length > 0 && "pt-3"
+            } relative`}
+          >
+            <label className="text-xs font-medium text-textMuted ml-1">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={loading}
+                className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 disabled:opacity-60 ${
+                  !isLogin &&
+                  formData.email &&
+                  !validations.email(formData.email)
+                    ? "border-red-300 bg-red-50/10"
+                    : "border-border"
+                }`}
+                placeholder="name@example.com"
+              />
+              {renderStatusIcon(
+                validations.email(formData.email),
+                formData.email
+              )}
+            </div>
+            {/* Inline Hint - Only show if user has started typing */}
+            {formData.email.length > 0 && (
+              <div
+                className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-[22px] left-0 w-full truncate ${
+                  !validations.email(formData.email)
+                    ? "text-red-500 font-medium"
+                    : "text-green-600"
+                }`}
+              >
+                Enter a valid email address
+              </div>
+            )}
+          </div>
+
+          <div
+            className={`space-y-1 ${
+              formData.email.length > 0 && "pt-3"
+            } relative`}
+          >
+            <label className="text-xs font-medium text-textMuted ml-1">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 disabled:opacity-60 ${
+                  !isLogin &&
+                  formData.password &&
+                  !validations.password(formData.password)
+                    ? "border-red-300 bg-red-50/10"
+                    : "border-border"
+                }`}
+                placeholder="••••••••"
+              />
+              {renderStatusIcon(
+                validations.password(formData.password),
+                formData.password
+              )}
+            </div>
+            {/* Inline Hint - Only show if user has started typing */}
+            {formData.password.length > 0 && (
+              <div
+                className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-[22px] left-0 w-full ${
+                  !validations.password(formData.password)
+                    ? "text-red-500 font-medium"
+                    : "text-green-600"
+                }`}
+              >
+                Min 6 chars & include a number and uppercase letter
+              </div>
+            )}
+          </div>
+
+          <div
+            style={{ height: formData.password.length > 0 ? "10px" : "0px" }}
+          ></div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-2">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || !isFormValid}
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.01] active:scale-[0.98] shadow-lg shadow-primary/20 mt-4 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {isLogin ? "Signing In..." : "Creating Account..."}
+              </>
+            ) : (
+              <>
+                {isLogin ? "Sign In" : "Sign Up"}{" "}
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-textMuted">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setFormData({ name: "", email: "", password: "" });
+                setIsFormValid(false);
+              }}
+              className="text-primary hover:underline cursor-pointer font-medium transition-colors"
+              disabled={loading}
+            >
+              {isLogin ? "Sign Up" : "Log In"}
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
