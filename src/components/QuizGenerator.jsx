@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-
+import React, { useState } from "react";
 import {
   Type,
   Upload,
@@ -12,15 +11,15 @@ import {
   ChevronDown,
   Loader2,
   Sparkles,
+  X,
+  Eye,
 } from "lucide-react";
-
 import { useNavigate } from "react-router-dom";
 
 import { generateQuiz } from "../services/geminiService.js";
 import StorageService from "../services/storageService.js";
 import { TIER_LIMITS, EXAM_STYLES } from "../../server/config/constants.js";
 import SubscriptionModal from "./SubscriptionModal.jsx";
-
 import {
   SubscriptionTier,
   Difficulty,
@@ -38,44 +37,157 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const [totalMarks, setTotalMarks] = useState(10);
   const [selectedTypes, setSelectedTypes] = useState(["MCQ"]);
   const [examStyleId, setExamStyleId] = useState("standard");
-  const [file, setFile] = useState(null);
+
+  const [files, setFiles] = useState([]);
+
   const [error, setError] = useState("");
-  const [generateFlashcards, setGenerateFlashcards] = useState(false);
+  const [generateFlashcards, setGenerateFlashcards] = useState(
+    user.tier !== "Free"
+  );
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [reading, setReading] = useState(false);
 
   const userMaxQuestions = TIER_LIMITS[user.tier].maxQuestions;
   const userMaxMarks = TIER_LIMITS[user.tier].maxMarks;
 
-  useEffect(() => {
-    setGenerateFlashcards(user.tier !== "Free");
-  }, [user.tier]);
+  const formatSize = (bytes) => {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    let u = 0;
+    let val = bytes;
+    while (val >= 1024 && u < units.length - 1) {
+      val /= 1024;
+      u++;
+    }
+    return `${Math.round(val * 10) / 10} ${units[u]}`;
+  };
+
+  const processSelectedFiles = async (incomingFileList) => {
+    if (!incomingFileList || incomingFileList.length === 0) return;
+
+    const incomingArray = Array.from(incomingFileList);
+
+    // 1. Tier Limitation Logic
+    const isPro = user.tier === "Pro";
+    const currentCount = files.length;
+    const incomingCount = incomingArray.length;
+
+    if (!isPro && currentCount + incomingCount > 1) {
+      if (currentCount >= 1) {
+        setError("Free/Basic plans are limited to 1 PDF per quiz.");
+        setShowUpgradeModal(true);
+        return;
+      }
+      if (incomingCount > 1) {
+        setError("Free/Basic plans can only upload 1 PDF at a time.");
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
+    // 2. Size & Type Validation
+    const validFiles = incomingArray.filter((f) => {
+      if (f.type !== "application/pdf") {
+        setError("Skipped non-PDF files.");
+        return false;
+      }
+      if (f.size > 10 * 1024 * 1024) {
+        setError(`File ${f.name} too large (Max 10MB).`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // 3. Read Files
+    setReading(true);
+    setError("");
+
+    try {
+      const filePromises = validFiles.map((fileItem) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const dataUrl = ev.target.result;
+            const base64 = dataUrl.split(",")[1];
+            resolve({
+              id: Math.random().toString(36).substr(2, 9),
+              name: fileItem.name,
+              data: base64,
+              mime: fileItem.type,
+              size: fileItem.size,
+              previewUrl: dataUrl,
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(fileItem);
+        });
+      });
+
+      const newProcessedFiles = await Promise.all(filePromises);
+      setFiles((prev) => [...prev, ...newProcessedFiles]);
+    } catch (err) {
+      setError("Failed to read one or more files.");
+    } finally {
+      setReading(false);
+    }
+  };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      setError("File too large. Max 10MB.");
-      return;
+    processSelectedFiles(e.target.files);
+    e.target.value = "";
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const dtFiles = e.dataTransfer?.files;
+    if (dtFiles && dtFiles.length > 0) processSelectedFiles(dtFiles);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const removeFile = (e, fileId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+  };
+
+  // Safe Preview Handler (New Window)
+  const handlePreview = (e, url) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const win = window.open("");
+    if (win) {
+      win.document.write(
+        `<body style="margin:0; overflow:hidden;">
+           <iframe width="100%" height="100%" src="${url}" frameborder="0"></iframe>
+         </body>`
+      );
+      win.document.title = "PDF Preview";
     }
-    const reader = new FileReader();
-    reader.onload = (ev) =>
-      setFile({
-        name: selectedFile.name,
-        data: ev.target.result.split(",")[1],
-        mime: selectedFile.type,
-      });
-    reader.onerror = () => setError("Failed to read file.");
-    reader.readAsDataURL(selectedFile);
   };
 
   const toggleType = (type) => {
     if (selectedTypes.includes(type)) {
-      // Prevent removing the last selected item
       if (selectedTypes.length === 1) return;
-
-      // Remove normally
       setSelectedTypes(selectedTypes.filter((t) => t !== type));
     } else {
-      // Add the type
       setSelectedTypes([...selectedTypes, type]);
     }
   };
@@ -95,6 +207,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     e.preventDefault();
     setError("");
 
+    if (loading) return;
+
     if (questionCount > userMaxQuestions)
       return setError(`Max ${userMaxQuestions} questions allowed.`);
 
@@ -105,25 +219,31 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       return setError("Daily quiz limit reached.");
     if (generateFlashcards && user.limits.flashcardGenerationsRemaining <= 0)
       return setError("Daily flashcard limit reached.");
+
     if (
       mode === "pdf" &&
       user.tier !== "Pro" &&
       user.limits.pdfUploadsRemaining <= 0
     )
       return setError("Daily PDF upload limit reached.");
+
     if (selectedTypes.length === 0)
       return setError("Select at least one question type.");
-    if (mode === "pdf" && !file) return setError("Upload a PDF file.");
+
+    if (mode === "pdf" && files.length === 0)
+      return setError("Upload at least one PDF file.");
     if (mode === "text" && !topic.trim()) return setError("Enter a topic.");
 
     setLoading(true);
     try {
-      const fileData =
-        mode === "pdf" && file
-          ? { mimeType: file.mime, data: file.data }
+      const filesDataPayload =
+        mode === "pdf"
+          ? files.map((f) => ({ mimeType: f.mime, data: f.data }))
           : undefined;
+
       const promptTopic =
         mode === "pdf" ? "the attached document content" : topic;
+
       const quiz = await generateQuiz(
         promptTopic,
         difficulty,
@@ -131,8 +251,9 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         selectedTypes,
         totalMarks,
         examStyleId,
-        fileData
+        filesDataPayload
       );
+
       quiz.userId = user.id;
       quiz.isFlashcardSet = generateFlashcards;
 
@@ -168,10 +289,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         await StorageService.saveFlashcards(cards);
       }
 
-      await StorageService.decrementGeneration();
       if (generateFlashcards)
         await StorageService.decrementFlashcardGeneration();
+
       if (mode === "pdf") await StorageService.decrementPdfUpload();
+
       onGenerateSuccess();
       navigate(`/quiz/${savedQuiz._id}`);
     } catch (err) {
@@ -196,10 +318,20 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+      <style>
+        {`
+          @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+          }
+        `}
+      </style>
+
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-textMain">Create New Quiz</h1>
         <div className="text-sm text-textMuted bg-surfaceHighlight px-3 py-1 rounded-full">
-          {user.limits.generationsRemaining} generations left today
+          {user.tier === "Pro" ? "Unlimited" : user.limits.generationsRemaining}{" "}
+          generations left today
         </div>
       </div>
 
@@ -251,31 +383,116 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 <label className="block text-sm font-bold text-textMain mb-2">
                   Upload Study Material (PDF)
                 </label>
-                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-surfaceHighlight transition-colors relative">
+
+                {/* ===== Enhanced Upload Area ===== */}
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragEnter={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`relative border-2 rounded-xl p-6 transition-colors ${
+                    isDragging
+                      ? "border-primary bg-primary/5"
+                      : files.length > 0
+                      ? "border-primary/20 bg-white"
+                      : "border-dashed border-border bg-transparent hover:bg-surfaceHighlight"
+                  }`}
+                  aria-label="PDF upload area"
+                >
                   <input
                     type="file"
                     accept="application/pdf"
+                    multiple={user.tier === "Pro"}
                     onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
-                  {file ? (
-                    <div className="flex flex-col items-center text-primary">
-                      <FileText className="w-10 h-10 mb-2" />
-                      <span className="font-bold">{file.name}</span>
-                      <span className="text-xs text-textMuted mt-1">
-                        Click to replace
-                      </span>
+
+                  {files.length > 0 ? (
+                    <div className="space-y-3 relative z-20 pointer-events-none">
+                      {files.map((file, index) => (
+                        <div
+                          key={file.id || index}
+                          className="flex items-center gap-4 p-3 bg-surfaceHighlight/50 rounded-lg border border-border pointer-events-auto"
+                        >
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-white border border-border flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-primary" />
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-sm text-textMain truncate">
+                              {file.name}
+                            </div>
+                            <div className="text-xs text-textMuted">
+                              {formatSize(file.size)}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {file.previewUrl && (
+                              <button
+                                type="button"
+                                onClick={(e) =>
+                                  handlePreview(e, file.previewUrl)
+                                }
+                                className="p-2 hover:bg-surfaceHighlight rounded-lg text-textMuted hover:text-primary transition-colors"
+                                title="Preview PDF"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => removeFile(e, file.id)}
+                              className="p-2 hover:bg-red-50 rounded-lg text-textMuted hover:text-red-500 transition-colors"
+                              title="Remove file"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {user.tier === "Pro" && (
+                        <div className="text-center text-xs text-textMuted mt-2 pointer-events-none">
+                          Drop more files to add to this quiz
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center text-textMuted">
-                      <Upload className="w-10 h-10 mb-2" />
-                      <span className="font-medium">
-                        Drag & drop or click to upload
-                      </span>
-                      <span className="text-xs mt-1">PDF up to 10MB</span>
+                    <div className="flex flex-col items-center justify-center py-8 gap-2 pointer-events-none">
+                      {reading ? (
+                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                      ) : (
+                        <Upload
+                          className={`w-12 h-12 transition-all duration-300 ${
+                            isDragging ? "text-primary" : "text-textMuted"
+                          }`}
+                          style={{
+                            animation: isDragging
+                              ? "gentle-bounce 1s infinite ease-in-out"
+                              : "none",
+                          }}
+                        />
+                      )}
+                      <div className="text-sm font-semibold text-textMain">
+                        {reading
+                          ? "Processing files..."
+                          : "Drag & drop PDF here"}
+                      </div>
+                      {!reading && (
+                        <div className="text-xs text-textMuted">
+                          {user.tier === "Pro"
+                            ? "Upload multiple PDFs"
+                            : "Single PDF limit"}{" "}
+                          • Max 10MB each
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+
                 {user.tier === SubscriptionTier.Free && (
                   <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
@@ -283,6 +500,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     left today.
                   </p>
                 )}
+                {/* ===== End Enhanced Upload Area ===== */}
               </div>
             )}
           </div>
@@ -456,7 +674,9 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                         : "bg-red-50 text-red-600 border-red-100"
                     }`}
                   >
-                    {user.limits.flashcardGenerationsRemaining} left
+                    {user.tier === "Pro"
+                      ? "Unlimited"
+                      : user.limits.flashcardGenerationsRemaining + " left"}
                   </span>
                 </div>
                 <p className="text-xs text-textMuted">
@@ -482,7 +702,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
           {error && (
             <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}

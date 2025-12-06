@@ -22,7 +22,6 @@ import StorageService from "../services/storageService.js";
 import { QuestionType } from "../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 
-// DX: Move rendering utility outside the component scope
 const parseBoldText = (text) => {
   if (!text) return null;
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -39,9 +38,7 @@ const truncateText = (text, maxLength) => {
   return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 };
 
-const TrueFalseOptions = ["True", "False"]; // DX: Hardcoded values extracted
-
-// --- Extracted Components (DX) ---
+const TrueFalseOptions = ["True", "False"];
 
 const QuizIntroView = ({ quiz, startQuiz }) => (
   <div className="bg-surface p-8 rounded-2xl border border-border shadow-xl text-center">
@@ -207,10 +204,50 @@ const QuizResultsView = ({
   </div>
 );
 
-// DX: Extracted Flashcard view
 const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+
+  // Clamp index when flashcards change (avoid out-of-range)
+  useEffect(() => {
+    if (!quizFlashcards || quizFlashcards.length === 0) {
+      setCardIndex(0);
+      setFlipped(false);
+      return;
+    }
+    setCardIndex((idx) => Math.min(idx, quizFlashcards.length - 1));
+  }, [quizFlashcards.length]);
+
+  // Reset flip on card change
+  useEffect(() => {
+    setFlipped(false);
+  }, [cardIndex]);
+
+  // Keyboard navigation: left/right/space. Ignore when typing in inputs.
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const tag = (e.target && e.target.tagName) || "";
+      const isEditable =
+        tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable;
+      if (isEditable) return;
+
+      if (e.code === "ArrowRight" || e.key === "ArrowRight") {
+        e.preventDefault();
+        setCardIndex((prev) => (prev + 1) % quizFlashcards.length);
+      } else if (e.code === "ArrowLeft" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        setCardIndex(
+          (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
+        );
+      } else if (e.code === "Space" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        setFlipped((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [quizFlashcards.length]);
 
   if (quizFlashcards.length === 0 || !quiz.isFlashcardSet) {
     return (
@@ -237,12 +274,10 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
   const card = quizFlashcards[cardIndex];
 
   const nextCard = () => {
-    setFlipped(false);
     setCardIndex((prev) => (prev + 1) % quizFlashcards.length);
   };
 
   const prevCard = () => {
-    setFlipped(false);
     setCardIndex(
       (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
     );
@@ -251,13 +286,13 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
   return (
     <div className="max-w-2xl mx-auto h-[65vh] flex flex-col">
       <div className="flex justify-between items-center mb-4 text-textMuted text-sm">
-        {/* UX: Ensure card index count is bold and prominent */}
         <span>
           Card <strong>{cardIndex + 1}</strong> of{" "}
           <strong>{quizFlashcards.length}</strong>
         </span>
         <span className="text-textMuted">Tap card to flip</span>
       </div>
+
       <div className="flex-1 perspective-1000 relative mb-8">
         <div
           onClick={() => setFlipped(!flipped)}
@@ -308,22 +343,24 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
-  const [status, setStatus] = useState("loading"); // 'loading' | 'intro' | 'active' | 'completed'
+  const [status, setStatus] = useState("loading");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [isFetching, setIsFetching] = useState(true);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState("exam"); // 'exam' | 'flashcards'
+  const [activeTab, setActiveTab] = useState("exam");
   const [quizFlashcards, setQuizFlashcards] = useState([]);
 
+  const isLast = quiz && currentIdx === quiz.questions.length - 1;
+
   useEffect(() => {
-    if (!user) return; // wait until user is loaded
+    if (!user) return;
 
     async function fetchQuiz() {
       try {
         const quizzes = (await StorageService.getQuizzes(user.id)) || [];
-        const q = quizzes.find((q) => q._id === id);
+        const q = quizzes.find((qq) => qq._id === id || qq.id === id);
 
         if (!q) {
           console.warn("Quiz not found:", id);
@@ -331,10 +368,15 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           return;
         }
 
-        setQuiz(q);
-
         const allCards = (await StorageService.getFlashcards(user.id)) || [];
-        const relevantCards = allCards.filter((c) => c.quizId === q.id);
+        const relevantCards = allCards.filter(
+          (c) => c.quizId === q.id || c.quizId === q._id
+        );
+
+        const isFlashcardSet = relevantCards.length > 0;
+        const updatedQuiz = { ...q, isFlashcardSet };
+
+        setQuiz(updatedQuiz);
         setQuizFlashcards(relevantCards);
 
         if (status === "loading") {
@@ -342,7 +384,8 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             setStatus("completed");
             const prevAnswers = {};
             q.questions.forEach((ques) => {
-              prevAnswers[ques.id] = ques.userAnswer || "";
+              const qid = ques.id || ques._id;
+              prevAnswers[qid] = ques.userAnswer || "";
             });
             setAnswers(prevAnswers);
           } else {
@@ -372,7 +415,8 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   const handleAnswer = (val) => {
     if (status === "completed" || !quiz) return;
-    setAnswers((prev) => ({ ...prev, [quiz.questions[currentIdx].id]: val }));
+    const qid = quiz.questions[currentIdx].id || quiz.questions[currentIdx]._id;
+    setAnswers((prev) => ({ ...prev, [qid]: val }));
   };
 
   const calculateScore = () => {
@@ -437,17 +481,21 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   const manualCreateFlashcards = () => {
     if (!quiz) return;
-    const cards = quiz.questions.map((q) => ({
-      id: `fc_${q.id}`,
-      userId: user.id,
-      quizId: quiz.id,
-      front: q.text,
-      back: `${q.correctAnswer}\n\n${q.explanation}`,
-      nextReview: Date.now(),
-      interval: 0,
-      repetition: 0,
-      easeFactor: 2.5,
-    }));
+    const quizIdKey = quiz._id || quiz.id;
+    const cards = quiz.questions.map((q) => {
+      const qid = q.id || q._id;
+      return {
+        id: `fc_${qid}`,
+        userId: user.id,
+        quizId: quizIdKey,
+        front: q.text,
+        back: `${q.correctAnswer}\n\n${q.explanation}`,
+        nextReview: Date.now(),
+        interval: 0,
+        repetition: 0,
+        easeFactor: 2.5,
+      };
+    });
     StorageService.saveFlashcards(cards);
     const updatedQuiz = { ...quiz, isFlashcardSet: true };
     setQuiz(updatedQuiz);
@@ -457,9 +505,9 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   };
 
   const currentQ = quiz.questions[currentIdx];
-  const isLast = currentIdx === quiz.questions.length - 1;
+  const currentQId = currentQ.id || currentQ._id;
   const hasAnsweredCurrent =
-    !!answers[currentQ.id] && answers[currentQ.id].trim() !== "";
+    !!answers[currentQId] && answers[currentQId].trim() !== "";
 
   const fullTitle = quiz.title;
 

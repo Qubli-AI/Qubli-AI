@@ -1,4 +1,5 @@
 import { request } from "./api.js";
+import StorageService from "./storageService.js";
 
 /**
  * Generates a quiz by calling the secure backend endpoint.
@@ -53,4 +54,24 @@ export const generatePerformanceReview = async (user, quizzes) => {
 
   // Call the secure server endpoint
   return request("/api/ai/review", "POST", payload);
+};
+
+/**
+ * Executes the full cycle: generates a new AI review and saves it to the DB.
+ * This function is designed to be called when a quiz is COMPLETED.
+ * @param {object} user - The current user object.
+ * @param {object[]} updatedQuizzes - The full list of quizzes including the new one.
+ * @returns {Promise<string>} The newly generated review text.
+ */
+export const generateAndSaveReview = async (user, updatedQuizzes) => {
+  const result = await generatePerformanceReview(user, updatedQuizzes);
+  const reviewText = result.review;
+
+  if (!reviewText) {
+    throw new Error("AI review generation returned empty text.");
+  }
+
+  await StorageService.saveReview(reviewText);
+
+  return reviewText;
 };

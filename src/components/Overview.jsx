@@ -6,10 +6,12 @@ import {
   Calendar,
   BarChart3,
   Clock,
-} from "lucide-react"; // DX: Added BarChart3 for empty table, Clock for date
+} from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 import StorageService from "../services/storageService.js";
-import { generatePerformanceReview } from "../services/geminiService.js";
+import { generateAndSaveReview } from "../services/geminiService.js";
 
 // DX: Utility function for consistent date formatting
 const formatQuizDate = (dateString) => {
@@ -68,35 +70,38 @@ const Overview = ({ user }) => {
   }, [quizzes]);
 
   useEffect(() => {
-    async function loadQuizzes() {
+    async function loadInitialData() {
       const userQuizzes = await StorageService.getQuizzes(user.id);
       setQuizzes(userQuizzes);
 
-      if (userQuizzes.length > 0) {
-        fetchAiReview(userQuizzes);
+      const storedReview = await StorageService.getLastReview();
+      if (storedReview) {
+        setAiReview(storedReview.text);
+      } else if (userQuizzes.filter((q) => q.score !== undefined).length > 0) {
+        setLoading(true);
+        try {
+          const reviewText = await generateAndSaveReview(user, userQuizzes);
+          setAiReview(reviewText);
+        } catch (e) {
+          console.error("Initial AI Review Generation Failed:", e);
+          setAiReview("Could not generate initial review at this time.");
+        } finally {
+          setLoading(false);
+        }
       }
     }
-
-    loadQuizzes();
+    loadInitialData();
   }, [user.id]);
-
-  const fetchAiReview = async (quizData) => {
-    if (!quizData || quizData.length === 0) return;
-    setLoading(true);
-    try {
-      const result = await generatePerformanceReview(user, quizData);
-      setAiReview(result.review);
-    } catch (e) {
-      console.error(e);
-      setAiReview("Could not generate review at this time.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const truncateText = (text, maxLength) => {
     if (!text) return "";
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
+
+  const navigate = useNavigate();
+
+  const handleRowClick = (quizId) => {
+    navigate(`/quiz/${quizId}`);
   };
 
   // DX: Simplified review formatting logic (still manual, but separated)
@@ -216,10 +221,10 @@ const Overview = ({ user }) => {
           <table className="w-full text-left text-sm table-auto min-w-[600px]">
             <thead className="bg-surfaceHighlight text-textMuted font-medium text-xs uppercase tracking-wider">
               <tr>
-                <th className="p-5 pl-6 w-60">Quiz Title</th>
-                <th className="p-5 text-center w-30">Date Taken</th>
-                <th className="p-5 text-center w-30">Difficulty</th>
-                <th className="p-5 text-center w-30">Score</th>
+                <th className="p-5 pl-6 w-55">Quiz Title</th>
+                <th className="p-5 text-center w-20">Date Taken</th>
+                <th className="p-5 text-center w-20">Difficulty</th>
+                <th className="p-5 text-center w-20">Score</th>
                 <th className="p-5 text-center w-30">Marks Obtained</th>
               </tr>
             </thead>
@@ -236,10 +241,11 @@ const Overview = ({ user }) => {
                   return (
                     <tr
                       key={q.id}
-                      className="hover:bg-slate-50 transition-colors group cursor-default"
+                      className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                      onClick={() => handleRowClick(q._id || q.id)}
                     >
                       <td className="p-5 pl-6 font-semibold text-textMain group-hover:text-primary transition-colors">
-                        {truncateText(q.title, 50)}
+                        {truncateText(q.title, 40)}
                       </td>
                       <td className="p-5 text-textMuted text-center whitespace-nowrap">
                         {formatQuizDate(q.createdAt)}

@@ -9,8 +9,10 @@ import { SubscriptionTier, QuestionType } from "../config/types.js";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const API_KEY = process.env.GEMINI_API_KEY;
 
-const PRO_MODEL = "gemini-3-pro-preview";
+const PRO_MODEL = "gemini-2.5-pro";
 const BASIC_MODEL = "gemini-2.5-flash";
+
+import toast from "react-hot-toast";
 
 async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
   for (let i = 0; i < retries; i++) {
@@ -21,7 +23,7 @@ async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
 
       // Retry only on overload or rate-limit
       if (status === 503 || status === 429) {
-        console.log(`Gemini overloaded → retrying (${i + 1}/${retries})...`);
+        toast.info(`Gemini overloaded → retrying (${i + 1}/${retries})`);
         await new Promise((res) => setTimeout(res, delay));
       } else {
         throw err; // non-retryable error
@@ -29,7 +31,7 @@ async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
     }
   }
 
-  throw new Error("Gemini failed after multiple retries.");
+  toast.error(`AI failed after ${retries} retries.`);
 }
 
 // Helper function to build the final API URL
@@ -45,7 +47,7 @@ const selectModel = (user) => {
   )
     return BASIC_MODEL;
   if (user.tier === SubscriptionTier.Pro) return PRO_MODEL;
-  return BASIC_MODEL; // Fallback
+  return BASIC_MODEL;
 };
 
 // Map string to QuestionType enum
@@ -161,7 +163,8 @@ Include a mix of the following question types: ${typeString}.
 - For 'MCQ', provide 4 options.
 - For 'TrueFalse', provide 2 options (True, False).
 - For Short/Long Answer, 'options' can be empty array.
-- Return JSON only.`;
+- Return JSON only.
+- Question marks must be whole numbers, not numbers like 2.5, 3.5, etc.s`;
 
   const parts = [{ text: prompt }];
 
@@ -204,7 +207,7 @@ Include a mix of the following question types: ${typeString}.
     const resultText = await response.text();
 
     if (!response.ok) {
-      console.error("Gemini API Error Response:", resultText);
+      toast.error("Failed to generate quiz. Try again.");
       throw new Error(
         `API call failed with status ${
           response.status
@@ -255,6 +258,8 @@ Include a mix of the following question types: ${typeString}.
       marks: q.marks || 1,
     }));
 
+    toast.success("Quiz generated successfully!");
+
     return {
       title: data.title || `${topic} Quiz`,
       topic,
@@ -266,7 +271,7 @@ Include a mix of the following question types: ${typeString}.
       examStyle: styleLabel,
     };
   } catch (error) {
-    console.error("Quiz generation error:", error);
+    toast.error("AI Review temporarily unavailable.");
     throw new Error(
       "Failed to generate quiz. Please try again or check server logs."
     );
@@ -300,6 +305,7 @@ Output: A sharp, direct, high-impact review.
 - Give 1 actionable next step prefixing with **Next Step:**.
 - Do NOT start with ${user.name}.
 - Do NOT start the review with 'Review:'.
+- For the words that need bolding use **WORD**, not *WORD*.
 - Do NOT mention difficulty levels or quiz structure in the topic name, just the core topic itself.`;
 
   const contents = [{ role: "user", parts: [{ text: prompt }] }];
@@ -329,9 +335,11 @@ Output: A sharp, direct, high-impact review.
 
     const review = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
+    toast.success("Performance review generated!");
+
     return review;
   } catch (e) {
-    console.error("Performance review error:", e);
+    toast.success("Performance review error.");
     throw new Error("AI Review temporarily unavailable.");
   }
 };

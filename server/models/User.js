@@ -6,7 +6,11 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true }, // Store hashed password
-    tier: { type: String, enum: ["Free", "Basic", "Premium"], default: "Free" },
+    tier: {
+      type: String,
+      enum: ["Free", "Basic", "Pro"],
+      default: "Free",
+    },
 
     // Embed the Limits Schema
     limits: { type: LimitsSchema, required: true, default: {} },

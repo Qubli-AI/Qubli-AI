@@ -64,7 +64,10 @@ const KPI_STATS = [
   {
     label: "Flashcards Left",
     dataKey: (quizzes, totalAvgScore, stats, user) =>
-      user.limits.flashcardGenerationsRemaining,
+      user.tier === "Pro"
+        ? "Unlimited"
+        : user.limits.flashcardGenerationsRemaining,
+
     icon: <Zap className="w-6 h-6" />,
     colorClasses: { bg: "bg-indigo-100", text: "text-indigo-600" },
     diffClass: false,
@@ -288,7 +291,6 @@ const Dashboard = ({ user }) => {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* [DX_IMPROVEMENT]: Using the extracted KPI_STATS constant for cleaner JSX */}
         {KPI_STATS.map((stat, idx) => (
           <div
             key={idx}
@@ -296,7 +298,6 @@ const Dashboard = ({ user }) => {
           >
             <div className="flex items-center gap-4">
               <div
-                // [DESIGN_IMPROVEMENT]: Using explicit classes from constant for safer Tailwind compilation
                 className={`p-3 ${stat.colorClasses.bg} rounded-xl ${stat.colorClasses.text} shrink-0`}
               >
                 {stat.icon}

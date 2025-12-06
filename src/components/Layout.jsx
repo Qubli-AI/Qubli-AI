@@ -10,15 +10,11 @@ import {
   Crown,
   BrainCircuit,
   Loader2,
-  // Imported Zap for potential future "Review Cards" feature for better DX
   Zap,
 } from "lucide-react";
 
 import SubscriptionModal from "./SubscriptionModal.jsx";
-
-// DX: Defined assumed maximum limits for visual progress bar calculations
-const MAX_QUIZZES = 10;
-const MAX_PDF_UPLOADS = 5;
+import { SubscriptionTier } from "../../server/config/types.js";
 
 // DX: Helper function for progress calculation
 const getProgressWidth = (remaining, max) => {
@@ -44,25 +40,27 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
     setPdfLeft(user.limits.pdfUploadsRemaining);
   }, [user.limits.pdfUploadsRemaining]);
 
-  // DX: Added a placeholder nav item for a common feature (flashcards/review)
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: PlusCircle, label: "New Quiz", path: "/generate" },
     { icon: BarChart, label: "Overview", path: "/overview" },
-    // { icon: Zap, label: "Review Cards", path: "/review" },
   ];
 
   const handleLogoutClick = () => {
     setIsLoggingOut(true);
-    // UX: The timeout is maintained to provide visual feedback (spinner) while the user is theoretically awaiting the server response.
     setTimeout(() => {
       onLogout();
       setIsLoggingOut(false);
-    }, 1500);
+    }, 1000);
   };
 
+  const userTier = user.tier;
+  const userLimits = SubscriptionTier[userTier];
+
+  const MAX_QUIZZES = userLimits.generationsRemaining;
+  const MAX_PDF_UPLOADS = userLimits.pdfUploadsRemaining;
+
   return (
-    // DESIGN: General text selection styling for better aesthetic
     <div className="min-h-screen bg-background text-textMain flex font-sans no-print selection:bg-primary/20 selection:text-primary">
       {/* Desktop Sidebar */}
       <aside className="w-64 bg-surface border-r overflow-auto border-border hidden md:flex flex-col fixed h-full z-10 shadow-sm transition-all duration-300">
@@ -109,10 +107,8 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
           {user && (
             <div className="bg-surfaceHighlight p-4 rounded-xl mb-6 border border-border/50 shadow-lg shadow-black/5">
               {" "}
-              {/* DESIGN: Enhanced shadow */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 mb-1 overflow-hidden">
-                  {/* DESIGN: Gradient avatar for premium feel */}
                   <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">
                     {user.name.charAt(0)}
                   </div>
@@ -126,7 +122,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
                 <span
                   // DESIGN: Tier badge updated to rounded-full and font-extrabold
-                  className={`text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-wider shrink-0 ml-2 shadow-sm ${
+                  className={`text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-wider shrink-0 ml-3 shadow-sm ${
                     user.tier === "Pro"
                       ? "bg-amber-100 text-amber-700"
                       : user.tier === "Basic"
@@ -150,35 +146,39 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                         quizzesLeft > 0 ? "text-green-600" : "text-red-500"
                       }`}
                     >
-                      {quizzesLeft}
+                      {user.tier === "Pro" ? "Unlimited" : quizzesLeft}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full ${
-                        quizzesLeft > 0 ? "bg-primary" : "bg-red-500"
-                      }`}
-                      style={{
-                        width: getProgressWidth(quizzesLeft, MAX_QUIZZES),
-                      }}
-                    ></div>
-                  </div>
+                  {user.tier !== "Pro" && (
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className="h-1.5 rounded-full bg-indigo-500"
+                        style={{
+                          width: getProgressWidth(quizzesLeft, MAX_QUIZZES),
+                        }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
 
                 {/* PDF Uploads Progress Bar */}
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-textMuted">PDF Uploads Left</span>
-                    <span className="font-bold text-textMain">{pdfLeft}</span>
+                    <span className="font-bold text-textMain">
+                      {user.tier === "Pro" ? "Unlimited" : pdfLeft}
+                    </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full bg-indigo-500"
-                      style={{
-                        width: getProgressWidth(pdfLeft, MAX_PDF_UPLOADS),
-                      }}
-                    ></div>
-                  </div>
+                  {user.tier !== "Pro" && (
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className="h-1.5 rounded-full bg-indigo-500"
+                        style={{
+                          width: getProgressWidth(pdfLeft, MAX_PDF_UPLOADS),
+                        }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
               </div>
               {user.tier !== "Pro" && (

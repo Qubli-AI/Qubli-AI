@@ -17,8 +17,9 @@ export async function request(endpoint, method = "GET", body) {
 
   // Detect HTML error pages
   if (text.startsWith("<") || text.startsWith("<!DOCTYPE")) {
-    console.error("❌ Server returned HTML:", text);
-    throw new Error("Server error: invalid JSON response.");
+    throw new Error(
+      "AI is busy at the moment. Please refresh or try again later."
+    );
   }
 
   // Parse JSON safely

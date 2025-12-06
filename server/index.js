@@ -23,13 +23,15 @@ const PORT = process.env.VITE_SERVER_PORT;
 const MONGODB_URI = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
 
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.use(cors({ origin: "http://localhost:5173" }));
 
 // 6. Routes
 import aiRoutes from "./routes/aiRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import flashcardRoutes from "./routes/flashcardRoutes.js";
 
 if (isProduction) {
@@ -149,8 +151,9 @@ async function startServer() {
     });
 
     app.use("/api/ai", aiRoutes);
-    app.use("/api/quizzes", quizRoutes);
     app.use("/api/auth", authRoutes);
+    app.use("/api/quizzes", quizRoutes);
+    app.use("/api/reviews", reviewRoutes);
     app.use("/api/flashcards", flashcardRoutes);
 
     // Start server

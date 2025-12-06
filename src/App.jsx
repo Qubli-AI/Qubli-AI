@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
+import { Toaster } from "react-hot-toast";
 
 import {
   BrowserRouter as Router,
@@ -72,92 +73,95 @@ const App = () => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            auth.isAuthenticated ? (
-              <Navigate to="/" replace />
-            ) : (
-              <AuthForm onLogin={handleLoginSuccess} />
-            )
-          }
-        />
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              auth.isAuthenticated ? (
+                <Navigate to="/" replace />
+              ) : (
+                <AuthForm onLogin={handleLoginSuccess} />
+              )
+            }
+          />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute auth={auth}>
-              <Layout
-                user={auth.user}
-                onLogout={handleLogout}
-                refreshUser={refreshUser}
-              >
-                <Dashboard user={auth.user} />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/generate"
-          element={
-            <ProtectedRoute auth={auth}>
-              <Layout
-                user={auth.user}
-                onLogout={handleLogout}
-                refreshUser={refreshUser}
-              >
-                <QuizGenerator
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute auth={auth}>
+                <Layout
                   user={auth.user}
-                  onGenerateSuccess={refreshUser}
-                />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+                  onLogout={handleLogout}
+                  refreshUser={refreshUser}
+                >
+                  <Dashboard user={auth.user} />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/quiz/:id"
-          element={
-            <ProtectedRoute auth={auth}>
-              <Layout
-                user={auth.user}
-                onLogout={handleLogout}
-                refreshUser={refreshUser}
-              >
-                <QuizTaker
+          <Route
+            path="/generate"
+            element={
+              <ProtectedRoute auth={auth}>
+                <Layout
                   user={auth.user}
-                  onComplete={refreshUser}
-                  onLimitUpdate={refreshUser}
-                />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+                  onLogout={handleLogout}
+                  refreshUser={refreshUser}
+                >
+                  <QuizGenerator
+                    user={auth.user}
+                    onGenerateSuccess={refreshUser}
+                  />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/overview"
-          element={
-            <ProtectedRoute auth={auth}>
-              <Layout
-                user={auth.user}
-                onLogout={handleLogout}
-                refreshUser={refreshUser}
-              >
-                <Overview user={auth.user} />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/quiz/:id"
+            element={
+              <ProtectedRoute auth={auth}>
+                <Layout
+                  user={auth.user}
+                  onLogout={handleLogout}
+                  refreshUser={refreshUser}
+                >
+                  <QuizTaker
+                    user={auth.user}
+                    onComplete={refreshUser}
+                    onLimitUpdate={refreshUser}
+                  />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/flashcards"
-          element={<Navigate to="/overview" replace />}
-        />
-      </Routes>
-    </Router>
+          <Route
+            path="/overview"
+            element={
+              <ProtectedRoute auth={auth}>
+                <Layout
+                  user={auth.user}
+                  onLogout={handleLogout}
+                  refreshUser={refreshUser}
+                >
+                  <Overview user={auth.user} />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/flashcards"
+            element={<Navigate to="/overview" replace />}
+          />
+        </Routes>
+      </Router>
+    </>
   );
 };
 

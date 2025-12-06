@@ -26,6 +26,7 @@ const TIER_DATA = {
       "Max 30 Marks",
       "3 PDF Uploads / Day",
       "3 PDF Exports / Day",
+      "Upload 1 PDF per quiz",
     ],
   },
   [SubscriptionTier.Basic]: {
@@ -48,6 +49,7 @@ const TIER_DATA = {
       "Max 60 Marks",
       "15 PDF Uploads / Day",
       "15 PDF Exports / Day",
+      "Upload 1 PDF per quiz",
     ],
   },
   [SubscriptionTier.Pro]: {
@@ -70,6 +72,7 @@ const TIER_DATA = {
       "Max 100 Marks",
       "Unlimited PDF Uploads",
       "Unlimited PDF Exports",
+      "Upload multiple PDF's per quiz",
     ],
   },
 };
