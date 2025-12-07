@@ -108,7 +108,7 @@ const QuizResultsView = ({
         </div>
         <div className="hidden sm:block h-12 w-px bg-border"></div>
         <div className="flex flex-col gap-2 w-full sm:w-auto">
-          {quizFlashcards.length === 0 || !quiz.isFlashcardSet ? (
+          {quizFlashcards?.length === 0 || !quiz?.isFlashcardSet ? (
             <button
               onClick={manualCreateFlashcards}
               className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100"
@@ -132,7 +132,6 @@ const QuizResultsView = ({
       {quiz.questions.map((q, idx) => (
         <div
           key={q.id}
-          // UX: Apply stronger background tint to highlight correct/incorrect status
           className={`p-6 rounded-xl border transition-all shadow-xl ${
             q.isCorrect
               ? "bg-green-100/70 border-green-300 hover:bg-green-100"
@@ -216,7 +215,7 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
       return;
     }
     setCardIndex((idx) => Math.min(idx, quizFlashcards.length - 1));
-  }, [quizFlashcards.length]);
+  }, [quizFlashcards?.length]);
 
   // Reset flip on card change
   useEffect(() => {
@@ -229,7 +228,7 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
       const tag = (e.target && e.target.tagName) || "";
       const isEditable =
         tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable;
-      if (isEditable) return;
+      if (isEditable || !quizFlashcards?.length) return;
 
       if (e.code === "ArrowRight" || e.key === "ArrowRight") {
         e.preventDefault();
@@ -247,9 +246,9 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [quizFlashcards.length]);
+  }, [quizFlashcards?.length]);
 
-  if (quizFlashcards.length === 0 || !quiz.isFlashcardSet) {
+  if (quizFlashcards?.length === 0 || !quiz?.isFlashcardSet) {
     return (
       <div className="text-center py-12 bg-surface rounded-2xl border border-border">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -274,10 +273,12 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
   const card = quizFlashcards[cardIndex];
 
   const nextCard = () => {
+    if (!quizFlashcards?.length) return;
     setCardIndex((prev) => (prev + 1) % quizFlashcards.length);
   };
 
   const prevCard = () => {
+    if (!quizFlashcards?.length) return;
     setCardIndex(
       (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
     );
@@ -423,17 +424,19 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     if (!quiz) return 0;
     let correct = 0;
     quiz.questions.forEach((q) => {
-      const userAns = answers[q.id]?.toLowerCase().trim();
-      const correctAns = q.correctAnswer.toLowerCase().trim();
+      const qid = q.id || q._id; // Use question ID for answers lookup
+      const userAns = answers[qid]?.toLowerCase().trim();
+      const correctAns = q.correctAnswer?.toLowerCase().trim(); // Add optional chaining
       if (userAns === correctAns) correct++;
-      else if (q.type === "MCQ" && answers[q.id] === q.correctAnswer) correct++;
+      else if (q.type === "MCQ" && answers[qid] === q.correctAnswer) correct++;
     });
     return Math.round((correct / quiz.questions.length) * 100);
   };
 
   const handleSubmit = () => {
     if (!quiz) return;
-    const currentQId = quiz.questions[currentIdx].id;
+    const currentQId =
+      quiz.questions[currentIdx].id || quiz.questions[currentIdx]._id;
     if (!answers[currentQId] || answers[currentQId].trim() === "") return;
 
     const score = calculateScore();
@@ -444,13 +447,16 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       isFlashcardSet: quiz.isFlashcardSet || false,
     };
 
-    updatedQuiz.questions = updatedQuiz.questions.map((q) => ({
-      ...q,
-      userAnswer: answers[q.id] || "",
-      isCorrect:
-        answers[q.id]?.toLowerCase().trim() ===
-        q.correctAnswer.toLowerCase().trim(),
-    }));
+    updatedQuiz.questions = updatedQuiz.questions.map((q) => {
+      const qid = q.id || q._id; // Use consistent ID
+      return {
+        ...q,
+        userAnswer: answers[qid] || "",
+        isCorrect:
+          answers[qid]?.toLowerCase().trim() ===
+          q.correctAnswer?.toLowerCase().trim(),
+      };
+    });
 
     StorageService.saveQuiz(updatedQuiz);
     setQuiz(updatedQuiz);
@@ -460,13 +466,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   const handleNext = () => {
     if (!quiz) return;
-    const currentQId = quiz.questions[currentIdx].id;
+    const currentQId =
+      quiz.questions[currentIdx].id || quiz.questions[currentIdx]._id;
     if (!answers[currentQId] || answers[currentQId].trim() === "") return;
     setCurrentIdx((prev) => Math.min(quiz.questions.length - 1, prev + 1));
   };
 
   const handlePrint = () => {
-    if (user.limits.pdfExportsRemaining <= 0) {
+    if (user.limits?.pdfExportsRemaining <= 0) {
       alert(
         "You have reached your daily PDF export limit. Upgrade your plan for more exports."
       );
@@ -480,7 +487,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   };
 
   const manualCreateFlashcards = () => {
-    if (!quiz) return;
+    if (!quiz || !user) return;
     const quizIdKey = quiz._id || quiz.id;
     const cards = quiz.questions.map((q) => {
       const qid = q.id || q._id;
@@ -489,7 +496,9 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         userId: user.id,
         quizId: quizIdKey,
         front: q.text,
-        back: `${q.correctAnswer}\n\n${q.explanation}`,
+        back: `${q.correctAnswer}\n\n${
+          q.explanation || "No explanation provided."
+        }`, // Added fallback
         nextReview: Date.now(),
         interval: 0,
         repetition: 0,
@@ -505,9 +514,9 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   };
 
   const currentQ = quiz.questions[currentIdx];
-  const currentQId = currentQ.id || currentQ._id;
+  const currentQId = currentQ?.id || currentQ?._id;
   const hasAnsweredCurrent =
-    !!answers[currentQId] && answers[currentQId].trim() !== "";
+    !!answers[currentQId] && answers[currentQId]?.trim() !== ""; // Added optional chaining
 
   const fullTitle = quiz.title;
 
@@ -529,7 +538,6 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 className="text-2xl font-bold text-textMain truncate"
                 title={fullTitle}
               >
-                {/* UX: Reliance on CSS truncation utility */}
                 {fullTitle}
               </h1>
             </div>
@@ -558,13 +566,13 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           <button
             onClick={handlePrint}
             disabled={
-              status !== "completed" || user.limits.pdfExportsRemaining <= 0
+              status !== "completed" || user.limits?.pdfExportsRemaining <= 0
             }
             className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-bold shadow-sm flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-[10px]"
             title={
               status !== "completed"
                 ? "Finish quiz to export"
-                : `Export PDF (${user.limits.pdfExportsRemaining} left)`
+                : `Export PDF (${user.limits?.pdfExportsRemaining} left)`
             }
           >
             <Printer className="w-4 h-4" />
@@ -679,7 +687,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                             key={opt}
                             onClick={() => handleAnswer(opt)}
                             className={`p-4 text-left rounded-xl border transition-all ${
-                              answers[currentQ.id] === opt
+                              answers[currentQId] === opt
                                 ? "bg-primary/10 border-primary text-primary shadow-sm ring-1 ring-primary font-semibold"
                                 : "bg-white border-border text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
                             }`}
@@ -696,10 +704,9 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                       </div>
                     ) : (
                       <textarea
-                        value={answers[currentQ.id] || ""}
+                        value={answers[currentQId] || ""}
                         onChange={(e) => handleAnswer(e.target.value)}
                         placeholder="Type your answer here..."
-                        // UX: Improved focus styling and min-height
                         className="w-full min-h-[150px] p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
                       />
                     )}

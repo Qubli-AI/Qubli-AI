@@ -13,12 +13,10 @@ import { useNavigate } from "react-router-dom";
 import StorageService from "../services/storageService.js";
 import { generateAndSaveReview } from "../services/geminiService.js";
 
-// DX: Utility function for consistent date formatting
 const formatQuizDate = (dateString) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-// DX: Utility function for consistent time formatting (for 'Last Updated')
 const formatUpdateTime = () => {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -26,7 +24,6 @@ const formatUpdateTime = () => {
   });
 };
 
-// DX: Simple component for rendering stat cards
 const StatCard = ({
   icon: Icon,
   title,
@@ -44,7 +41,7 @@ const StatCard = ({
         {title}
       </p>
       <p
-        className={` ${
+        className={`${
           diffClass ? "text-xl" : "text-2xl"
         } font-bold text-textMain`}
       >
@@ -59,10 +56,9 @@ const Overview = ({ user }) => {
   const [aiReview, setAiReview] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // DX: Move heavy calculations into useMemo
   const { completedQuizzes, avgScore } = useMemo(() => {
-    const completed = quizzes.filter((q) => q.score !== undefined);
-    const totalScore = completed.reduce((acc, q) => acc + (q.score || 0), 0);
+    const completed = quizzes.filter((q) => q?.score !== undefined);
+    const totalScore = completed.reduce((acc, q) => acc + (q?.score ?? 0), 0);
     const average = completed.length
       ? Math.round(totalScore / completed.length)
       : 0;
@@ -71,17 +67,19 @@ const Overview = ({ user }) => {
 
   useEffect(() => {
     async function loadInitialData() {
-      const userQuizzes = await StorageService.getQuizzes(user.id);
-      setQuizzes(userQuizzes);
+      const userQuizzes = await StorageService?.getQuizzes(user?.id);
+      setQuizzes(userQuizzes ?? []);
 
-      const storedReview = await StorageService.getLastReview();
+      const storedReview = await StorageService?.getLastReview();
       if (storedReview) {
-        setAiReview(storedReview.text);
-      } else if (userQuizzes.filter((q) => q.score !== undefined).length > 0) {
+        setAiReview(storedReview?.text ?? "");
+      } else if (
+        userQuizzes?.filter((q) => q?.score !== undefined).length > 0
+      ) {
         setLoading(true);
         try {
           const reviewText = await generateAndSaveReview(user, userQuizzes);
-          setAiReview(reviewText);
+          setAiReview(reviewText ?? "");
         } catch (e) {
           console.error("Initial AI Review Generation Failed:", e);
           setAiReview("Could not generate initial review at this time.");
@@ -91,7 +89,7 @@ const Overview = ({ user }) => {
       }
     }
     loadInitialData();
-  }, [user.id]);
+  }, [user?.id]);
 
   const truncateText = (text, maxLength) => {
     if (!text) return "";
@@ -101,22 +99,19 @@ const Overview = ({ user }) => {
   const navigate = useNavigate();
 
   const handleRowClick = (quizId) => {
-    navigate(`/quiz/${quizId}`);
+    if (quizId) navigate(`/quiz/${quizId}`);
   };
 
-  // DX: Simplified review formatting logic (still manual, but separated)
   const formatReviewText = (text) => {
-    if (typeof text !== "string") text = String(text || "");
+    if (typeof text !== "string") text = String(text ?? "");
 
-    // Handling lines for basic structure (UX: Awaiting better markdown renderer integration)
     return text.split("\n").map((line, idx) => {
-      // Handle **bold**
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
         <p key={idx} className="mb-2">
           {parts.map((part, i) =>
-            (part.startsWith("**") || part.startsWith("*")) &&
-            (part.endsWith("**") || part.endsWith("*")) ? (
+            (part?.startsWith("**") || part?.startsWith("*")) &&
+            (part?.endsWith("**") || part?.endsWith("*")) ? (
               <strong key={i}>{part.slice(2, -2)}</strong>
             ) : (
               part
@@ -139,13 +134,12 @@ const Overview = ({ user }) => {
         </div>
       </div>
 
-      {/* DX: Using StatCard component */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           icon={Trophy}
           title="Quizzes Completed"
           value={completedQuizzes.length}
-          bgColorClass="bg-blue-600/10" // Design: Standardized color
+          bgColorClass="bg-blue-600/10"
           textColorClass="text-blue-700"
           diffClass={false}
         />
@@ -153,15 +147,15 @@ const Overview = ({ user }) => {
           icon={Target}
           title="Avg Score"
           value={avgScore ? avgScore + "%" : "N/A"}
-          bgColorClass="bg-green-600/10" // Design: Standardized color
+          bgColorClass="bg-green-600/10"
           textColorClass="text-green-700"
           diffClass={false}
         />
         <StatCard
           icon={Calendar}
           title="Joined Since"
-          value={formatQuizDate(user.limits.lastReset)}
-          bgColorClass="bg-purple-600/10" // Design: Standardized color
+          value={formatQuizDate(user?.limits?.lastReset ?? Date.now())}
+          bgColorClass="bg-purple-600/10"
           textColorClass="text-purple-700"
           diffClass={true}
         />
@@ -185,7 +179,6 @@ const Overview = ({ user }) => {
               )}
             </h2>
             {loading ? (
-              // UX: Improved skeleton loader to better mimic text structure
               <div
                 className="space-y-3 max-w-2xl opacity-50 pt-2"
                 aria-live="polite"
@@ -234,56 +227,57 @@ const Overview = ({ user }) => {
                 .reverse()
                 .map((q) => {
                   const obtainedMarks =
-                    q.score !== undefined && q.totalMarks
+                    q?.score !== undefined && q?.totalMarks
                       ? Math.round((q.score / 100) * q.totalMarks)
                       : null;
 
                   return (
                     <tr
-                      key={q.id}
+                      key={q?.id}
                       className="hover:bg-slate-50 transition-colors group cursor-pointer"
-                      onClick={() => handleRowClick(q._id || q.id)}
+                      onClick={() =>
+                        (q?._id || q?.id) && handleRowClick(q._id || q.id)
+                      }
                     >
                       <td className="p-5 pl-6 font-semibold text-textMain group-hover:text-primary transition-colors">
-                        {truncateText(q.title, 40)}
+                        {truncateText(q?.title ?? "", 40)}
                       </td>
                       <td className="p-5 text-textMuted text-center whitespace-nowrap">
-                        {formatQuizDate(q.createdAt)}
+                        {formatQuizDate(q?.createdAt ?? Date.now())}
                       </td>
                       <td className="p-5 text-center">
                         <span
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 ${
-                            q.difficulty === "Easy"
+                            q?.difficulty === "Easy"
                               ? "bg-green-100 text-green-700"
-                              : q.difficulty === "Medium"
+                              : q?.difficulty === "Medium"
                               ? "bg-orange-100 text-orange-700"
                               : "bg-red-100 text-red-700"
                           }`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              q.difficulty === "Easy"
+                              q?.difficulty === "Easy"
                                 ? "bg-green-500"
-                                : q.difficulty === "Medium"
+                                : q?.difficulty === "Medium"
                                 ? "bg-orange-500"
                                 : "bg-red-500"
                             }`}
                           ></span>
-                          {q.difficulty}
+                          {q?.difficulty ?? "Unknown"}
                         </span>
                       </td>
                       <td className="p-5 text-center">
                         <span
                           className={`font-extrabold text-base ${
-                            // UX: Increased font weight for emphasis
-                            (q.score || 0) >= 80
+                            (q?.score ?? 0) >= 80
                               ? "text-green-600"
-                              : (q.score || 0) >= 50
+                              : (q?.score ?? 0) >= 50
                               ? "text-orange-600"
                               : "text-red-600"
                           }`}
                         >
-                          {q.score}%
+                          {q?.score ?? 0}%
                         </span>
                       </td>
                       <td className="p-5 font-medium">
@@ -293,7 +287,7 @@ const Overview = ({ user }) => {
                               {obtainedMarks}
                             </span>
                             <span className="text-textMuted text-xs">
-                              / {q.totalMarks}
+                              / {q?.totalMarks ?? 0}
                             </span>
                           </div>
                         ) : (
@@ -306,7 +300,6 @@ const Overview = ({ user }) => {
               {completedQuizzes.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-textMuted">
-                    {/* UX: Added icon to empty state */}
                     <BarChart3 className="w-6 h-6 mx-auto mb-3" />
                     No history available yet. Start a quiz to see your progress!
                   </td>

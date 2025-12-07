@@ -1,16 +1,10 @@
 import React from "react";
-
 import { QuestionType } from "../../server/config/types.js";
 
-// DX: Local component to handle rendering answer lines for short/long answer questions
 const AnswerLines = ({ marks, type }) => {
-  // UX/Design: Base height is calculated based on marks for visual cue
-  // Short Answer (non-MCQ/TF) uses 2 lines per mark as a base. Long Answer uses 4 lines per mark.
   const linesPerMark = type === QuestionType.LongAnswer ? 4 : 2;
-  const numLines = marks * linesPerMark || 3; // Ensure minimum 3 lines if marks is missing/zero
-
-  // Use a minimal line height for clean print lines
-  const lineStyle = "border-b border-black/50 h-6"; // Use /50 for a clean gray line
+  const numLines = (marks ?? 1) * linesPerMark || 3;
+  const lineStyle = "border-b border-black/50 h-6";
 
   return (
     <div className="mt-4 space-y-3">
@@ -21,17 +15,12 @@ const AnswerLines = ({ marks, type }) => {
   );
 };
 
-// DX: Local component to handle rendering MCQ/TrueFalse options
 const MCQOptions = ({ options }) => {
-  const opts = options || ["True", "False"]; // Fallback for TrueFalse
-
+  const opts = options ?? ["True", "False"];
   return (
     <div className="grid grid-cols-1 gap-3 mt-3">
-      {" "}
-      {/* UX: Increased gap slightly */}
       {opts.map((opt, i) => (
         <div key={i} className="flex items-center gap-3">
-          {/* Design: Square box for check mark */}
           <div className="w-4 h-4 border border-black/70 rounded-sm"></div>
           <span>{opt}</span>
         </div>
@@ -45,15 +34,14 @@ const PrintView = ({ quiz }) => {
 
   return (
     <div className="hidden print:block print-only bg-white text-black p-8 max-w-4xl mx-auto">
-      {/* Header */}
       <div className="border-b-2 border-black pb-4 mb-8">
         <div className="flex justify-between items-end mb-4">
           <div>
             <h1 className="text-3xl font-bold uppercase tracking-wider">
-              {quiz.title}
+              {quiz?.title}
             </h1>
             <p className="text-sm mt-1">
-              Topic: {quiz.topic} | Difficulty: {quiz.difficulty}
+              Topic: {quiz?.topic} | Difficulty: {quiz?.difficulty}
             </p>
           </div>
           <div className="text-right">
@@ -65,73 +53,65 @@ const PrintView = ({ quiz }) => {
         </div>
         <div className="flex justify-between text-sm font-medium">
           <span>Time: Unlimited</span>
-          <span>Total Marks: {quiz.totalMarks || quiz.questions.length}</span>
+          <span>
+            Total Marks: {quiz?.totalMarks ?? quiz?.questions?.length}
+          </span>
         </div>
       </div>
 
-      {/* Instructions */}
-      {/* UX/Design: Ensured high contrast border/text for instructions */}
       <div className="mb-8 p-4 border-2 border-black rounded-lg bg-gray-100">
         <h3 className="font-bold uppercase text-xs mb-2">INSTRUCTIONS:</h3>
         <ul className="list-disc list-inside text-sm space-y-1 text-gray-900">
           <li>Answer all questions.</li>
           <li>Write your answers clearly in the spaces provided.</li>
-          {quiz.examStyle?.includes("caie") && (
+          {quiz?.examStyle?.includes("caie") && (
             <li>Use black or dark blue pen.</li>
           )}
           <li>Check the marks assigned to each question.</li>
         </ul>
       </div>
 
-      {/* Questions */}
       <div className="space-y-8">
-        {quiz.questions.map((q, idx) => (
-          <div key={q.id} className="break-inside-avoid">
+        {quiz?.questions?.map((q, idx) => (
+          <div key={q?.id} className="break-inside-avoid">
             <div className="flex justify-between items-start mb-2">
               <div className="flex gap-2">
                 <span className="font-bold">{idx + 1}.</span>
-                <span className="font-medium">{q.text}</span>
+                <span className="font-medium">{q?.text}</span>
               </div>
-              {/* UX/Design: Increased font size for marks allocation */}
               <span className="text-sm font-bold whitespace-nowrap text-gray-900">
-                [{q.marks || 1} {q.marks === 1 ? "mark" : "marks"}]
+                [{q?.marks ?? 1} {q?.marks === 1 ? "mark" : "marks"}]
               </span>
             </div>
 
-            {/* Answer Space */}
             <div className="ml-6">
-              {q.type === QuestionType.MCQ ||
-              q.type === QuestionType.TrueFalse ? (
-                // DX: Use local MCQOptions component
-                <MCQOptions options={q.options} />
+              {q?.type === QuestionType.MCQ ||
+              q?.type === QuestionType.TrueFalse ? (
+                <MCQOptions options={q?.options} />
               ) : (
-                // DX: Use local AnswerLines component with dynamic height calculation
-                <AnswerLines marks={q.marks || 1} type={q.type} />
+                <AnswerLines marks={q?.marks ?? 1} type={q?.type} />
               )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Answer Key Page Break - Print UX: Ensures key always starts on new page */}
       <div className="break-before-page pt-12"></div>
 
-      {/* Answer Key */}
       <div className="pt-8">
         <h2 className="text-2xl font-bold mb-6 border-b-2 border-black pb-2">
           Answer Key & Explanations
         </h2>
         <div className="space-y-6">
-          {quiz.questions.map((q, idx) => (
-            <div key={q.id} className="break-inside-avoid">
+          {quiz?.questions?.map((q, idx) => (
+            <div key={q?.id} className="break-inside-avoid">
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="font-bold text-sm">{idx + 1}.</span>
                 <span className="font-bold text-sm text-green-700">
-                  Answer: {q.correctAnswer}
+                  Answer: {q?.correctAnswer}
                 </span>
               </div>
-              {/* Design: Ensured high-contrast text for explanations */}
-              <p className="text-sm text-gray-900 ml-5">{q.explanation}</p>
+              <p className="text-sm text-gray-900 ml-5">{q?.explanation}</p>
             </div>
           ))}
         </div>
