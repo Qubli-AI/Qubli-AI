@@ -80,14 +80,27 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
   const data = TIER_DATA[tier];
   const Icon = data.icon;
   const isCurrent = currentTier === tier;
-  // Removed redundant '?' on currentTier, as it should be provided
-  const isUpgradeable = !isCurrent && currentTier !== SubscriptionTier.Pro;
 
-  const buttonText = isCurrent
-    ? "Current Plan"
-    : tier === SubscriptionTier.Pro
-    ? "Get Full Access"
-    : "Upgrade Now";
+  let buttonText;
+  let disabled = false;
+
+  // Correct logic based on tier order
+  const tierOrder = [
+    SubscriptionTier.Free,
+    SubscriptionTier.Basic,
+    SubscriptionTier.Pro,
+  ];
+  const tierIndex = tierOrder.indexOf(tier);
+  const currentIndex = tierOrder.indexOf(currentTier);
+
+  if (tier === currentTier) {
+    buttonText = "Current Plan";
+    disabled = true;
+  } else if (tierIndex > currentIndex) {
+    buttonText = "Upgrade Now";
+  } else {
+    buttonText = "Downgrade";
+  }
 
   const shadowClass =
     tier === SubscriptionTier.Basic
@@ -106,7 +119,6 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
           : ""
       }`}
     >
-      {/* Design: Pro Tier Accent Bar and Tag */}
       {tier === SubscriptionTier.Pro && (
         <>
           <div className="absolute top-0 inset-x-0 bg-gradient-to-r from-amber-400 to-orange-500 h-1.5"></div>
@@ -116,19 +128,16 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
         </>
       )}
 
-      {/* Icon Section */}
       <div className={`mb-6 p-4 ${data.colorClasses.iconBg} w-fit rounded-xl`}>
         <Icon className={`w-8 h-8 ${data.colorClasses.iconText}`} />
       </div>
 
-      {/* Title & Price Section */}
       <h3 className="text-xl font-bold text-textMain mb-2">{data.title}</h3>
       <div className="text-4xl font-bold text-textMain mb-6">
         {data.price}{" "}
         <span className="text-sm text-textMuted font-medium">/ month</span>
       </div>
 
-      {/* Features List */}
       <ul className="space-y-4 mb-8 flex-1 border-t border-border pt-6">
         {data.features.map((feature) => (
           <li
@@ -147,10 +156,9 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
         ))}
       </ul>
 
-      {/* Button Section */}
       <button
         onClick={() => handleUpgrade(tier)}
-        disabled={isCurrent || !isUpgradeable}
+        disabled={disabled}
         className={`w-full py-4 rounded-xl ${data.colorClasses.buttonBg} ${
           data.colorClasses.buttonText
         } text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-auto ${
@@ -169,15 +177,22 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
 };
 
 const SubscriptionModal = ({ onClose, onUpgrade, currentTier }) => {
-  const handleUpgrade = (tier) => {
-    // Removed redundant '?' on TIER_DATA[tier] as TIER_DATA is guaranteed to contain these keys
+  const handleUpgrade = async (tier) => {
     const confirmPayment = window.confirm(
       `Proceed to upgrade to ${TIER_DATA[tier].title} for ${TIER_DATA[tier].price}/month? (Simulated Payment)`
     );
-    if (confirmPayment) {
-      StorageService.upgradeTier(tier);
-      onUpgrade();
+    if (!confirmPayment) return;
+
+    try {
+      await StorageService.upgradeTier(tier);
+      const updatedUser = await StorageService.refreshUser();
+      window.dispatchEvent(
+        new CustomEvent("userUpdated", { detail: updatedUser })
+      );
+      toast.success(`Congratulations on becoming ${updatedUser.tier} Tier!`);
       onClose();
+    } catch (error) {
+      toast.error("Upgrade Failed.");
     }
   };
 
@@ -238,7 +253,6 @@ const SubscriptionModal = ({ onClose, onUpgrade, currentTier }) => {
                 handleUpgrade={handleUpgrade}
               />
             </div>
-            {/* UX: Add a disclaimer about the simulation */}
             <p className="text-center text-xs text-textMuted mt-8 border-t border-border pt-4">
               *All payments are simulated in this environment. No actual charges
               will be incurred.

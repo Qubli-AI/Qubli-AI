@@ -206,15 +206,33 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   )}
                 </div>
               </div>
-              {user.tier !== "Pro" && (
-                <button
-                  onClick={() => setShowSubModal(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-white text-xs font-extrabold py-2.5 rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98] mt-5"
-                >
-                  <Crown className="w-[15px] h-[15px] fill-white -mt-0.5" />
-                  Upgrade Plan
-                </button>
-              )}
+              <button
+                onClick={() => setShowSubModal(true)}
+                className="w-full flex items-center justify-center gap-2 text-white text-xs font-extrabold py-2.5 rounded-xl transition-all active:scale-[0.98] mt-5"
+                style={{
+                  background:
+                    user.tier === "Free"
+                      ? "#2563eb"
+                      : user.tier === "Basic"
+                      ? "linear-gradient(to right, #f59e0b, #fb923c)"
+                      : "#2563eb",
+                  boxShadow:
+                    user.tier === "Free"
+                      ? "0 4px 12px rgba(37, 99, 235, 0.4)"
+                      : user.tier === "Basic"
+                      ? "0 4px 12px rgba(245, 158, 11, 0.4)"
+                      : "0 4px 12px rgba(37, 99, 235, 0.4)",
+                }}
+              >
+                {user.tier !== "Pro" ? (
+                  <>
+                    <Crown className="w-[15px] h-[15px] fill-white -mt-0.5" />
+                    Upgrade Plan
+                  </>
+                ) : (
+                  "Downgrade Plan"
+                )}
+              </button>
             </div>
           )}
 
