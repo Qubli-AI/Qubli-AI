@@ -4,7 +4,6 @@ import { CheckCircle, Clock, RotateCcw } from "lucide-react";
 
 import StorageService from "../services/storageService.js";
 
-// [DX_IMPROVEMENT]: Define constants for SM-2 ratings and their visual styles outside the component for better readability and scalability.
 const RATING_BUTTONS = [
   {
     rating: 1,
@@ -21,7 +20,6 @@ export const FlashcardReview = () => {
   const [cards, setCards] = useState([]);
   const [currentCard, setCurrentCard] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
-  // [UI_UX_IMPROVEMENT]: Add a dedicated state for loading to show a proper spinner/skeleton during initial load.
   const [isLoading, setIsLoading] = useState(true);
   const [dueCount, setDueCount] = useState(0);
 
@@ -30,12 +28,10 @@ export const FlashcardReview = () => {
   }, []);
 
   const loadCards = () => {
-    // [DX_IMPROVEMENT]: Move card loading into a promise-based function and handle loading state.
     setIsLoading(true);
     try {
       const allCards = StorageService.getFlashcards();
       const now = Date.now();
-      // [UI_UX_IMPROVEMENT]: Sort due cards to show the oldest/most urgent card first (better spaced repetition practice).
       const due = allCards
         .filter((c) => c.nextReview <= now)
         .sort((a, b) => a.nextReview - b.nextReview);
@@ -98,7 +94,6 @@ export const FlashcardReview = () => {
     };
 
     StorageService.updateFlashcard(updatedCard);
-    // [UI_UX_IMPROVEMENT]: Add subtle toast feedback on success.
     toast.success(
       `Card rated: ${
         RATING_BUTTONS.find((b) => b.rating === rating)?.label || "Updated"
@@ -107,7 +102,11 @@ export const FlashcardReview = () => {
     loadCards();
   };
 
-  // [UI_UX_IMPROVEMENT]: Add a loading state screen for initial fetch.
+  const getNextReviewDays = (interval, easeFactor, rating) => {
+    const { nextReview } = calculateNextReview(interval, easeFactor, rating);
+    return Math.ceil((nextReview - Date.now()) / (1000 * 60 * 60 * 24));
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center animate-in fade-in duration-500">
@@ -157,8 +156,6 @@ export const FlashcardReview = () => {
 
   return (
     <div className="max-w-2xl mx-auto h-[60vh] flex flex-col pb-12">
-      <Toaster position="top-center" />
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-textMain">Review Session</h1>
         <span className="px-3 py-1 bg-primary-100 text-primary-600 rounded-full text-sm font-bold border border-primary/20 shadow-sm">
@@ -208,7 +205,6 @@ export const FlashcardReview = () => {
             <span className="absolute top-6 left-6 text-xs font-bold text-indigo-600 tracking-widest uppercase">
               Answer
             </span>
-            {/* [UI_UX_IMPROVEMENT]: The answer uses 'text-gray-700' which is slightly better than text-textMuted for the main content. Ensure good contrast. */}
             <div className="text-lg text-center text-gray-700 whitespace-pre-wrap overflow-y-auto max-h-[80%] custom-scrollbar px-2 w-full">
               {currentCard.back}
             </div>
@@ -217,40 +213,29 @@ export const FlashcardReview = () => {
       </div>
 
       {isFlipped && (
-        // [DESIGN_IMPROVEMENT]: Use descriptive button labels and include the calculated interval/time in the tooltips for transparency (DX).
         <div className="mt-8 grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {RATING_BUTTONS.map(({ rating, label, color, tooltip }) => {
-            // [UI_UX_IMPROVEMENT]: Calculate next review date to display in button tooltips.
-            const { nextReview } = calculateNextReview(
+            const days = getNextReviewDays(
               currentCard.interval,
               currentCard.easeFactor,
               rating
-            );
-            const days = Math.ceil(
-              (nextReview - Date.now()) / (1000 * 60 * 60 * 24)
             );
 
             return (
               <button
                 key={rating}
                 onClick={() => handleRate(rating)}
-                // [DX_IMPROVEMENT]: Use explicit Tailwind classes from RATING_BUTTONS constant for styling consistency.
                 className={`p-3 rounded-xl bg-${color}-50 text-${color}-600 border border-${color}-200 hover:bg-${color}-100 font-medium text-sm transition-colors shadow-sm`}
-                // [UI_UX_IMPROVEMENT]: Show the interval in the button or as a tooltip (for clarity of the SM-2 algorithm).
                 title={`${label} (${
                   days === 1 ? "Next: Tomorrow" : `${days} days`
                 }) - ${tooltip}`}
               >
-                {/* [UI_UX_IMPROVEMENT]: Display a short version of the interval */}
                 {label} ({days}d)
               </button>
             );
           })}
         </div>
       )}
-
-      {/* [UI_UX_IMPROVEMENT]: Remove the empty spacer div. The rating buttons or a message can occupy this space for better layout management. */}
-      {/* {!isFlipped && <div className="mt-8 h-[50px]"></div>} */}
     </div>
   );
 };

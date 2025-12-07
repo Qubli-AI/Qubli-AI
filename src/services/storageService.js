@@ -23,6 +23,17 @@ async function request(endpoint, method = "GET", body) {
 
   if (data.user) {
     localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Dispatch events based on the endpoint
+    if (endpoint.includes("/limits/decrement/")) {
+      if (endpoint.includes("flashcard")) {
+        window.dispatchEvent(new Event("quizGenerated"));
+      } else if (endpoint.includes("pdfupload")) {
+        window.dispatchEvent(new Event("pdfUploaded"));
+      } else if (endpoint.includes("pdfexport")) {
+        window.dispatchEvent(new Event("pdfExported"));
+      }
+    }
   }
 
   return data;
@@ -65,7 +76,15 @@ const StorageService = {
   },
 
   refreshUser: async () => {
-    return await request("/users/me");
+    const data = await request("/users/me");
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+      // Dispatch event so Layout component re-syncs state
+      window.dispatchEvent(
+        new CustomEvent("userUpdated", { detail: data.user })
+      );
+    }
+    return data.user || data;
   },
 
   // --- QUIZZES ---

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-// [UI_UX_DX_IMPROVEMENT]: Import Toaster for centralized, non-blocking user feedback.
-import toast, { Toaster } from "react-hot-toast"; // Assuming you install and use react-hot-toast
+import { toast } from "react-toastify";
 
 import {
   BarChart,
@@ -27,15 +26,12 @@ import {
   Search,
   Filter,
   BookOpen,
-  XCircle, // [UI_UX_IMPROVEMENT]: Added XCircle for search clear button.
+  XCircle,
 } from "lucide-react";
 
 import StorageService from "../services/storageService.js";
 import { Difficulty } from "../../server/config/types.js";
 
-// --- [DX_IMPROVEMENT]: EXTRACTED CONSTANTS FOR SCALABILITY & READABILITY ---
-
-// KPI Card Data - Uses explicit Tailwind classes to ensure proper JIT compilation
 const KPI_STATS = [
   {
     label: "Completed Quizzes", // [UX_IMPROVEMENT]: Use clearer label
@@ -86,7 +82,6 @@ const Dashboard = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
-  // [UI_UX_IMPROVEMENT]: Added loading state for better user feedback
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     avgEasy: 0,
@@ -109,15 +104,14 @@ const Dashboard = ({ user }) => {
       calculateAdvancedStats(userQuizzes);
     } catch (err) {
       console.error("Failed to refresh quizzes:", err);
-      // [TOASTER_IMPROVEMENT]: Use toast for failure notification
       toast.error("Failed to load quizzes. Please try again.");
     } finally {
       setIsLoading(false); // Set loading false after fetch
     }
   };
 
-  // ... calculateAdvancedStats logic remains unchanged (Core Logic) ...
   const calculateAdvancedStats = (data) => {
+    if (!data || data.length === 0) return;
     const completed = data.filter((q) => q.score !== undefined);
     if (!completed.length) return;
 
@@ -202,24 +196,20 @@ const Dashboard = ({ user }) => {
     try {
       StorageService.deleteQuiz(id);
       refreshQuizzes();
-      // [TOASTER_IMPROVEMENT]: Use toast for success notification
       toast.success("Quiz deleted successfully!");
     } catch (error) {
       console.error("Delete failed", error);
-      // [TOASTER_IMPROVEMENT]: Use toast for failure notification
       toast.error("Failed to delete quiz.");
-      // Removed: window.alert("Failed to delete quiz.");
     }
   };
 
-  // ... difficultyData and typeChartData calculations remain unchanged ...
   const difficultyData = [
     { name: "Easy", score: stats.avgEasy, fill: "#10b981" },
     { name: "Medium", score: stats.avgMedium, fill: "#f59e0b" },
     { name: "Hard", score: stats.avgHard, fill: "#ef4444" },
   ];
 
-  const typeChartData = (() => {
+  const typeChartData = useMemo(() => {
     const typeMap = {};
     quizzes
       .filter((q) => q.score !== undefined)
@@ -236,16 +226,18 @@ const Dashboard = ({ user }) => {
       A: Math.round((typeMap[key].correct / typeMap[key].total) * 100),
       fullMark: 100,
     }));
-  })();
+  }, [quizzes]);
 
-  const filteredQuizzes = quizzes.filter((q) => {
-    const matchesSearch =
-      q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.topic.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDiff =
-      filterDifficulty === "All" || q.difficulty === filterDifficulty;
-    return matchesSearch && matchesDiff;
-  });
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter((q) => {
+      const matchesSearch =
+        q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.topic.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDiff =
+        filterDifficulty === "All" || q.difficulty === filterDifficulty;
+      return matchesSearch && matchesDiff;
+    });
+  }, [quizzes, searchTerm, filterDifficulty]);
 
   const totalAvgScore =
     quizzes.filter((q) => q.score !== undefined).length > 0
@@ -257,15 +249,11 @@ const Dashboard = ({ user }) => {
 
   if (!user)
     return (
-      // [UI_UX_IMPROVEMENT]: Consider using a full-page Skeleton Loader here instead of just "Loading..."
       <div className="flex items-center justify-center h-full">Loading...</div>
     );
 
   return (
-    // [UI_UX_IMPROVEMENT]: Add Toaster component to render notifications globally.
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <Toaster position="top-right" />
-
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-textMain tracking-tight">
@@ -279,8 +267,21 @@ const Dashboard = ({ user }) => {
           <div className="text-right">
             <div className="text-sm text-textMuted">Current Plan</div>
             <div
+              style={
+                user.tier === "Pro"
+                  ? {
+                      background:
+                        "linear-gradient(to right, #b57ff2, #5e35b1, #e65a8d)",
+                      backgroundSize: "200% 200%",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }
+                  : {}
+              }
               className={`text-lg font-bold ${
-                user.tier === "Pro" ? "text-indigo-600" : "text-textMain"
+                user.tier === "Pro"
+                  ? "bg-clip-text text-transparent animate-shimmer"
+                  : "text-textMain"
               }`}
             >
               {user.tier} Plan
@@ -307,9 +308,16 @@ const Dashboard = ({ user }) => {
                   {stat.label}
                 </p>
                 <h3
-                  className={` ${
-                    stat.diffClass ? "text-lg" : "text-2xl"
-                  }  font-bold text-textMain truncate`}
+                  className={`
+                  ${
+                    stat.diffClass
+                      ? "text-lg"
+                      : user.tier === "Pro" && stat.label === "Flashcards Left"
+                      ? "text-xl"
+                      : "text-2xl"
+                  }
+                  font-bold text-textMain truncate
+                `}
                 >
                   {/* Calculate value using the dataKey function from the constant */}
                   {stat.dataKey(quizzes, totalAvgScore, stats, user)}
@@ -446,7 +454,6 @@ const Dashboard = ({ user }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
               />
-              {/* [UI_UX_IMPROVEMENT]: Added clear button for search input */}
               {searchTerm && (
                 <XCircle
                   className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
@@ -465,7 +472,6 @@ const Dashboard = ({ user }) => {
                 <option value="Medium">Medium</option>
                 <option value="Hard">Hard</option>
               </select>
-              {/* [UI_UX_IMPROVEMENT]: Using a standard chevron/arrow here might be better than the Filter icon for a simple dropdown */}
               <Filter className="absolute right-2.5 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
@@ -473,7 +479,6 @@ const Dashboard = ({ user }) => {
 
         {/* Quiz List */}
         {isLoading && quizzes.length === 0 ? (
-          // [UI_UX_IMPROVEMENT]: Added temporary loading state feedback for the quiz list.
           <div className="col-span-full text-center text-textMuted py-10">
             Loading Quizzes...
           </div>
@@ -504,7 +509,6 @@ const Dashboard = ({ user }) => {
                   <button
                     type="button"
                     onClick={(e) => handleDelete(e, quiz._id)}
-                    // [UI_UX_IMPROVEMENT]: Adjusted hover style to be less jarring, but kept visibility behavior
                     className="absolute top-3 right-3 z-50 p-2 text-gray-400 hover:text-red-500 rounded-lg cursor-pointer transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="Delete Quiz"
                   >
@@ -549,7 +553,6 @@ const Dashboard = ({ user }) => {
                         })}
                       </span>
                       {quiz.isFlashcardSet && (
-                        // [UI_IMPROVEMENT]: Move flashcard icon to the left for better alignment consistency in the card footer
                         <BookOpen className="w-3 h-3 text-indigo-500 ml-auto" />
                       )}
                     </p>

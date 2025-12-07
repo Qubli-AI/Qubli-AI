@@ -12,7 +12,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const PRO_MODEL = "gemini-2.5-pro";
 const BASIC_MODEL = "gemini-2.5-flash";
 
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 
 async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
   for (let i = 0; i < retries; i++) {
@@ -168,7 +168,7 @@ Include a mix of the following question types: ${typeString}.
 
   const parts = [{ text: prompt }];
 
-  if (fileData) {
+  if (fileData && fileData.mimeType && fileData.data) {
     parts.push({
       inlineData: { mimeType: fileData.mimeType, data: fileData.data },
     });

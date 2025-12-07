@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 
 import {
-  Zap,
   ArrowRight,
   Lock,
   Mail,
@@ -75,12 +74,31 @@ const AuthForm = ({ onLogin }) => {
       );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Error");
+
+      // If registration, redirect to verification
+      if (!isLogin) {
+        if (!response.ok)
+          throw new Error(data.message || "Registration failed");
+        navigate("/verify-email", {
+          state: { email: formData.email },
+          replace: true,
+        });
+        return;
+      }
+
+      // For login
+      if (!response.ok) {
+        if (data.needsVerification) {
+          throw new Error(
+            "Please verify your email first. Check your inbox for the code."
+          );
+        }
+        throw new Error(data.message || "Login failed");
+      }
 
       localStorage.setItem("token", data.token); // store JWT
       localStorage.setItem("user", JSON.stringify(data.user));
       onLogin(data.user); // pass logged-in user info
-      setLoading(false);
 
       navigate("/", { replace: true });
     } catch (err) {

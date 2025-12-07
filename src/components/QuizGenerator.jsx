@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
+
 import {
   Type,
   Upload,
@@ -37,10 +39,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const [totalMarks, setTotalMarks] = useState(10);
   const [selectedTypes, setSelectedTypes] = useState(["MCQ"]);
   const [examStyleId, setExamStyleId] = useState("standard");
-
   const [files, setFiles] = useState([]);
-
-  const [error, setError] = useState("");
   const [generateFlashcards, setGenerateFlashcards] = useState(
     user.tier !== "Free"
   );
@@ -75,12 +74,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
     if (!isPro && currentCount + incomingCount > 1) {
       if (currentCount >= 1) {
-        setError("Free/Basic plans are limited to 1 PDF per quiz.");
+        toast.error("Free/Basic plans are limited to 1 PDF per quiz.");
         setShowUpgradeModal(true);
         return;
       }
       if (incomingCount > 1) {
-        setError("Free/Basic plans can only upload 1 PDF at a time.");
+        toast.error("Free/Basic plans can only upload 1 PDF at a time.");
         setShowUpgradeModal(true);
         return;
       }
@@ -89,11 +88,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     // 2. Size & Type Validation
     const validFiles = incomingArray.filter((f) => {
       if (f.type !== "application/pdf") {
-        setError("Skipped non-PDF files.");
+        toast.error("Skipped non-PDF files.");
         return false;
       }
       if (f.size > 10 * 1024 * 1024) {
-        setError(`File ${f.name} too large (Max 10MB).`);
+        toast.error("File ${f.name} too large (Max 10MB)..");
         return false;
       }
       return true;
@@ -103,7 +102,6 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
     // 3. Read Files
     setReading(true);
-    setError("");
 
     try {
       const filePromises = validFiles.map((fileItem) => {
@@ -129,7 +127,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       const newProcessedFiles = await Promise.all(filePromises);
       setFiles((prev) => [...prev, ...newProcessedFiles]);
     } catch (err) {
-      setError("Failed to read one or more files.");
+      toast.error("Failed to read one or more files.");
     } finally {
       setReading(false);
     }
@@ -205,34 +203,33 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
-    setError("");
 
     if (loading) return;
 
     if (questionCount > userMaxQuestions)
-      return setError(`Max ${userMaxQuestions} questions allowed.`);
+      return toast.error(`Max ${userMaxQuestions} questions allowed.`);
 
     if (totalMarks > userMaxMarks)
-      return setError(`Max ${userMaxMarks} marks allowed.`);
+      return toast.error(`Max ${userMaxMarks} marks allowed.`);
 
     if (user.limits.generationsRemaining <= 0)
-      return setError("Daily quiz limit reached.");
+      return toast.error(`Daily quiz limit reached.`);
     if (generateFlashcards && user.limits.flashcardGenerationsRemaining <= 0)
-      return setError("Daily flashcard limit reached.");
+      return toast.error(`Daily flashcard limit reached.`);
 
     if (
       mode === "pdf" &&
       user.tier !== "Pro" &&
       user.limits.pdfUploadsRemaining <= 0
     )
-      return setError("Daily PDF upload limit reached.");
+      return toast.error("Daily PDF upload limit reached.");
 
     if (selectedTypes.length === 0)
-      return setError("Select at least one question type.");
+      return toast.error("Select at least one question type");
 
     if (mode === "pdf" && files.length === 0)
-      return setError("Upload at least one PDF file.");
-    if (mode === "text" && !topic.trim()) return setError("Enter a topic.");
+      return toast.error("Upload at least one PDF file.");
+    if (mode === "text" && !topic.trim()) return toast.error("Enter a topic.");
 
     setLoading(true);
     try {
@@ -297,8 +294,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       onGenerateSuccess();
       navigate(`/quiz/${savedQuiz._id}`);
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to generate quiz.");
+      toast.error("Failed to generate quiz, try later.");
     } finally {
       setLoading(false);
     }
@@ -316,6 +312,18 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     setTotalMarks(val);
   };
 
+  const getGenerationMessage = (user) => {
+    if (user.tier === "Pro") {
+      return "Unlimited generations left today";
+    }
+    if (user.limits.generationsRemaining === 0) {
+      return "Come back tomorrow for more generations";
+    }
+    return `${user.limits.generationsRemaining} generation${
+      user.limits.generationsRemaining > 1 ? "s" : ""
+    } left today`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       <style>
@@ -330,8 +338,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-textMain">Create New Quiz</h1>
         <div className="text-sm text-textMuted bg-surfaceHighlight px-3 py-1 rounded-full">
-          {user.tier === "Pro" ? "Unlimited" : user.limits.generationsRemaining}{" "}
-          generations left today
+          {getGenerationMessage(user)}
         </div>
       </div>
 
@@ -484,23 +491,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                       {!reading && (
                         <div className="text-xs text-textMuted">
                           {user.tier === "Pro"
-                            ? "Upload multiple PDFs"
-                            : "Single PDF limit"}{" "}
-                          • Max 10MB each
+                            ? "Upload multiple PDFs • Max 10MB each"
+                            : "Single PDF limit • Max 10MB"}
                         </div>
                       )}
                     </div>
                   )}
                 </div>
-
-                {user.tier === SubscriptionTier.Free && (
-                  <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Free plan: {user.limits.pdfUploadsRemaining} PDF uploads
-                    left today.
-                  </p>
-                )}
-                {/* ===== End Enhanced Upload Area ===== */}
               </div>
             )}
           </div>
@@ -669,9 +666,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   </h4>
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                      user.limits.flashcardGenerationsRemaining > 0
-                        ? "bg-blue-50 text-blue-600 border-blue-100"
-                        : "bg-red-50 text-red-600 border-red-100"
+                      user.tier === "Pro"
+                        ? "bg-blue-50 text-blue-600 border-blue-200"
+                        : user.limits.flashcardGenerationsRemaining > 0
+                        ? "bg-blue-50 text-blue-600 border-blue-200"
+                        : "bg-red-50 text-red-600 border-red-200"
                     }`}
                   >
                     {user.tier === "Pro"
@@ -699,13 +698,6 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
               ></span>
             </button>
           </div>
-
-          {error && (
-            <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
 
           <button
             type="submit"

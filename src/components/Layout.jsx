@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-
 import {
   LayoutDashboard,
   PlusCircle,
@@ -10,14 +8,12 @@ import {
   Crown,
   BrainCircuit,
   Loader2,
-  Zap,
 } from "lucide-react";
-
 import SubscriptionModal from "./SubscriptionModal.jsx";
-import { SubscriptionTier } from "../../server/config/types.js";
+import PropTypes from "prop-types";
 
-// DX: Helper function for progress calculation
 const getProgressWidth = (remaining, max) => {
+  if (max === Infinity) return "0%";
   if (remaining === null || remaining === undefined) return "0%";
   const used = max - remaining;
   return `${Math.min(100, Math.max(0, (used / max) * 100))}%`;
@@ -28,23 +24,48 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
   const [showSubModal, setShowSubModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [quizzesLeft, setQuizzesLeft] = useState(
-    user.limits.generationsRemaining
+    user?.limits?.generationsRemaining || 0
   );
-  const [pdfLeft, setPdfLeft] = useState(user.limits.pdfUploadsRemaining);
+  const [pdfLeft, setPdfLeft] = useState(
+    user?.limits?.pdfUploadsRemaining || 0
+  );
+
+  // Sync state whenever user prop changes
+  useEffect(() => {
+    setQuizzesLeft(user?.limits?.generationsRemaining ?? 0);
+  }, [user]);
 
   useEffect(() => {
-    setQuizzesLeft(user.limits.generationsRemaining);
-  }, [user.limits.generationsRemaining]);
+    setPdfLeft(user?.limits?.pdfUploadsRemaining ?? 0);
+  }, [user]);
 
+  // Listen for custom events from Storage Service
   useEffect(() => {
-    setPdfLeft(user.limits.pdfUploadsRemaining);
-  }, [user.limits.pdfUploadsRemaining]);
+    const handleUserUpdated = (event) => {
+      const updatedUser = event.detail;
+      if (updatedUser?.limits?.generationsRemaining !== undefined) {
+        setQuizzesLeft(updatedUser.limits.generationsRemaining);
+      }
+      if (updatedUser?.limits?.pdfUploadsRemaining !== undefined) {
+        setPdfLeft(updatedUser.limits.pdfUploadsRemaining);
+      }
+    };
 
-  const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: PlusCircle, label: "New Quiz", path: "/generate" },
-    { icon: BarChart, label: "Overview", path: "/overview" },
-  ];
+    window.addEventListener("userUpdated", handleUserUpdated);
+
+    return () => {
+      window.removeEventListener("userUpdated", handleUserUpdated);
+    };
+  }, []);
+
+  const navItems = useMemo(
+    () => [
+      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: PlusCircle, label: "New Quiz", path: "/generate" },
+      { icon: BarChart, label: "Overview", path: "/overview" },
+    ],
+    []
+  );
 
   const handleLogoutClick = () => {
     setIsLoggingOut(true);
@@ -54,11 +75,18 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
     }, 1000);
   };
 
-  const userTier = user.tier;
-  const userLimits = SubscriptionTier[userTier];
+  const userTier = user?.tier || "Free";
+  const isPro = user?.tier === "Pro";
 
-  const MAX_QUIZZES = userLimits.generationsRemaining;
-  const MAX_PDF_UPLOADS = userLimits.pdfUploadsRemaining;
+  // Define tier limits
+  const tierLimits = {
+    Free: { generationsRemaining: 7, pdfUploadsRemaining: 3 },
+    Basic: { generationsRemaining: 30, pdfUploadsRemaining: 10 },
+    Pro: { generationsRemaining: Infinity, pdfUploadsRemaining: Infinity },
+  };
+
+  const MAX_QUIZZES = tierLimits[userTier]?.generationsRemaining ?? 7;
+  const MAX_PDF_UPLOADS = tierLimits[userTier]?.pdfUploadsRemaining ?? 3;
 
   return (
     <div className="min-h-screen bg-background text-textMain flex font-sans no-print selection:bg-primary/20 selection:text-primary">
@@ -69,7 +97,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
             <Link
               to="/"
               className="flex items-center gap-2 text-primary font-bold text-xl tracking-tight transition-opacity hover:opacity-80"
-              aria-label="Go to Quizzy AI Dashboard" // A11Y improvement
+              aria-label="Go to Quizzy AI Dashboard"
             >
               <BrainCircuit className="w-7 h-7" />
               <span>Quizzy AI</span>
@@ -84,13 +112,12 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                // UX/DESIGN: Refined hover and active states (using shadow-inner for depth, shadow-sm for lift)
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
                     ? "bg-primary/10 text-primary font-semibold shadow-inner"
                     : "text-textMuted hover:bg-surfaceHighlight hover:text-textMain hover:pl-5 hover:shadow-sm"
                 }`}
-                aria-current={isActive ? "page" : undefined} // A11Y improvement
+                aria-current={isActive ? "page" : undefined}
               >
                 <item.icon
                   className={`w-5 h-5 transition-transform group-hover:scale-110 ${
@@ -106,7 +133,6 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         <div className="p-4 border-t border-border">
           {user && (
             <div className="bg-surfaceHighlight p-4 rounded-xl mb-6 border border-border/50 shadow-lg shadow-black/5">
-              {" "}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 mb-1 overflow-hidden">
                   <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -121,7 +147,6 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                 </div>
 
                 <span
-                  // DESIGN: Tier badge updated to rounded-full and font-extrabold
                   className={`text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-wider shrink-0 ml-3 shadow-sm ${
                     user.tier === "Pro"
                       ? "bg-amber-100 text-amber-700"
@@ -133,26 +158,27 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   {user.tier}
                 </span>
               </div>
-              {/* UI/UX: Usage Limits converted to Progress Bars */}
               <div className="space-y-3 mb-1">
-                {/* Quizzes Today Progress Bar */}
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-textMuted">
                       Quiz Generations Left
                     </span>
+
                     <span
                       className={`font-bold ${
-                        quizzesLeft > 0 ? "text-green-600" : "text-red-500"
+                        isPro || quizzesLeft > 0
+                          ? "text-green-600"
+                          : "text-red-600"
                       }`}
                     >
-                      {user.tier === "Pro" ? "Unlimited" : quizzesLeft}
+                      {isPro ? "Unlimited" : quizzesLeft}
                     </span>
                   </div>
                   {user.tier !== "Pro" && (
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div
-                        className="h-1.5 rounded-full bg-indigo-500"
+                        className="h-1.5 rounded-full bg-indigo-500 transition-all duration-500"
                         style={{
                           width: getProgressWidth(quizzesLeft, MAX_QUIZZES),
                         }}
@@ -161,7 +187,6 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   )}
                 </div>
 
-                {/* PDF Uploads Progress Bar */}
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-textMuted">PDF Uploads Left</span>
@@ -172,7 +197,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   {user.tier !== "Pro" && (
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div
-                        className="h-1.5 rounded-full bg-indigo-500"
+                        className="h-1.5 rounded-full bg-indigo-500 transition-all duration-500"
                         style={{
                           width: getProgressWidth(pdfLeft, MAX_PDF_UPLOADS),
                         }}
@@ -196,7 +221,6 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
           <button
             onClick={handleLogoutClick}
             disabled={isLoggingOut}
-            // UX/DESIGN/A11Y: Enhanced hover, focus, and disabled states
             className="flex items-center gap-3 px-4 py-2 text-textMuted hover:text-red-600 transition-colors w-full rounded-xl hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             {isLoggingOut ? (
@@ -217,16 +241,13 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
             <Link
               key={item.path}
               to={item.path}
-              // UX: Ensured generous touch target size (min-w) and better font weight
               className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all flex-1 active:scale-95 min-w-[70px] ${
                 isActive ? "text-primary" : "text-textMuted hover:text-textMain"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
               <item.icon
-                className={`w-6 h-6 mb-1 ${
-                  isActive ? "fill-primary/20" : "" // DESIGN: Subtle fill on active icon
-                }`}
+                className={`w-6 h-6 mb-1 ${isActive ? "fill-primary/20" : ""}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className="text-[10px] font-semibold">{item.label}</span>
@@ -245,11 +266,8 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
       </nav>
 
       {/* Main Content */}
-      {/* UX/RESPONSIVENESS: Increased mobile bottom padding (pb-28) to prevent content overlap with the fixed mobile nav */}
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto min-h-screen bg-background pb-28 md:pb-8 transition-all">
         <div className="max-w-6xl mx-auto">
-          {/* Mobile Header */}
-          {/* DESIGN: Added border and more vertical padding to the mobile header */}
           <div className="md:hidden flex justify-between items-center mb-6 sticky top-0 bg-background/95 backdrop-blur z-30 py-4 border-b border-border/50">
             <div className="flex items-center gap-2 text-primary font-bold text-xl">
               <BrainCircuit className="w-7 h-7" />
@@ -284,6 +302,21 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
       )}
     </div>
   );
+};
+
+Layout.propTypes = {
+  children: PropTypes.node.isRequired,
+  user: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
+    tier: PropTypes.string,
+    limits: PropTypes.shape({
+      generationsRemaining: PropTypes.number,
+      pdfUploadsRemaining: PropTypes.number,
+    }),
+  }),
+  onLogout: PropTypes.func.isRequired,
+  refreshUser: PropTypes.func.isRequired,
 };
 
 export default Layout;

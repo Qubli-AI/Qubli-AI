@@ -12,6 +12,11 @@ const UserSchema = new mongoose.Schema(
       default: "Free",
     },
 
+    // Email verification fields
+    isVerified: { type: Boolean, default: false },
+    verificationCode: { type: String, default: null },
+    verificationCodeExpires: { type: Number, default: null },
+
     // Embed the Limits Schema
     limits: { type: LimitsSchema, required: true, default: {} },
 

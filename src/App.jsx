@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Toaster } from "react-hot-toast";
+import { ToastContainer, Zoom } from "react-toastify";
 
 import {
   BrowserRouter as Router,
@@ -16,6 +16,7 @@ import QuizGenerator from "./components/QuizGenerator.jsx";
 import QuizTaker from "./components/QuizTaker.jsx";
 import Overview from "./components/Overview.jsx";
 import AuthForm from "./components/AuthForm.jsx";
+import VerifyEmail from "./components/VerifyEmail.jsx";
 import StorageService from "./services/storageService.js";
 
 // Protected Route Wrapper
@@ -45,6 +46,17 @@ const App = () => {
     setLoading(false);
   }, []);
 
+  // Listen for user updates dispatched from other parts of the app
+  useEffect(() => {
+    const handleUserUpdated = (event) => {
+      const updatedUser = event.detail || StorageService.getCurrentUser();
+      if (updatedUser) setAuth({ isAuthenticated: true, user: updatedUser });
+    };
+
+    window.addEventListener("userUpdated", handleUserUpdated);
+    return () => window.removeEventListener("userUpdated", handleUserUpdated);
+  }, []);
+
   const handleLoginSuccess = () => {
     const user = StorageService.getCurrentUser();
     if (user) {
@@ -57,10 +69,12 @@ const App = () => {
     setAuth({ isAuthenticated: false, user: null });
   };
 
-  const refreshUser = () => {
-    const user = StorageService.getCurrentUser();
-    if (user) {
-      setAuth((prev) => ({ ...prev, user }));
+  const refreshUser = async () => {
+    try {
+      const updatedUser = await StorageService.refreshUser();
+      setAuth({ ...auth, user: updatedUser });
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
     }
   };
 
@@ -74,7 +88,27 @@ const App = () => {
 
   return (
     <>
-      <Toaster position="top-center" reverseOrder={false} />
+      <ToastContainer
+        position="top-center"
+        autoClose={2000}
+        limit={2}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable={false}
+        pauseOnHover
+        theme="light"
+        transition={Zoom}
+        toastStyle={{
+          width: "auto",
+          color: "#000",
+          padding: "0 40px 0 30px",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+          fontWeight: "500",
+        }}
+      />
       <Router>
         <Routes>
           <Route
@@ -87,6 +121,8 @@ const App = () => {
               )
             }
           />
+
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           <Route
             path="/"

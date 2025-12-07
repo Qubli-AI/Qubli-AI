@@ -94,13 +94,13 @@ export const TIER_LIMITS = {
     price: 3.99,
   },
   [SubscriptionTier.Pro]: {
-    dailyGenerations: 20000,
-    dailyFlashcardGenerations: 20000,
-    dailyPdfUploads: 20000,
-    dailyPdfExports: 20000,
+    dailyGenerations: Infinity,
+    dailyFlashcardGenerations: Infinity,
+    dailyPdfUploads: Infinity,
+    dailyPdfExports: Infinity,
     maxQuestions: 45,
     maxMarks: 100,
-    flashcardLimit: 20000,
+    flashcardLimit: Infinity,
     price: 7.99,
   },
 };
