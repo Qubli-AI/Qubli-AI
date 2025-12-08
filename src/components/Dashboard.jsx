@@ -97,7 +97,7 @@ const Dashboard = ({ user }) => {
 
   const refreshQuizzes = async () => {
     if (!user) return;
-    setIsLoading(true); // Set loading true before fetch
+    setIsLoading(true);
     try {
       const userQuizzes = await StorageService.getQuizzes(user._id);
       setQuizzes(userQuizzes);
@@ -106,7 +106,7 @@ const Dashboard = ({ user }) => {
       console.error("Failed to refresh quizzes:", err);
       toast.error("Failed to load quizzes. Please try again.");
     } finally {
-      setIsLoading(false); // Set loading false after fetch
+      setIsLoading(false);
     }
   };
 
@@ -332,7 +332,7 @@ const Dashboard = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Difficulty Chart */}
         <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm h-[350px]">
-          <h2 className="text-lg font-bold text-textMain mb-6">
+          <h2 className="text-lg font-bold text-textMain mb-6 text-center md:text-left">
             Performance by Difficulty
           </h2>
           <div className="h-[250px] w-full">
@@ -437,7 +437,9 @@ const Dashboard = ({ user }) => {
       <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div>
-            <h2 className="text-lg font-bold text-textMain">All Quizzes</h2>
+            <h2 className="text-lg font-bold text-textMain text-center md:text-left">
+              All Quizzes
+            </h2>
             <p className="text-xs text-textMuted mt-1">
               Total: {quizzes.length} | Avg Score: {totalAvgScore}%
             </p>

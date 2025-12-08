@@ -1,5 +1,6 @@
 import React from "react";
-import { X, Check, Zap, Crown, Star } from "lucide-react";
+import { Crown, Check, Zap, Star } from "lucide-react";
+import { toast } from "react-toastify";
 
 import StorageService from "../services/storageService.js";
 import { SubscriptionTier } from "../../server/config/types.js";
@@ -30,7 +31,7 @@ const TIER_DATA = {
   },
   [SubscriptionTier.Basic]: {
     title: "Scholar Basic",
-    price: "$3.99",
+    price: "$4.99",
     icon: Zap,
     diffClass: false,
     colorClasses: {
@@ -53,7 +54,7 @@ const TIER_DATA = {
   },
   [SubscriptionTier.Pro]: {
     title: "Mastermind Pro",
-    price: "$7.99",
+    price: "$9.99",
     icon: Crown,
     diffClass: true,
     colorClasses: {
@@ -84,7 +85,6 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
   let buttonText;
   let disabled = false;
 
-  // Correct logic based on tier order
   const tierOrder = [
     SubscriptionTier.Free,
     SubscriptionTier.Basic,
@@ -176,10 +176,12 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
   );
 };
 
-const SubscriptionModal = ({ onClose, onUpgrade, currentTier }) => {
+const Subscription = ({ user, onUpgrade }) => {
+  const currentTier = user?.tier || SubscriptionTier.Free;
+
   const handleUpgrade = async (tier) => {
     const confirmPayment = window.confirm(
-      `Proceed to upgrade to ${TIER_DATA[tier].title} for ${TIER_DATA[tier].price}/month? (Simulated Payment)`
+      `Proceed to change plan to ${TIER_DATA[tier].title} for ${TIER_DATA[tier].price}/month? (Simulated)`
     );
     if (!confirmPayment) return;
 
@@ -189,79 +191,47 @@ const SubscriptionModal = ({ onClose, onUpgrade, currentTier }) => {
       window.dispatchEvent(
         new CustomEvent("userUpdated", { detail: updatedUser })
       );
-      toast.success(`Congratulations on becoming ${updatedUser.tier} Tier!`);
-      onClose();
-    } catch (error) {
-      toast.error("Upgrade Failed.");
+      toast.success(`Plan updated to ${updatedUser.tier}`);
+      if (onUpgrade) onUpgrade();
+    } catch (err) {
+      toast.error("Failed to update plan");
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-6xl p-0 md:p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Desktop Close Button (Positioned outside the main modal content) */}
-        <button
-          onClick={onClose}
-          className="hidden md:block absolute top-7 right-9 p-2 text-black/90 hover:text-white hover:bg-white/10 rounded-full transition-colors z-50"
-          title="Close"
-        >
-          <X className="w-7 h-7" />
-        </button>
-
-        {/* Scrollable container & Main content wrapper */}
-        <div className="max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl bg-white shadow-2xl">
-          {/* Header/Title Section (UX: Give the modal a clear purpose) */}
-          <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm p-6 border-b border-border md:rounded-t-2xl">
-            <h2 className="text-3xl font-extrabold text-textMain flex items-center gap-3">
-              <Crown className="w-7 h-7 text-amber-500 fill-amber-100" /> Unlock
-              Premium Features
-            </h2>
-            <p className="text-textMuted mt-1">
-              Choose the plan that's right for your study goals.
-            </p>
-            {/* Mobile Close Button (Integrated into header) */}
-            <button
-              onClick={onClose}
-              className="md:hidden absolute top-5 right-5 p-2 bg-surfaceHighlight text-textMuted rounded-full hover:bg-surface transition-colors"
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="p-6 md:p-10">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <TierCard
-                tier={SubscriptionTier.Free}
-                currentTier={currentTier}
-                handleUpgrade={handleUpgrade}
-              />
-              <TierCard
-                tier={SubscriptionTier.Basic}
-                currentTier={currentTier}
-                handleUpgrade={handleUpgrade}
-              />
-              <TierCard
-                tier={SubscriptionTier.Pro}
-                currentTier={currentTier}
-                handleUpgrade={handleUpgrade}
-              />
-            </div>
-            <p className="text-center text-xs text-textMuted mt-8 border-t border-border pt-4">
-              *All payments are simulated in this environment. No actual charges
-              will be incurred.
-            </p>
-          </div>
-        </div>
+    <div className="py-6 md:py-10">
+      <div className="mb-6 md:mb-10">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-textMain flex items-center gap-3">
+          <Crown className="w-7 h-7 text-amber-500" /> Subscription Plans
+        </h1>
+        <p className="text-textMuted mt-2">
+          Choose the plan that best fits your study needs.
+        </p>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <TierCard
+          tier={SubscriptionTier.Free}
+          currentTier={currentTier}
+          handleUpgrade={handleUpgrade}
+        />
+        <TierCard
+          tier={SubscriptionTier.Basic}
+          currentTier={currentTier}
+          handleUpgrade={handleUpgrade}
+        />
+        <TierCard
+          tier={SubscriptionTier.Pro}
+          currentTier={currentTier}
+          handleUpgrade={handleUpgrade}
+        />
+      </div>
+
+      <p className="text-center text-xs text-textMuted mt-8 border-t border-border pt-4">
+        *Payments are simulated in this environment. No real charges will occur.
+      </p>
     </div>
   );
 };
 
-export default SubscriptionModal;
+export default Subscription;

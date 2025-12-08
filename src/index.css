@@ -1,22 +1,46 @@
 @import "tailwindcss";
 
+/* Light theme (default) */
+:root {
+  --bg-background: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-highlight: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  color-scheme: light;
+}
+
+/* Dark theme */
+html.dark {
+  --bg-background: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-highlight: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #cbd5e1;
+  --border-color: #475569;
+  color-scheme: dark;
+}
+
 body {
   font-family: "Inter", sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--bg-background);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-surface-highlight);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--text-muted);
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-main);
 }
 
 /* Hide number input arrows */

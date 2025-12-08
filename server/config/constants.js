@@ -91,7 +91,7 @@ export const TIER_LIMITS = {
     maxQuestions: 25,
     maxMarks: 60,
     flashcardLimit: 200,
-    price: 3.99,
+    price: 4.99,
   },
   [SubscriptionTier.Pro]: {
     dailyGenerations: Infinity,
@@ -101,6 +101,6 @@ export const TIER_LIMITS = {
     maxQuestions: 45,
     maxMarks: 100,
     flashcardLimit: Infinity,
-    price: 7.99,
+    price: 9.99,
   },
 };

@@ -1,4 +1,4 @@
-const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api`;
+const API_URL = `http://localhost:5000/api`;
 
 /** Generic request helper with auto user storage */
 async function request(endpoint, method = "GET", body) {
@@ -68,6 +68,10 @@ const StorageService = {
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+  },
+
+  getToken: () => {
+    return localStorage.getItem("token");
   },
 
   getCurrentUser: () => {

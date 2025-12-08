@@ -15,9 +15,12 @@ import Dashboard from "./components/Dashboard.jsx";
 import QuizGenerator from "./components/QuizGenerator.jsx";
 import QuizTaker from "./components/QuizTaker.jsx";
 import Overview from "./components/Overview.jsx";
+import Subscription from "./components/Subscription.jsx";
 import AuthForm from "./components/AuthForm.jsx";
 import VerifyEmail from "./components/VerifyEmail.jsx";
+import OAuthCallback from "./components/OAuthCallback.jsx";
 import StorageService from "./services/storageService.js";
+import { useTheme } from "./hooks/useTheme.js";
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children, auth }) => {
@@ -37,6 +40,7 @@ const ProtectedRoute = ({ children, auth }) => {
 const App = () => {
   const [auth, setAuth] = useState({ isAuthenticated: false, user: null });
   const [loading, setLoading] = useState(true);
+  useTheme(); // Initialize theme on app load
 
   useEffect(() => {
     const user = StorageService.getCurrentUser();
@@ -111,6 +115,8 @@ const App = () => {
       />
       <Router>
         <Routes>
+          <Route path="/auth/callback" element={<OAuthCallback />} />
+
           <Route
             path="/login"
             element={
@@ -186,6 +192,21 @@ const App = () => {
                   refreshUser={refreshUser}
                 >
                   <Overview user={auth.user} />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/subscription"
+            element={
+              <ProtectedRoute auth={auth}>
+                <Layout
+                  user={auth.user}
+                  onLogout={handleLogout}
+                  refreshUser={refreshUser}
+                >
+                  <Subscription user={auth.user} onUpgrade={refreshUser} />
                 </Layout>
               </ProtectedRoute>
             }

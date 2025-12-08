@@ -1,4 +1,4 @@
-const API_URL = `http://localhost:${import.meta.env.VITE_SERVER_PORT}`;
+const API_URL = `http://localhost:5000`;
 
 export async function request(endpoint, method = "GET", body) {
   const token = localStorage.getItem("token");

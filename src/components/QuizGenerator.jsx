@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { generateQuiz } from "../services/geminiService.js";
 import StorageService from "../services/storageService.js";
 import { TIER_LIMITS, EXAM_STYLES } from "../../server/config/constants.js";
-import SubscriptionModal from "./SubscriptionModal.jsx";
 import {
   SubscriptionTier,
   Difficulty,
@@ -29,7 +28,6 @@ import {
 const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [mode, setMode] = useState("text");
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
@@ -69,7 +67,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     if (!isPro && currentCount + incomingCount > 1) {
       if (currentCount >= 1 || incomingCount > 1) {
         toast.error("Free/Basic plans are limited to 1 PDF per quiz.");
-        setShowUpgradeModal(true);
+        navigate("/subscription");
         return;
       }
     }
@@ -178,10 +176,15 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       (requiredTier === "Basic" && user?.tier === "Free") ||
       (requiredTier === "Pro" && user?.tier !== "Pro")
     ) {
-      setShowUpgradeModal(true);
+      navigate("/subscription");
       return;
     }
     setExamStyleId(styleId);
+  };
+
+  const hasQuota = (limitType) => {
+    if (user?.tier === "Pro") return true;
+    return (user?.limits?.[limitType] ?? 0) > 0;
   };
 
   const handleGenerate = async (e) => {
@@ -191,15 +194,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       return toast.error(`Max ${userMaxQuestions} questions allowed.`);
     if (totalMarks > userMaxMarks)
       return toast.error(`Max ${userMaxMarks} marks allowed.`);
-    if (user?.limits?.generationsRemaining <= 0)
+    if (!hasQuota("generationsRemaining"))
       return toast.error(`Daily quiz limit reached.`);
-    if (generateFlashcards && user?.limits?.flashcardGenerationsRemaining <= 0)
+    if (generateFlashcards && !hasQuota("flashcardGenerationsRemaining"))
       return toast.error(`Daily flashcard limit reached.`);
-    if (
-      mode === "pdf" &&
-      user?.tier !== "Pro" &&
-      user?.limits?.pdfUploadsRemaining <= 0
-    )
+    if (mode === "pdf" && !hasQuota("pdfUploadsRemaining"))
       return toast.error("Daily PDF upload limit reached.");
     if (!selectedTypes?.length)
       return toast.error("Select at least one question type");
@@ -231,17 +230,14 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       quiz.isFlashcardSet = generateFlashcards;
 
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:${import.meta.env.VITE_SERVER_PORT}/api/quizzes`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ...quiz, isFlashcardSet: generateFlashcards }),
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/quizzes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ...quiz, isFlashcardSet: generateFlashcards }),
+      });
 
       const savedQuiz = await response.json();
 
@@ -664,17 +660,6 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           </button>
         </form>
       </div>
-
-      {showUpgradeModal && (
-        <SubscriptionModal
-          onClose={() => setShowUpgradeModal(false)}
-          onUpgrade={() => {
-            setShowUpgradeModal(false);
-            onGenerateSuccess();
-          }}
-          currentTier={user?.tier}
-        />
-      )}
     </div>
   );
 };

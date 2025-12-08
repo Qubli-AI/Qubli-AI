@@ -6,7 +6,6 @@ import asyncHandler from "express-async-handler";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Use asyncHandler to automatically catch any errors thrown inside the try/catch block
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -17,25 +16,27 @@ const protect = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
 
-      // Verify token (jwt.verify is synchronous, but we'll keep the asyncHandler wrapper for consistency)
+      if (!token || token.trim() === "") {
+        return res.status(401).json({ message: "No token provided" });
+      }
+
       const decoded = jwt.verify(token, JWT_SECRET);
 
-      // Attach user ID to the request (ID is typically stored as 'id' or '_id' in the payload)
       req.userId = decoded.id;
 
       next();
     } catch (error) {
+      if (error.name === "JsonWebTokenError") {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Token expired" });
+      }
       console.error(error);
-      // If verification fails or token is malformed, send 401 and RETURN
       res.status(401).json({ message: "Not authorized, token failed." });
-      return;
     }
-  }
-
-  if (!token) {
-    // If no token was provided in the headers, send 401 and RETURN
-    res.status(401).json({ message: "Not authorized, no token." });
-    return;
+  } else {
+    res.status(401).json({ message: "No authorization header provided" });
   }
 });
 

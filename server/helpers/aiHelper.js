@@ -12,8 +12,6 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const PRO_MODEL = "gemini-2.5-pro";
 const BASIC_MODEL = "gemini-2.5-flash";
 
-import { toast } from "react-toastify";
-
 async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -23,7 +21,7 @@ async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
 
       // Retry only on overload or rate-limit
       if (status === 503 || status === 429) {
-        toast.info(`Gemini overloaded → retrying (${i + 1}/${retries})`);
+        console.warn(`Gemini overloaded → retrying (${i + 1}/${retries})`);
         await new Promise((res) => setTimeout(res, delay));
       } else {
         throw err; // non-retryable error
@@ -31,7 +29,7 @@ async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
     }
   }
 
-  toast.error(`AI failed after ${retries} retries.`);
+  console.error(`AI failed after ${retries} retries.`);
 }
 
 // Helper function to build the final API URL
@@ -207,7 +205,7 @@ Include a mix of the following question types: ${typeString}.
     const resultText = await response.text();
 
     if (!response.ok) {
-      toast.error("Failed to generate quiz. Try again.");
+      console.error("Failed to generate quiz. Try again.");
       throw new Error(
         `API call failed with status ${
           response.status
@@ -258,7 +256,7 @@ Include a mix of the following question types: ${typeString}.
       marks: q.marks || 1,
     }));
 
-    toast.success("Quiz generated successfully!");
+    console.info("Quiz generated successfully!");
 
     return {
       title: data.title || `${topic} Quiz`,
@@ -335,11 +333,11 @@ Output: A sharp, direct, high-impact review.
 
     const review = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    toast.success("Performance review generated!");
+    console.info("Performance review generated!");
 
     return review;
   } catch (e) {
-    toast.success("Performance review error.");
+    console.error("Performance review error:", e);
     throw new Error("AI Review temporarily unavailable.");
   }
 };

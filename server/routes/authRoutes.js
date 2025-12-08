@@ -10,6 +10,12 @@ import {
   generateVerificationCode,
   sendVerificationEmail,
 } from "../helpers/emailHelper.js";
+import {
+  exchangeCodeForToken,
+  getOAuthUserInfo,
+  findOrCreateOAuthUser,
+} from "../helpers/oauthHelper.js";
+import protect from "../middleware/auth.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -63,12 +69,18 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Check if user is verified
     if (!user.isVerified) {
       return res.status(401).json({
         message: "Please verify your email first.",
         needsVerification: true,
         userId: user._id,
+      });
+    }
+
+    if (!user.password) {
+      return res.status(401).json({
+        message:
+          "This account was created with OAuth. Please sign in with Google or GitHub.",
       });
     }
 
@@ -107,7 +119,6 @@ router.post("/verify-email", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if code is expired
     if (Date.now() > user.verificationCodeExpires) {
       return res.status(400).json({
         message: "Verification code expired. Please register again.",
@@ -120,14 +131,12 @@ router.post("/verify-email", async (req, res) => {
       return res.status(400).json({ message: "Invalid verification code" });
     }
 
-    // Mark user as verified
     user.isVerified = true;
     user.verificationCode = null;
     user.verificationCodeExpires = null;
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -181,6 +190,263 @@ router.post("/resend-code", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+  }
+});
+
+// Change password
+router.post("/change-password", protect, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If user has a password, verify current password
+    if (user.password) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ message: "Current password is incorrect" });
+      }
+    }
+
+    // Validate new password
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message:
+          "Password must contain at least one uppercase letter and one digit",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete account
+router.delete("/delete-account", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(req.userId);
+
+    res.status(200).json({
+      message: "Account deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get active sessions (mock - in production, you'd track actual sessions)
+router.get("/sessions", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Mock sessions data - in production, store actual session info in DB
+    const sessions = [
+      {
+        id: "session_1",
+        deviceName: "Current Device",
+        browser: "Chrome",
+        lastActive: new Date(),
+      },
+    ];
+
+    res.status(200).json({ sessions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Logout from specific session
+router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
+  try {
+    // In production, remove the session from the database
+    // For now, just return success
+
+    res.status(200).json({
+      message: "Session logout successful",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Setup 2FA
+router.post("/2fa/setup", protect, async (req, res) => {
+  const { method } = req.body; // 'totp' or 'sms'
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!["totp", "sms"].includes(method)) {
+      return res.status(400).json({ message: "Invalid 2FA method" });
+    }
+
+    // Mock 2FA setup - in production, generate TOTP secret or send SMS verification
+    const setupData = {
+      method,
+      status: "pending",
+      message: `2FA setup via ${method.toUpperCase()} initiated. Follow the instructions to complete setup.`,
+    };
+
+    res.status(200).json(setupData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// OAuth callback handler
+router.post("/oauth/callback", async (req, res) => {
+  const { provider, code, redirectUri } = req.body;
+
+  try {
+    // Validate provider
+    if (!["google", "github"].includes(provider)) {
+      return res.status(400).json({ message: "Invalid OAuth provider" });
+    }
+
+    // Exchange authorization code for access token
+    const accessToken = await exchangeCodeForToken(provider, code, redirectUri);
+
+    const oauthUser = await getOAuthUserInfo(provider, accessToken);
+
+    // Find or create user
+    const user = await findOrCreateOAuthUser(User, oauthUser);
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(200).json({
+      message: "OAuth authentication successful",
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        tier: user.tier,
+        stats: user.stats,
+        limits: user.limits,
+        connectedAccounts: user.connectedAccounts,
+        password: user.password,
+      },
+    });
+  } catch (err) {
+    console.error("OAuth callback error:", err.message);
+    res.status(500).json({
+      message: "OAuth authentication failed",
+      error: err.message,
+    });
+  }
+});
+
+// Link OAuth account to existing user
+router.post("/oauth/link", protect, async (req, res) => {
+  const { provider, code, redirectUri } = req.body;
+
+  try {
+    if (!["google", "github"].includes(provider)) {
+      return res.status(400).json({ message: "Invalid OAuth provider" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Exchange authorization code for access token
+    const accessToken = await exchangeCodeForToken(provider, code, redirectUri);
+
+    // Get user info from OAuth provider
+    const oauthUserData = await getOAuthUserInfo(provider, accessToken);
+
+    // Link OAuth account
+    if (!user.connectedAccounts) {
+      user.connectedAccounts = {};
+    }
+
+    user.connectedAccounts[provider] = {
+      id: oauthUserData.providerId,
+      email: oauthUserData.email,
+      connectedAt: new Date(),
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      message: `${provider} account linked successfully`,
+      user: {
+        id: user._id,
+        email: user.email,
+        connectedAccounts: user.connectedAccounts,
+      },
+    });
+  } catch (err) {
+    console.error("OAuth link error:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to link OAuth account", error: err.message });
+  }
+});
+
+// Disconnect OAuth account
+router.delete("/oauth/disconnect/:provider", protect, async (req, res) => {
+  const { provider } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.connectedAccounts && user.connectedAccounts[provider]) {
+      delete user.connectedAccounts[provider];
+      await user.save();
+
+      res.status(200).json({
+        message: `${provider} account disconnected successfully`,
+      });
+    } else {
+      res.status(404).json({ message: "OAuth account not connected" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

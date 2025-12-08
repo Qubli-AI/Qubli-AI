@@ -473,17 +473,20 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   };
 
   const handlePrint = () => {
-    if (user.limits?.pdfExportsRemaining <= 0) {
+    if (user.tier !== "Pro" && (user.limits?.pdfExportsRemaining ?? 0) <= 0) {
       alert(
-        "You have reached your daily PDF export limit. Upgrade your plan for more exports."
+        "You have reached your daily PDF export limit. Upgrade to Pro for more exports."
       );
       return;
     }
-    const success = StorageService.decrementPdfExport();
-    if (success) {
+
+    if (user.tier !== "Pro") {
+      const success = StorageService.decrementPdfExport();
+      if (!success) return;
       onLimitUpdate();
-      setTimeout(() => window.print(), 100);
     }
+
+    setTimeout(() => window.print(), 100);
   };
 
   const manualCreateFlashcards = () => {
@@ -566,7 +569,8 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           <button
             onClick={handlePrint}
             disabled={
-              status !== "completed" || user.limits?.pdfExportsRemaining <= 0
+              status !== "completed" ||
+              (user.tier !== "Pro" && (user.limits?.generations ?? 0) <= 0)
             }
             className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-bold shadow-sm flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-[10px]"
             title={
