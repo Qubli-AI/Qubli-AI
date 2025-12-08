@@ -150,6 +150,11 @@ export const generateQuizHelper = async (clientData, user) => {
   }
 
   const typeString = types.join(", ");
+
+  // Build prompt - special handling for PDF mode
+  const isPdfMode =
+    typeof topic === "string" && topic.includes("attached document");
+
   let prompt = `Generate a ${difficulty} level quiz about "${topic}".
 **Exam Style: ${styleLabel}**. ${styleInstruction}
 
@@ -157,6 +162,11 @@ The quiz should have exactly ${questionCount} questions.
 The Total Marks for the entire quiz must equal exactly ${totalMarks}. Distribute these marks logically among the questions based on their complexity.
 Include a mix of the following question types: ${typeString}.
 
+${
+  isPdfMode
+    ? "**CRITICAL: ALL questions MUST be based ONLY on the content of the attached document(s). Do NOT generate questions about topics not covered in the document. Every question must be answerable from the document content.**\n"
+    : ""
+}
 - For each question, include a field "type" exactly as one of: MCQ, TrueFalse, ShortAnswer, Essay, FillInTheBlank.
 - For 'MCQ', provide 4 options.
 - For 'TrueFalse', provide 2 options (True, False).
@@ -166,12 +176,25 @@ Include a mix of the following question types: ${typeString}.
 
   const parts = [{ text: prompt }];
 
-  if (fileData && fileData.mimeType && fileData.data) {
-    parts.push({
-      inlineData: { mimeType: fileData.mimeType, data: fileData.data },
-    });
-    parts[0].text +=
-      " Use the attached document context to generate relevant questions.";
+  // Handle both single file and array of files
+  if (fileData) {
+    const filesArray = Array.isArray(fileData) ? fileData : [fileData];
+    console.log(`Processing ${filesArray.length} file(s) for quiz generation`);
+
+    for (const file of filesArray) {
+      if (file && file.mimeType && file.data) {
+        console.log(`Adding file with mime type: ${file.mimeType}`);
+        parts.push({
+          inlineData: { mimeType: file.mimeType, data: file.data },
+        });
+      }
+    }
+
+    if (filesArray.length > 0 && filesArray[0]?.mimeType) {
+      parts[0].text += ` Use the attached document${
+        filesArray.length > 1 ? "s" : ""
+      } context to generate relevant questions.`;
+    }
   }
 
   const contents = [{ role: "user", parts }];

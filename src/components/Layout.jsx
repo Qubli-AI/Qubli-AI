@@ -314,7 +314,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
             disabled={isLoggingOut}
             className={`flex items-center gap-3 ${
               sidebarCollapsed ? "px-[13px]" : "px-4"
-            } py-2 text-textMuted hover:text-red-600 transition-colors w-full rounded-xl hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-[7px]`}
+            } py-2 text-textMuted hover:text-red-600 transition-colors w-full rounded-xl hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-3`}
           >
             {isLoggingOut ? (
               <Loader2 className="w-5 h-5 animate-spin text-red-500" />
