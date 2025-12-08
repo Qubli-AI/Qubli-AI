@@ -168,6 +168,7 @@ export const findOrCreateOAuthUser = async (User, oauthData) => {
     email: oauthData.email,
     picture: oauthData.picture,
     password: hashedPassword,
+    passwordIsUserSet: false, // Mark as OAuth-generated password
     isVerified: true,
     tier: "Free",
     limits: {

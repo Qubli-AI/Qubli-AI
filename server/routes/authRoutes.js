@@ -77,15 +77,36 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // Check if user has a password to compare against
     if (!user.password) {
       return res.status(401).json({
         message:
-          "This account was created with OAuth. Please sign in with Google or GitHub.",
+          "This account was created with OAuth. Please sign in with Google or GitHub, or set a password in settings.",
+        isOAuthAccount: true,
       });
     }
 
+    // Compare password (works for both regular users and OAuth users with password)
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ message: "Invalid credentials" });
+    if (!match) {
+      // Check if user has connected OAuth accounts
+      if (user.connectedAccounts) {
+        const connectedObj = user.connectedAccounts.toObject
+          ? user.connectedAccounts.toObject()
+          : user.connectedAccounts;
+        const providers = Object.keys(connectedObj)
+          .filter((key) => ["google", "github"].includes(key))
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .join(" or ");
+
+        if (providers) {
+          return res.status(401).json({
+            message: `Invalid credentials. You registered with ${providers}. Please use that instead or check your password.`,
+          });
+        }
+      }
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign({ id: user._id }, JWT_SECRET, {
       expiresIn: "7d",
@@ -100,6 +121,8 @@ router.post("/login", async (req, res) => {
         tier: user.tier,
         stats: user.stats,
         limits: user.limits,
+        connectedAccounts: user.connectedAccounts,
+        passwordIsUserSet: user.passwordIsUserSet,
       },
     });
   } catch (err) {
@@ -150,6 +173,7 @@ router.post("/verify-email", async (req, res) => {
         tier: user.tier,
         stats: user.stats,
         limits: user.limits,
+        passwordIsUserSet: user.passwordIsUserSet,
       },
     });
   } catch (err) {
@@ -203,8 +227,9 @@ router.post("/change-password", protect, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // If user has a password, verify current password
-    if (user.password) {
+    // If user has set a password, verify current password
+    // OAuth users with unset passwords don't need verification
+    if (user.passwordIsUserSet) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
         return res
@@ -230,6 +255,7 @@ router.post("/change-password", protect, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
+    user.passwordIsUserSet = true; // Mark password as user-set
     await user.save();
 
     res.status(200).json({
@@ -344,11 +370,14 @@ router.post("/oauth/callback", async (req, res) => {
 
     const oauthUser = await getOAuthUserInfo(provider, accessToken);
 
-    // Find or create user
+    // Find or create user (this also links OAuth accounts)
     const user = await findOrCreateOAuthUser(User, oauthUser);
 
+    // Refresh user to get latest data
+    const updatedUser = await User.findById(user._id);
+
     // Generate JWT token
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+    const token = jwt.sign({ id: updatedUser._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -356,14 +385,14 @@ router.post("/oauth/callback", async (req, res) => {
       message: "OAuth authentication successful",
       token,
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        tier: user.tier,
-        stats: user.stats,
-        limits: user.limits,
-        connectedAccounts: user.connectedAccounts,
-        password: user.password,
+        id: updatedUser._id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        tier: updatedUser.tier,
+        stats: updatedUser.stats,
+        limits: updatedUser.limits,
+        connectedAccounts: updatedUser.connectedAccounts,
+        passwordIsUserSet: updatedUser.passwordIsUserSet,
       },
     });
   } catch (err) {
@@ -414,6 +443,7 @@ router.post("/oauth/link", protect, async (req, res) => {
         id: user._id,
         email: user.email,
         connectedAccounts: user.connectedAccounts,
+        passwordIsUserSet: user.passwordIsUserSet,
       },
     });
   } catch (err) {

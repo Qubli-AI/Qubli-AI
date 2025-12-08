@@ -281,7 +281,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
   };
 
   const getGenerationMessage = (user) => {
-    if (user?.tier === "Pro") return "Unlimited generations left today";
+    if (user?.tier === "Pro") return "∞ generations left today";
     if (user?.limits?.generationsRemaining === 0)
       return "Come back tomorrow for more generations";
     return `${user?.limits?.generationsRemaining ?? 0} generation${
@@ -472,7 +472,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   <div
                     key={style.id}
                     onClick={() => handleExamStyleSelect(style.id, style.tier)}
-                    className={`relative p-4 rounded-xl min-h-32 border-2 transition-all cursor-pointer flex flex-col justify-between h-full ${
+                    className={`relative p-4 rounded-xl min-h-38 border-2 transition-all cursor-pointer flex flex-col justify-between h-full ${
                       examStyleId === style.id
                         ? "border-primary bg-primary/5"
                         : "border-border bg-white hover:border-primary/30"

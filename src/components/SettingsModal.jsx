@@ -121,8 +121,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
-    // Current password only required if user already has one
-    if (user?.password && !currentPassword) {
+    // Current password only required if user has previously set one
+    if (user?.passwordIsUserSet && !currentPassword) {
       toast.error("Current password is required");
       return;
     }
@@ -563,19 +563,27 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
               <h3 className="text-lg font-bold text-textMain mb-4">
                 Change Password
               </h3>
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-textMuted mb-2">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter current password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+              {!user?.passwordIsUserSet && (
+                <div className="mb-4 p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded-lg text-sm">
+                  💡 You signed up with OAuth. Set a password below to enable
+                  email/password login on any device.
                 </div>
+              )}
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                {user?.passwordIsUserSet && (
+                  <div>
+                    <label className="block text-sm font-medium text-textMuted mb-2">
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-textMuted mb-2">
                     New Password

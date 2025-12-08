@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String }, // Make optional for OAuth users
+    passwordIsUserSet: { type: Boolean, default: false }, // Track if password was set by user or OAuth
     picture: { type: String }, // Profile picture URL
     tier: {
       type: String,
