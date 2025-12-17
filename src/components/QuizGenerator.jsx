@@ -230,7 +230,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       quiz.isFlashcardSet = generateFlashcards;
 
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/quizzes`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/quizzes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

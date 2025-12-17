@@ -1,4 +1,4 @@
-const API_URL = `http://localhost:5000/api`;
+const API_URL = `${import.meta.env.VITE_API_URL}`;
 
 /** Generic request helper with auto user storage */
 async function request(endpoint, method = "GET", body) {
