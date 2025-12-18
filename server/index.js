@@ -154,126 +154,12 @@ if (isProduction) {
 async function startServer() {
   try {
     // Connect to MongoDB
-    await mongoose
-      .connect(MONGODB_URI)
-      .then(() => console.log("MongoDB Atlas Connected successfully! 🚀"))
-      .catch((err) => {
-        console.error("MongoDB connection error:", err);
-        process.exit(1);
-      });
-
-    // Get current user
-    app.get("/api/users/me", protect, async (req, res) => {
-      try {
-        const user = await User.findById(req.userId).select("-password");
-        if (!user) return res.status(404).json({ message: "User not found." });
-
-        const updatedUser = await checkDailyReset(user, TIER_LIMITS);
-        res.status(200).json({ user: updatedUser });
-      } catch (error) {
-        res.status(500).json({ message: "Internal Server Error, Try Again!" });
-      }
-    });
-
-    // Decrement Limits
-    app.post("/api/limits/decrement/:type", protect, async (req, res) => {
-      const { type } = req.params;
-      let limitField;
-      let success = false;
-      let message = "Unknown limit type.";
-
-      switch (type) {
-        case "quiz":
-          limitField = "limits.generationsRemaining";
-          break;
-        case "flashcard":
-          limitField = "limits.flashcardGenerationsRemaining";
-          break;
-        case "pdfupload":
-          limitField = "limits.pdfUploadsRemaining";
-          break;
-        case "pdfexport":
-          limitField = "limits.pdfExportsRemaining";
-          break;
-        default:
-          return res.status(400).json({ success: false, message });
-      }
-
-      try {
-        const user = await User.findById(req.userId);
-        if (!user)
-          return res
-            .status(404)
-            .json({ success: false, message: "User not found." });
-
-        const remaining = user.get(limitField);
-        if (typeof remaining === "string" || remaining > 0) {
-          if (typeof remaining === "number")
-            user.set(limitField, remaining - 1);
-          await user.save();
-          success = true;
-          message = "Limit successfully decremented.";
-        } else {
-          message = "Daily limit reached for this feature.";
-        }
-
-        res
-          .status(200)
-          .json({ success, message, remaining: user.get(limitField) });
-      } catch (error) {
-        console.error("Decrement limit error:", error);
-        res.status(500).json({
-          success: false,
-          message: "Server error during limit decrement.",
-        });
-      }
-    });
-
-    // Upgrade Subscription
-    app.post("/api/subscription/upgrade", protect, async (req, res) => {
-      const { tier } = req.body;
-      const newLimits = TIER_LIMITS[tier];
-
-      if (!newLimits || tier === "free")
-        return res.status(400).json({ message: "Invalid subscription tier." });
-
-      try {
-        const user = await User.findById(req.userId);
-        if (!user) return res.status(404).json({ message: "User not found." });
-
-        user.tier = tier;
-        user.limits.generationsRemaining = newLimits.dailyGenerations;
-        user.limits.flashcardGenerationsRemaining =
-          newLimits.dailyFlashcardGenerations;
-        user.limits.pdfUploadsRemaining = newLimits.dailyPdfUploads;
-        user.limits.pdfExportsRemaining = newLimits.dailyPdfExports;
-        user.limits.maxQuestions = newLimits.maxQuestions;
-        user.limits.maxMarks = newLimits.maxMarks;
-        user.limits.lastReset = Date.now();
-
-        await user.save();
-
-        res.status(200).json({
-          message: `Successfully upgraded to ${tier} tier.`,
-          user: { ...user.toObject(), password: undefined },
-        });
-      } catch (error) {
-        console.error("Upgrade error:", error);
-        res.status(500).json({ message: "Server error during upgrade." });
-      }
-    });
-
-    app.use("/api/ai", aiRoutes);
-    app.use("/api/auth", authRoutes);
-    app.use("/api/auth/2fa", twoFARoutes);
-    app.use("/api/quizzes", quizRoutes);
-    app.use("/api/reviews", reviewRoutes);
-    app.use("/api/flashcards", flashcardRoutes);
-    app.use("/api/support", supportRoutes);
+    await mongoose.connect(MONGODB_URI);
+    console.log("MongoDB Atlas Connected successfully! 🚀");
 
     // Start server
     app.listen(PORT, () =>
-      console.log(`Server running in development mode on ${PORT}`)
+      console.log(`Server running in ${process.env.NODE_ENV} mode on ${PORT}`)
     );
   } catch (err) {
     console.error("❌ Server Not Started", err);
