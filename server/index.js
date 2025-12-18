@@ -25,13 +25,6 @@ const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
 
-// Debug: Log if MongoDB URI is missing
-if (!MONGODB_URI) {
-  console.error("❌ MONGODB_URI is not set in environment variables!");
-}
-
-console.log("Starting middleware setup...");
-
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.use(
@@ -171,9 +164,9 @@ async function startServer() {
     console.log("MongoDB Atlas Connected successfully! 🚀");
 
     // Disable logs after startup
-    if (isProduction) {
-      console.log = () => {};
-    }
+    // if (isProduction) {
+    //   console.log = () => {};
+    // }
 
     // Start server
     app.listen(PORT, () =>
@@ -184,8 +177,6 @@ async function startServer() {
     process.exit(1);
   }
 }
-
-console.log("📍 startServer function defined");
 
 try {
   startServer();
