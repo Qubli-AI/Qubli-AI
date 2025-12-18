@@ -1,4 +1,8 @@
-// Load environment variables
+// Load environment variables (only in development)
+import dotenv from "dotenv";
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 // 1. Packages
 import express from "express";
@@ -20,6 +24,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
+
+// Debug: Log if MongoDB URI is missing
+if (!MONGODB_URI) {
+  console.error("❌ MONGODB_URI is not set in environment variables!");
+  console.error("Available vars:", Object.keys(process.env).slice(0, 10));
+}
 
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
@@ -151,8 +161,19 @@ if (isProduction) {
 
 async function startServer() {
   try {
-    // Connect to MongoDB
-    await mongoose.connect(MONGODB_URI);
+    // Check if MONGODB_URI exists
+    if (!MONGODB_URI) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
+
+    console.log("Attempting to connect to MongoDB...");
+    console.log("MONGODB_URI:", MONGODB_URI.substring(0, 30) + "..."); // Show first 30 chars
+
+    // Connect to MongoDB with options
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000, // 10 second timeout
+      connectTimeoutMS: 10000,
+    });
     console.log("MongoDB Atlas Connected successfully! 🚀");
 
     // Start server
@@ -160,7 +181,9 @@ async function startServer() {
       console.log(`Server running in ${process.env.NODE_ENV} mode on ${PORT}`)
     );
   } catch (err) {
-    console.error("❌ Server Not Started", err);
+    console.error("❌ Server Not Started");
+    console.error("Error details:", err.message);
+    console.error("Full error:", err);
     process.exit(1);
   }
 }
