@@ -962,7 +962,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     <option value="large">Large (18px)</option>
                   </select>
                   <p className="text-xs text-textMuted mt-2">
-                    <sup>*</sup>Font size will be applied site-wide
+                    *Font size will be applied site-wide
                   </p>
                 </div>
               </div>
