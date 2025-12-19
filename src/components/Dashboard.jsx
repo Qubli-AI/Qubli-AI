@@ -125,6 +125,7 @@ const Dashboard = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingDots, setLoadingDots] = useState("");
   const [stats, setStats] = useState({
     avgEasy: 0,
     avgMedium: 0,
@@ -136,6 +137,21 @@ const Dashboard = ({ user }) => {
   useEffect(() => {
     if (user) refreshQuizzes();
   }, [user]);
+
+  useEffect(() => {
+    if (!isLoading) return;
+
+    const interval = setInterval(() => {
+      setLoadingDots((prev) => {
+        if (prev === "") return ".";
+        if (prev === ".") return "..";
+        if (prev === "..") return "...";
+        return "";
+      });
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const refreshQuizzes = async () => {
     if (!user) return;
@@ -539,7 +555,7 @@ const Dashboard = ({ user }) => {
         {/* Quiz List */}
         {isLoading && quizzes.length === 0 ? (
           <div className="col-span-full text-center text-textMuted py-10">
-            Loading Quizzes...
+            Loading Quizzes{loadingDots}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
