@@ -126,6 +126,12 @@ const Dashboard = ({ user }) => {
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
   const [loadingDots, setLoadingDots] = useState("");
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    quizId: null,
+    quizTitle: "",
+    isDeleting: false,
+  });
   const [stats, setStats] = useState({
     avgEasy: 0,
     avgMedium: 0,
@@ -242,23 +248,34 @@ const Dashboard = ({ user }) => {
     });
   };
 
-  const handleDelete = (e, id) => {
+  const handleDeleteClick = (e, id, title) => {
     e.preventDefault();
     e.stopPropagation();
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this quiz? This cannot be undone."
-      )
-    )
-      return;
+    setDeleteModal({
+      isOpen: true,
+      quizId: id,
+      quizTitle: title,
+      isDeleting: false,
+    });
+  };
 
+  const handleConfirmDelete = async () => {
+    setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
     try {
-      StorageService.deleteQuiz(id);
-      refreshQuizzes();
+      StorageService.deleteQuiz(deleteModal.quizId);
+      await refreshQuizzes();
       toast.success("Quiz deleted successfully!");
+      setDeleteModal({ isOpen: false, quizId: null, quizTitle: "", isDeleting: false });
     } catch (error) {
       console.error("Delete failed", error);
       toast.error("Failed to delete quiz.");
+      setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
+    }
+  };
+
+  const handleCancelDelete = () => {
+    if (!deleteModal.isDeleting) {
+      setDeleteModal({ isOpen: false, quizId: null, quizTitle: "", isDeleting: false });
     }
   };
 
@@ -583,7 +600,7 @@ const Dashboard = ({ user }) => {
                 >
                   <button
                     type="button"
-                    onClick={(e) => handleDelete(e, quiz._id)}
+                    onClick={(e) => handleDeleteClick(e, quiz._id, quiz.title)}
                     className="absolute top-3 right-3 z-50 p-2 text-gray-400 hover:text-red-500 rounded-lg cursor-pointer transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="Delete Quiz"
                   >
@@ -654,8 +671,20 @@ const Dashboard = ({ user }) => {
           </div>
         )}
       </div>
-    </div>
-  );
-};
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in duration-300">
+            <div className="p-6">
+              {deleteModal.isDeleting ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-12 h-12 rounded-full border-3 border-primary/20 border-t-primary animate-spin mb-4"></div>
+                  <p className="text-textMuted text-sm">Deleting quiz...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                    <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300\" />\n                  </div>\n                  <h3 className=\"text-lg font-semibold text-textMain mb-2\">Delete Quiz?</h3>\n                  <p className=\"text-textMuted text-sm mb-6\">\n                    Are you sure you want to delete <span className=\"font-medium text-textMain\">"{deleteModal.quizTitle}"</span>? This cannot be undone.\n                  </p>\n\n                  <div className=\"flex gap-3 w-full\">\n                    <button\n                      onClick={handleCancelDelete}\n                      disabled={deleteModal.isDeleting}\n                      className=\"flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium\"\n                    >\n                      Cancel\n                    </button>\n                    <button\n                      onClick={handleConfirmDelete}\n                      disabled={deleteModal.isDeleting}\n                      className=\"flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium\"\n                    >\n                      Delete\n                    </button>\n                  </div>\n                </>\n              )}\n            </div>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n};
 
 export default Dashboard;
