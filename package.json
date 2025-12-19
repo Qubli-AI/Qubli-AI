@@ -25,6 +25,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "vite": "^6.2.0",
     "tailwindcss": "^4.1.18",
+    "autoprefixer": "^10.4.22",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -53,7 +54,6 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.17",
     "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.22",
     "typescript": "~5.8.2"
   },
   "description": "Quizzy AI is an AI-powered learning platform that transforms the way you study by generating personalized quizzes, flashcards, and study materials. It adapts to your progress, focusing on areas that need improvement, and helps maximize learning efficiency and knowledge retention for students, professionals, and lifelong learners.",
