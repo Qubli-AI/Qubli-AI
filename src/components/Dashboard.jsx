@@ -684,7 +684,7 @@ const Dashboard = ({ user }) => {
 
       {/* Delete Confirmation Modal */}
       {deleteModal.isOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
           <div className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in duration-300">
             <div className="p-6 text-center">
               {deleteModal.isDeleting ? (
