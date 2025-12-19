@@ -686,15 +686,27 @@ const Dashboard = ({ user }) => {
       {deleteModal.isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in duration-300">
-            <div className="p-6">
+            <div className="p-6 text-center">
               {deleteModal.isDeleting ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-12 h-12 rounded-full border-3 border-primary/20 border-t-primary animate-spin mb-4"></div>
-                  <p className="text-textMuted text-sm">Deleting quiz...</p>
+                <div className="flex flex-col items-center justify-center py-12">
+                  {/* Animated gradient spinner */}
+                  <div className="relative w-16 h-16 mb-6">
+                    <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-400 animate-spin"></div>
+                    <div className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-300 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                  </div>
+                  
+                  {/* Status text with animation */}
+                  <p className="text-textMain font-semibold mb-2 animate-pulse">
+                    Deleting quiz...
+                  </p>
+                  <p className="text-textMuted text-xs">
+                    Please wait, this won't take long
+                  </p>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-center text-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
                     <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
                   </div>
                   <h3 className="text-xl font-semibold text-textMain mb-2">
