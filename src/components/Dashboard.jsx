@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   BarChart,
@@ -687,83 +687,85 @@ const Dashboard = ({ user }) => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {deleteModal.isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
+      <AnimatePresence>
+        {deleteModal.isOpen && (
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <div className="p-6 text-center">
-              {deleteModal.isDeleting ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  {/* Animated gradient spinner */}
-                  <div className="relative w-16 h-16 mb-6">
-                    <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
-                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-400 animate-spin"></div>
-                    <div
-                      className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-300 animate-spin"
-                      style={{
-                        animationDirection: "reverse",
-                        animationDuration: "1.5s",
-                      }}
-                    ></div>
-                  </div>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full"
+            >
+              <div className="p-6 text-center">
+                {deleteModal.isDeleting ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    {/* Animated gradient spinner */}
+                    <div className="relative w-16 h-16 mb-6">
+                      <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-400 animate-spin"></div>
+                      <div
+                        className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-300 animate-spin"
+                        style={{
+                          animationDirection: "reverse",
+                          animationDuration: "1.5s",
+                        }}
+                      ></div>
+                    </div>
 
-                  {/* Status text with animation */}
-                  <p className="text-textMain font-semibold mb-2">
-                    Deleting quiz{loadingDots}
-                  </p>
-                  <p className="text-textMuted text-xs">
-                    Please wait, this won't take long
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
-                    <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
+                    {/* Status text with animation */}
+                    <p className="text-textMain font-semibold mb-2">
+                      Deleting quiz{loadingDots}
+                    </p>
+                    <p className="text-textMuted text-xs">
+                      Please wait, this won't take long
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold text-textMain mb-3">
-                    Delete Quiz?
-                  </h3>
-                  <p className="text-textMuted text-sm mb-6">
-                    Are you sure you want to delete{" "}
-                    <span className="font-medium text-textMain">
-                      "{deleteModal.quizTitle}"
-                    </span>
-                    ? This cannot be undone.
-                  </p>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                      <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-textMain mb-3">
+                      Delete Quiz?
+                    </h3>
+                    <p className="text-textMuted text-sm mb-6">
+                      Are you sure you want to delete{" "}
+                      <span className="font-medium text-textMain">
+                        "{deleteModal.quizTitle}"
+                      </span>
+                      ? This cannot be undone.
+                    </p>
 
-                  <div className="flex gap-3 w-full">
-                    <button
-                      onClick={handleCancelDelete}
-                      disabled={deleteModal.isDeleting}
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium point"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleConfirmDelete}
-                      disabled={deleteModal.isDeleting}
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+                    <div className="flex gap-3 w-full">
+                      <button
+                        onClick={handleCancelDelete}
+                        disabled={deleteModal.isDeleting}
+                        className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium point"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleConfirmDelete}
+                        disabled={deleteModal.isDeleting}
+                        className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
