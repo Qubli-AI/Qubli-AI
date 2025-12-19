@@ -2,7 +2,7 @@
 
 **Release Date:** December 19th, 2025
 
-## 🎯 Focus: Bug Fixes, Code Quality & Polish
+## 🎯 Focus: Bug Fixes, Code Quality & Polish + Dependency Cleanup
 
 ---
 
@@ -16,12 +16,20 @@
 - **Dark Mode Compatible** - Full dark mode support with proper color contrasts
 - **Modal Persistence** - Modal stays open during deletion process and closes only after successful completion
 - **User Feedback** - Clear status messages ("Deleting quiz...", "Please wait, this won't take long")
+- **Smooth Animations** - Framer Motion integration with `AnimatePresence` for enter/exit animations (300ms)
 
 ### ⏳ Dynamic Loading Indicators
 
 - **Animated Loading State** - "Loading" → "Loading." → "Loading.." → "Loading..." with 500ms cycle
 - **Better UX Feedback** - Shows activity progress during quiz loading on dashboard
 - **Consistent Theming** - Matches application color scheme and dark mode
+- **Quiz Card Exit Animation** - Quiz cards smoothly fade and scale out (300ms) when deleted
+
+### 🎬 Animation Framework Upgrade
+
+- **Framer Motion Integration** - All modals and list items now use `motion.div` for smooth animations
+- **AnimatePresence Support** - Proper exit animations when modal closes or quizzes are deleted
+- **Coordinated Animations** - Backdrop and modal scale/fade in sync with 300ms duration
 
 ---
 
@@ -112,6 +120,36 @@
 - Consistent styling across all loading indicators
 - Theme-appropriate colors
 - Clear visual feedback of ongoing operations
+
+---
+
+## 🧹 Dependency Cleanup & Modernization
+
+### Removed Deprecated Packages
+
+1. **`crypto@1.0.1`** ✅ REMOVED
+
+   - **Reason**: Node.js has built-in `crypto` module since v0.11.6
+   - **Action**: Removed from package.json; code uses native `import crypto from "crypto"`
+   - **Impact**: No functionality change, cleaner dependencies
+
+2. **`prefixer@0.0.3`** ✅ REMOVED
+   - **Reason**: Deprecated and unused in codebase
+   - **Action**: Removed from package.json
+   - **Impact**: Not imported anywhere; safe to remove
+
+### Verified Working Alternatives
+
+- **Native `crypto` module** - Used in `server/helpers/twoFAHelper.js`
+- **`autoprefixer`** - Modern, actively maintained CSS prefixer
+- **Native Promise API** - Replaced legacy `q@0.8.12` with native Promises
+
+### Eliminated NPM Warnings
+
+- No more "crypto is deprecated" warning
+- No more "prefixer is deprecated" warning
+- Reduced dependency bloat
+- Improved package installation speed
 
 ---
 
