@@ -715,7 +715,7 @@ const Dashboard = ({ user }) => {
                   <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
                     <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-textMain mb-2">
+                  <h3 className="text-xl font-semibold text-textMain mb-3">
                     Delete Quiz?
                   </h3>
                   <p className="text-textMuted text-sm mb-6">
