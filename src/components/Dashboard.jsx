@@ -694,10 +694,10 @@ const Dashboard = ({ user }) => {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                  <div className="flex items-center justify-center text-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
                     <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
                   </div>
-                  <h3 className="text-lg font-semibold text-textMain mb-2">
+                  <h3 className="text-xl font-semibold text-textMain mb-2">
                     Delete Quiz?
                   </h3>
                   <p className="text-textMuted text-sm mb-6">
@@ -712,14 +712,14 @@ const Dashboard = ({ user }) => {
                     <button
                       onClick={handleCancelDelete}
                       disabled={deleteModal.isDeleting}
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium point"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmDelete}
                       disabled={deleteModal.isDeleting}
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium"
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
                     >
                       Delete
                     </button>
