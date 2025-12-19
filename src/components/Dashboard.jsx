@@ -605,8 +605,11 @@ const Dashboard = ({ user }) => {
               </div>
             ) : (
               filteredQuizzes.map((quiz) => (
-                <div
+                <motion.div
                   key={quiz.id}
+                  initial={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
                   className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1"
                 >
                   <button
@@ -676,7 +679,7 @@ const Dashboard = ({ user }) => {
                       </span>
                     </div>
                   </Link>
-                </div>
+                </motion.div>
               ))
             )}
           </div>
