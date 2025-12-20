@@ -27,7 +27,7 @@ const Navbar = () => {
         {/* Mobile menu button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-3 hover:bg-surfaceHighlight rounded-[5px] transition-all duration-300 hover:scale-110 active:scale-95 point"
+          className="md:hidden p-3 hover:bg-surfaceHighlight rounded-[5px] transition-all duration-300 point"
         >
           {mobileMenuOpen ? (
             <X className="w-6 h-6 transition-all duration-300" />
@@ -89,7 +89,7 @@ const Navbar = () => {
             onClick={() => setMobileMenuOpen(false)}
             className={`px-4 py-3 rounded-[5px] transition-all duration-200 ${
               isActive("/features")
-                ? "bg-primary text-white font-semibold"
+                ? "bg-surfaceHighlight text-textMain font-semibold"
                 : "text-textMuted hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
             }`}
           >
@@ -100,7 +100,7 @@ const Navbar = () => {
             onClick={() => setMobileMenuOpen(false)}
             className={`px-4 py-3 rounded-[5px] transition-all duration-200 ${
               isActive("/testimonials")
-                ? "bg-primary text-white font-semibold"
+                ? "bg-surfaceHighlight text-textMain font-semibold"
                 : "text-textMuted hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
             }`}
           >
