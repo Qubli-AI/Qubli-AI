@@ -40,7 +40,7 @@
   body {
     @apply font-sans;
     background-color: var(--color-background);
-    color: var(--color-text-main);
+    color: var(--color-textMain);
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
@@ -59,17 +59,17 @@
   &::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+    border-radius: 0;
   }
   &::-webkit-scrollbar-track {
     background: var(--color-background);
-    border-radius: 10px;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 80%, transparent);
     transition: background 0.3s ease;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: var(--color-secondary);
+    background: color-mix(in srgb, var(--color-primary) 100%, transparent);
   }
 }
 
