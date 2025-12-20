@@ -19,7 +19,7 @@ const FeaturesPage = () => {
         "Covers all major subjects and topics",
       ],
       image:
-        "https://images.unsplash.com/photo-1516979187457-635ffe35ebda?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1507842217343-583f20270319?w=600&h=400&fit=crop&q=80",
     },
     {
       icon: BookOpen,
@@ -33,7 +33,7 @@ const FeaturesPage = () => {
         "Progress tracking and analytics",
       ],
       image:
-        "https://images.unsplash.com/photo-1546186490-38150e383b3b?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1434694686669-e08993f53d3f?w=600&h=400&fit=crop&q=80",
     },
     {
       icon: BarChart3,
@@ -47,7 +47,7 @@ const FeaturesPage = () => {
         "Improvement recommendations",
       ],
       image:
-        "https://images.unsplash.com/photo-1460925895917-aeb19be489c7?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop&q=80",
     },
     {
       icon: Zap,
