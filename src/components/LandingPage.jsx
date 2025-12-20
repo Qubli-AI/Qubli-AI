@@ -45,13 +45,13 @@ const LandingPage = () => {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8">
             <a
-              href="#features"
+              href="/features"
               className="text-textMuted hover:text-textMain transition-colors"
             >
               Features
             </a>
             <a
-              href="#testimonials"
+              href="/testimonials"
               className="text-textMuted hover:text-textMain transition-colors"
             >
               Testimonials
@@ -70,14 +70,14 @@ const LandingPage = () => {
           <div className="md:hidden border-t border-border bg-surface">
             <div className="px-4 py-4 space-y-4">
               <a
-                href="#features"
+                href="/features"
                 className="block text-textMuted hover:text-textMain transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </a>
               <a
-                href="#testimonials"
+                href="/testimonials"
                 className="block text-textMuted hover:text-textMain transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -111,7 +111,7 @@ const LandingPage = () => {
           </div>
 
           <h1
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in-up"
             style={{ animationDelay: "200ms" }}
           >
             Master Any Topic with{" "}
@@ -121,7 +121,7 @@ const LandingPage = () => {
           </h1>
 
           <p
-            className="text-xl sm:text-2xl text-textMuted mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up"
+            className="text-lg sm:text-xl text-textMuted mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up"
             style={{ animationDelay: "300ms" }}
           >
             Generate intelligent quizzes, create flashcards, and ace your exams
@@ -134,13 +134,13 @@ const LandingPage = () => {
           >
             <button
               onClick={() => navigate("/auth")}
-              className="px-8 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-105 flex items-center justify-center gap-2 point"
+              className="px-8 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 point"
             >
               Start Learning Free <ArrowRight className="w-5 h-5" />
             </button>
             <button
               onClick={() => navigate("/auth")}
-              className="px-8 py-4 rounded-xl border border-border text-textMain font-bold text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50 hover:scale-105 point"
+              className="px-8 py-4 rounded-xl border border-border text-textMain font-bold text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50 hover:scale-102 point"
             >
               View Demo
             </button>
@@ -151,19 +151,19 @@ const LandingPage = () => {
             className="grid grid-cols-3 gap-4 sm:gap-8 animate-fade-in-up"
             style={{ animationDelay: "500ms" }}
           >
-            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-105 transition-all">
+            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-102 transition-all">
               <div className="text-2xl sm:text-3xl font-bold text-primary dark:text-blue-400">
                 10K+
               </div>
               <div className="text-sm text-textMuted">Active Users</div>
             </div>
-            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-105 transition-all">
+            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-102 transition-all">
               <div className="text-2xl sm:text-3xl font-bold text-primary dark:text-blue-400">
                 100K+
               </div>
               <div className="text-sm text-textMuted">Quizzes Created</div>
             </div>
-            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-105 transition-all">
+            <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-102 transition-all">
               <div className="text-2xl sm:text-3xl font-bold text-primary dark:text-blue-400">
                 4.9/5
               </div>
@@ -174,16 +174,16 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
         <div className="max-w-6xl mx-auto">
           <h2
-            className="text-4xl sm:text-5xl font-bold text-center mb-4 animate-fade-in-up"
+            className="text-3xl sm:text-4xl font-bold text-center mb-4 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
             Powerful Features
           </h2>
           <p
-            className="text-center text-textMuted text-lg mb-16 max-w-2xl mx-auto animate-fade-in-up"
+            className="text-center text-textMuted text-base mb-16 max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "200ms" }}
           >
             Everything you need to study smarter, not harder
@@ -192,13 +192,13 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Feature 1 */}
             <div
-              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "300ms" }}
             >
               <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                 <Brain className="w-6 h-6 text-primary dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3">AI-Generated Quizzes</h3>
+              <h3 className="text-lg font-bold mb-3">AI-Generated Quizzes</h3>
               <p className="text-textMuted">
                 Instantly generate smart quizzes from any topic using advanced
                 AI technology. Perfect for any subject and learning level.
@@ -207,13 +207,13 @@ const LandingPage = () => {
 
             {/* Feature 2 */}
             <div
-              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "400ms" }}
             >
               <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                 <BookOpen className="w-6 h-6 text-primary dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Smart Flashcards</h3>
+              <h3 className="text-lg font-bold mb-3">Smart Flashcards</h3>
               <p className="text-textMuted">
                 Automatically convert quiz answers into interactive flashcards
                 with spaced repetition for optimal retention.
@@ -222,13 +222,13 @@ const LandingPage = () => {
 
             {/* Feature 3 */}
             <div
-              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "500ms" }}
             >
               <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-primary dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Detailed Analytics</h3>
+              <h3 className="text-lg font-bold mb-3">Detailed Analytics</h3>
               <p className="text-textMuted">
                 Track your progress with comprehensive analytics and insights to
                 identify areas for improvement.
@@ -237,33 +237,42 @@ const LandingPage = () => {
 
             {/* Feature 4 */}
             <div
-              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "600ms" }}
             >
               <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                 <Zap className="w-6 h-6 text-primary dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Lightning Fast</h3>
+              <h3 className="text-lg font-bold mb-3">Lightning Fast</h3>
               <p className="text-textMuted">
                 Experience instant quiz generation and seamless performance
                 across all devices and network speeds.
               </p>
             </div>
           </div>
+
+          <div className="text-center mt-12">
+            <a
+              href="/features"
+              className="text-lg font-semibold text-primary hover:text-blue-700 transition-colors"
+            >
+              Explore All Features →
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2
-            className="text-4xl sm:text-5xl font-bold text-center mb-4 animate-fade-in-up"
+            className="text-3xl sm:text-4xl font-bold text-center mb-4 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
             Loved by Students
           </h2>
           <p
-            className="text-center text-textMuted text-lg mb-16 max-w-2xl mx-auto animate-fade-in-up"
+            className="text-center text-textMuted text-base mb-16 max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "200ms" }}
           >
             See what our users have to say about their learning journey
@@ -272,7 +281,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Testimonial 1 */}
             <div
-              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "300ms" }}
             >
               <div className="flex gap-1 mb-4">
@@ -294,7 +303,7 @@ const LandingPage = () => {
 
             {/* Testimonial 2 */}
             <div
-              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "400ms" }}
             >
               <div className="flex gap-1 mb-4">
@@ -316,7 +325,7 @@ const LandingPage = () => {
 
             {/* Testimonial 3 */}
             <div
-              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-105 animate-fade-in-up"
+              className="p-8 bg-surface rounded-xl border border-border hover:border-primary/30 transition-all hover:scale-102 animate-fade-in-up"
               style={{ animationDelay: "500ms" }}
             >
               <div className="flex gap-1 mb-4">
@@ -336,6 +345,15 @@ const LandingPage = () => {
               <div className="text-sm text-textMuted">High School Teacher</div>
             </div>
           </div>
+
+          <div className="text-center mt-12">
+            <a
+              href="/testimonials"
+              className="text-lg font-semibold text-primary hover:text-blue-700 transition-colors"
+            >
+              Read More Testimonials →
+            </a>
+          </div>
         </div>
       </section>
 
@@ -345,15 +363,15 @@ const LandingPage = () => {
           className="max-w-4xl mx-auto text-center animate-fade-in-up"
           style={{ animationDelay: "200ms" }}
         >
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Ready to Ace Your Exams?
           </h2>
-          <p className="text-xl text-textMuted mb-8">
+          <p className="text-lg text-textMuted mb-8">
             Join thousands of students using Quizzy AI to boost their learning
           </p>
           <button
             onClick={() => navigate("/auth")}
-            className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-105 flex items-center justify-center gap-2 mx-auto point"
+            className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 mx-auto point"
           >
             Get Started Free <ArrowRight className="w-5 h-5" />
           </button>

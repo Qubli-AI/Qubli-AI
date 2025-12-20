@@ -20,6 +20,8 @@ import AuthForm from "./components/AuthForm.jsx";
 import VerifyEmail from "./components/VerifyEmail.jsx";
 import OAuthCallback from "./components/OAuthCallback.jsx";
 import LandingPage from "./components/LandingPage.jsx";
+import FeaturesPage from "./components/FeaturesPage.jsx";
+import TestimonialsPage from "./components/TestimonialsPage.jsx";
 import StorageService from "./services/storageService.js";
 import { useTheme } from "./hooks/useTheme.js";
 
@@ -131,6 +133,10 @@ const App = () => {
           />
 
           <Route path="/auth/verify-email" element={<VerifyEmail />} />
+
+          <Route path="/features" element={<FeaturesPage />} />
+
+          <Route path="/testimonials" element={<TestimonialsPage />} />
 
           <Route
             path="/"
