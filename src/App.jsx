@@ -72,6 +72,7 @@ const App = () => {
   const handleLogout = () => {
     StorageService.logout();
     setAuth({ isAuthenticated: false, user: null });
+    window.location.href = "/";
   };
 
   const refreshUser = async () => {
