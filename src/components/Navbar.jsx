@@ -56,36 +56,48 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu backdrop */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-surface">
-          <div className="px-4 py-4 space-y-4">
-            <a
-              href="/features"
-              className="block text-textMuted hover:text-textMain transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Features
-            </a>
-            <a
-              href="/testimonials"
-              className="block text-textMuted hover:text-textMain transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Testimonials
-            </a>
-            <button
-              onClick={() => {
-                navigate("/auth");
-                setMobileMenuOpen(false);
-              }}
-              className="w-full px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors point"
-            >
-              Get Started
-            </button>
-          </div>
-        </div>
+        <div
+          className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm md:hidden z-40 animate-fadeIn"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
+
+      {/* Mobile sidebar menu - slides from right */}
+      <div
+        className={`fixed top-16 right-0 h-[calc(100vh-64px)] bg-surface border-l border-border md:hidden z-50 transition-all duration-300 ease-out transform ${
+          mobileMenuOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0 pointer-events-none"
+        } w-max max-w-xs`}
+      >
+        <div className="px-6 py-6 space-y-4 flex flex-col">
+          <a
+            href="/features"
+            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-lg transition-all duration-200 hover:translate-x-1"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Features
+          </a>
+          <a
+            href="/testimonials"
+            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-lg transition-all duration-200 hover:translate-x-1"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Testimonials
+          </a>
+          <button
+            onClick={() => {
+              navigate("/auth");
+              setMobileMenuOpen(false);
+            }}
+            className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95"
+          >
+            Get Started
+          </button>
+        </div>
+      </div>
     </nav>
   );
 };
