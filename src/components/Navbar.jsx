@@ -11,13 +11,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav
-      className={`fixed top-0 w-full border-b border-border z-50 transition-all duration-300 ${
-        mobileMenuOpen
-          ? "bg-black/40 backdrop-blur-lg"
-          : "bg-background/80 backdrop-blur-md"
-      }`}
-    >
+    <nav className="fixed top-0 w-full border-b border-border z-50 bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <button
           onClick={handleLogoClick}
@@ -30,12 +24,12 @@ const Navbar = () => {
         {/* Mobile menu button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 hover:bg-surfaceHighlight rounded-lg transition-colors point"
+          className="md:hidden p-3 hover:bg-surfaceHighlight rounded-[5px] transition-all duration-300 hover:scale-110 active:scale-95 point"
         >
           {mobileMenuOpen ? (
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6 transition-all duration-300" />
           ) : (
-            <Menu className="w-6 h-6" />
+            <Menu className="w-6 h-6 transition-all duration-300" />
           )}
         </button>
 
