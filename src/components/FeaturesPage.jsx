@@ -19,7 +19,7 @@ const FeaturesPage = () => {
         "Covers all major subjects and topics",
       ],
       image:
-        "https://images.unsplash.com/photo-1606933248051-5ce98f907f0e?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1516979187457-635ffe35ebda?w=600&h=400&fit=crop",
     },
     {
       icon: BookOpen,
@@ -33,7 +33,7 @@ const FeaturesPage = () => {
         "Progress tracking and analytics",
       ],
       image:
-        "https://images.unsplash.com/photo-1456735190032-c8de59df1057?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1546186490-38150e383b3b?w=600&h=400&fit=crop",
     },
     {
       icon: BarChart3,
@@ -47,7 +47,7 @@ const FeaturesPage = () => {
         "Improvement recommendations",
       ],
       image:
-        "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1516321318423-f06f70504504?w=600&h=400&fit=crop",
     },
     {
       icon: Zap,
@@ -61,7 +61,7 @@ const FeaturesPage = () => {
         "Zero lag study experience",
       ],
       image:
-        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
     },
   ];
 
@@ -97,7 +97,21 @@ const FeaturesPage = () => {
                 key={index}
                 className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
               >
-                <div className={isEven ? "order-1" : "order-2"}>
+                {/* Image - appears first on mobile */}
+                <div
+                  className={`md:order-${
+                    isEven ? 2 : 1
+                  } order-1 p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden`}
+                >
+                  <img
+                    src={feature.image}
+                    alt={feature.title}
+                    className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+
+                {/* Content - appears second on mobile */}
+                <div className={`md:order-${isEven ? 1 : 2} order-2`}>
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-2xl flex items-center justify-center flex-shrink-0">
                       <IconComponent className="w-8 h-8 text-primary dark:text-blue-400" />
@@ -127,18 +141,6 @@ const FeaturesPage = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div
-                  className={`order-${
-                    isEven ? 2 : 1
-                  } p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden`}
-                >
-                  <img
-                    src={feature.image}
-                    alt={feature.title}
-                    className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
-                  />
                 </div>
               </div>
             );
