@@ -1,14 +1,17 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Brain, Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const handleLogoClick = () => {
     navigate("/");
   };
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <nav className="fixed top-0 w-full border-b border-border z-50 bg-background/80 backdrop-blur-md">
@@ -37,13 +40,21 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-8">
           <a
             href="/features"
-            className="text-textMuted hover:text-textMain transition-colors"
+            className={`transition-colors duration-200 ${
+              isActive("/features")
+                ? "text-primary font-semibold"
+                : "text-textMuted hover:text-textMain"
+            }`}
           >
             Features
           </a>
           <a
             href="/testimonials"
-            className="text-textMuted hover:text-textMain transition-colors"
+            className={`transition-colors duration-200 ${
+              isActive("/testimonials")
+                ? "text-primary font-semibold"
+                : "text-textMuted hover:text-textMain"
+            }`}
           >
             Testimonials
           </a>
@@ -72,18 +83,26 @@ const Navbar = () => {
             : "translate-x-full opacity-0 pointer-events-none"
         } w-max max-w-xs max-h-[calc(100vh-64px)] overflow-y-auto`}
       >
-        <div className="px-6 py-6 space-y-4 flex flex-col text-center">
+        <div className="px-6 py-6 space-y-4 flex flex-col rounded-sm">
           <a
             href="/features"
-            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-[5px] transition-all duration-200 hover:translate-x-1"
             onClick={() => setMobileMenuOpen(false)}
+            className={`px-4 py-3 rounded-[5px] transition-all duration-200 ${
+              isActive("/features")
+                ? "bg-primary text-white font-semibold"
+                : "text-textMuted hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
+            }`}
           >
             Features
           </a>
           <a
             href="/testimonials"
-            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-[5px] transition-all duration-200 hover:translate-x-1"
             onClick={() => setMobileMenuOpen(false)}
+            className={`px-4 py-3 rounded-[5px] transition-all duration-200 ${
+              isActive("/testimonials")
+                ? "bg-primary text-white font-semibold"
+                : "text-textMuted hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
+            }`}
           >
             Testimonials
           </a>
