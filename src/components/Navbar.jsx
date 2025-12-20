@@ -11,7 +11,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
+    <nav
+      className={`fixed top-0 w-full border-b border-border z-50 transition-all duration-300 ${
+        mobileMenuOpen
+          ? "bg-black/40 backdrop-blur-lg"
+          : "bg-background/80 backdrop-blur-md"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <button
           onClick={handleLogoClick}
@@ -66,23 +72,23 @@ const Navbar = () => {
 
       {/* Mobile sidebar menu - slides from right */}
       <div
-        className={`fixed top-16 right-0 h-[calc(100vh-64px)] bg-surface border-l border-border md:hidden z-50 transition-all duration-300 ease-out transform ${
+        className={`fixed top-16 right-0 h-max bg-surface border-l border-border md:hidden z-50 transition-all duration-300 ease-out transform rounded-bl-[5px] ${
           mobileMenuOpen
             ? "translate-x-0 opacity-100"
             : "translate-x-full opacity-0 pointer-events-none"
-        } w-max max-w-xs`}
+        } w-max max-w-xs max-h-[calc(100vh-64px)] overflow-y-auto`}
       >
-        <div className="px-6 py-6 space-y-4 flex flex-col">
+        <div className="px-6 py-6 space-y-4 flex flex-col text-center">
           <a
             href="/features"
-            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-lg transition-all duration-200 hover:translate-x-1"
+            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-[5px] transition-all duration-200 hover:translate-x-1"
             onClick={() => setMobileMenuOpen(false)}
           >
             Features
           </a>
           <a
             href="/testimonials"
-            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-lg transition-all duration-200 hover:translate-x-1"
+            className="text-textMuted hover:text-textMain hover:bg-surfaceHighlight px-4 py-3 rounded-[5px] transition-all duration-200 hover:translate-x-1"
             onClick={() => setMobileMenuOpen(false)}
           >
             Testimonials
@@ -92,7 +98,7 @@ const Navbar = () => {
               navigate("/auth");
               setMobileMenuOpen(false);
             }}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95"
+            className="px-6 py-3 rounded-[5px] bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
           >
             Get Started
           </button>
