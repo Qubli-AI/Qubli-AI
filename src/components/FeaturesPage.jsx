@@ -19,7 +19,7 @@ const FeaturesPage = () => {
         "Covers all major subjects and topics",
       ],
       image:
-        "https://images.unsplash.com/photo-1507842217343-583f20270319?w=600&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1606933248051-5ce98f907f0e?w=600&h=400&fit=crop",
     },
     {
       icon: BookOpen,
@@ -33,7 +33,7 @@ const FeaturesPage = () => {
         "Progress tracking and analytics",
       ],
       image:
-        "https://images.unsplash.com/photo-1434694686669-e08993f53d3f?w=600&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1456735190032-c8de59df1057?w=600&h=400&fit=crop",
     },
     {
       icon: BarChart3,
