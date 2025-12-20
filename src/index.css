@@ -59,17 +59,17 @@
   &::-webkit-scrollbar {
     width: 10px;
     height: 10px;
-    border-radius: 0;
   }
   &::-webkit-scrollbar-track {
     background: var(--color-background);
   }
   &::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--color-primary) 80%, transparent);
+    background: rgba(37, 99, 235, 0.8);
+    border-radius: 0;
     transition: background 0.3s ease;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--color-primary) 100%, transparent);
+    background: rgba(37, 99, 235, 1);
   }
 }
 
