@@ -19,7 +19,7 @@ const FeaturesPage = () => {
         "Covers all major subjects and topics",
       ],
       image:
-        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1516979187457-635ffe35ebda?w=600&h=400&fit=crop",
     },
     {
       icon: BookOpen,
@@ -33,7 +33,7 @@ const FeaturesPage = () => {
         "Progress tracking and analytics",
       ],
       image:
-        "https://images.unsplash.com/photo-1577720643272-265f434fd3b5?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1546186490-38150e383b3b?w=600&h=400&fit=crop",
     },
     {
       icon: BarChart3,
@@ -47,7 +47,7 @@ const FeaturesPage = () => {
         "Improvement recommendations",
       ],
       image:
-        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1460925895917-aeb19be489c7?w=600&h=400&fit=crop",
     },
     {
       icon: Zap,
@@ -61,7 +61,7 @@ const FeaturesPage = () => {
         "Zero lag study experience",
       ],
       image:
-        "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=400&fit=crop",
     },
   ];
 
