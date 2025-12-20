@@ -256,7 +256,9 @@ const LandingPage = () => {
                   MJ
                 </div>
                 <div>
-                  <div className="font-semibold text-textMain">Marcus Johnson</div>
+                  <div className="font-semibold text-textMain">
+                    Marcus Johnson
+                  </div>
                   <div className="text-sm text-textMuted">College Junior</div>
                 </div>
               </div>
@@ -268,7 +270,14 @@ const LandingPage = () => {
               style={{ animationDelay: "500ms" }}
             >
               <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (6">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                  />
+                ))}
+              </div>
+              <p className="text-textMuted mb-6">
                 "As a teacher, I use Quizzy AI to create assessments for my
                 students. It saves me so much time and the AI suggestions are
                 spot-on."
@@ -278,17 +287,14 @@ const LandingPage = () => {
                   ER
                 </div>
                 <div>
-                  <div className="font-semibold text-textMain">Dr. Emily Rodriguez</div>
-                  <div className="text-sm text-textMuted">High School Teacher</div>
+                  <div className="font-semibold text-textMain">
+                    Dr. Emily Rodriguez
+                  </div>
+                  <div className="text-sm text-textMuted">
+                    High School Teacher
+                  </div>
                 </div>
-              
-              <p className="text-textMuted mb-4">
-                "As a teacher, I use Quizzy AI to create assessments for my
-                students. It saves me so much time and the AI suggestions are
-                spot-on."
-              </p>
-              <div className="font-semibold">Dr. Emily Rodriguez</div>
-              <div className="text-sm text-textMuted">High School Teacher</div>
+              </div>
             </div>
           </div>
 
