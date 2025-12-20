@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Brain,
@@ -14,16 +15,10 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import AuthForm from "./AuthForm.jsx";
 
-const LandingPage = ({ onLogin }) => {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
-    onLogin();
-  };
+const LandingPage = () => {
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-background text-textMain">
@@ -38,7 +33,7 @@ const LandingPage = ({ onLogin }) => {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-surfaceHighlight rounded-lg transition-colors"
+            className="md:hidden p-2 hover:bg-surfaceHighlight rounded-lg transition-colors point"
           >
             {mobileMenuOpen ? (
               <X className="w-6 h-6" />
@@ -62,8 +57,8 @@ const LandingPage = ({ onLogin }) => {
               Testimonials
             </a>
             <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20"
+              onClick={() => navigate("/auth")}
+              className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20 point"
             >
               Get Started
             </button>
@@ -90,10 +85,10 @@ const LandingPage = ({ onLogin }) => {
               </a>
               <button
                 onClick={() => {
-                  setShowAuthModal(true);
+                  navigate("/auth");
                   setMobileMenuOpen(false);
                 }}
-                className="w-full px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors"
+                className="w-full px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors point"
               >
                 Get Started
               </button>
@@ -126,14 +121,14 @@ const LandingPage = ({ onLogin }) => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-8 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2"
+              onClick={() => navigate("/auth")}
+              className="px-8 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2 point"
             >
               Start Learning Free <ArrowRight className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-8 py-4 rounded-xl border border-border text-textMain font-bold text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50"
+              onClick={() => navigate("/auth")}
+              className="px-8 py-4 rounded-xl border border-border text-textMain font-bold text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50 point"
             >
               View Demo
             </button>
@@ -306,8 +301,8 @@ const LandingPage = ({ onLogin }) => {
             Join thousands of students using Quizzy AI to boost their learning
           </p>
           <button
-            onClick={() => setShowAuthModal(true)}
-            className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2 mx-auto"
+            onClick={() => navigate("/auth")}
+            className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2 mx-auto point"
           >
             Get Started Free <ArrowRight className="w-5 h-5" />
           </button>
@@ -434,26 +429,6 @@ const LandingPage = ({ onLogin }) => {
           </div>
         </div>
       </footer>
-
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-background rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-4 duration-300">
-            <div className="sticky top-0 bg-background border-b border-border flex justify-between items-center p-6">
-              <h3 className="text-xl font-bold">Get Started</h3>
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="text-textMuted hover:text-textMain transition-colors p-1"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              <AuthForm onLogin={handleAuthSuccess} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

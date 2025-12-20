@@ -6,7 +6,7 @@ import {
   BarChart,
   LogOut,
   Crown,
-  BrainCircuit,
+  Brain,
   Loader2,
   Settings,
 } from "lucide-react";
@@ -114,7 +114,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   aria-label="Go to Quizzy AI Dashboard"
                   title="Quizzy AI"
                 >
-                  <BrainCircuit className="w-7 h-7" />
+                  <Brain className="w-7 h-7" />
                   {!sidebarCollapsed && <span>Quizzy AI</span>}
                 </Link>
               )}
@@ -399,7 +399,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         <div className="max-w-6xl mx-auto">
           <div className="md:hidden flex justify-between items-center mb-6 sticky top-0 bg-background/95 backdrop-blur z-30 py-4 border-b border-border/50">
             <div className="flex items-center gap-2 text-primary font-bold text-xl">
-              <BrainCircuit className="w-7 h-7" />
+              <Brain className="w-7 h-7" />
               <span>Quizzy AI</span>
             </div>
 

@@ -6,7 +6,7 @@ import {
   Lock,
   Mail,
   User,
-  BrainCircuit,
+  Brain,
   Loader2,
   Check,
   X,
@@ -201,7 +201,7 @@ const AuthForm = ({ onLogin }) => {
       <div className="max-w-md w-full bg-surface p-8 rounded-2xl border border-border shadow-2xl z-10 border-main transition-all duration-300">
         <div className="text-center mb-6">
           <div className="inline-flex p-3 rounded-2xl mb-4 shadow-lg shadow-primary/20">
-            <BrainCircuit className="w-8 h-8 text-primary" />
+            <Brain className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-textMain mb-2">
             {isLogin ? "Welcome Back" : "Join Quizzy AI"}
