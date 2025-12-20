@@ -18,6 +18,8 @@ const FeaturesPage = () => {
         "Customizable difficulty levels",
         "Covers all major subjects and topics",
       ],
+      image:
+        "https://images.unsplash.com/photo-1516321318423-f06f70d504f0?w=600&h=400&fit=crop",
     },
     {
       icon: BookOpen,
@@ -30,6 +32,8 @@ const FeaturesPage = () => {
         "Visual learning support with images",
         "Progress tracking and analytics",
       ],
+      image:
+        "https://images.unsplash.com/photo-1507842217343-583f20270319?w=600&h=400&fit=crop",
     },
     {
       icon: BarChart3,
@@ -42,6 +46,8 @@ const FeaturesPage = () => {
         "Time spent tracking",
         "Improvement recommendations",
       ],
+      image:
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
     },
     {
       icon: Zap,
@@ -54,6 +60,8 @@ const FeaturesPage = () => {
         "Optimized for all devices",
         "Zero lag study experience",
       ],
+      image:
+        "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
     },
   ];
 
@@ -62,7 +70,7 @@ const FeaturesPage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <section className="pt-35 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
             Powerful Features for <br />
@@ -124,11 +132,13 @@ const FeaturesPage = () => {
                 <div
                   className={`order-${
                     isEven ? 2 : 1
-                  } p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all`}
+                  } p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden`}
                 >
-                  <div className="w-full h-64 bg-gradient-to-br from-primary/20 to-blue-600/20 rounded-xl flex items-center justify-center">
-                    <IconComponent className="w-24 h-24 text-primary/40 dark:text-blue-400/40" />
-                  </div>
+                  <img
+                    src={feature.image}
+                    alt={feature.title}
+                    className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
               </div>
             );
