@@ -24,7 +24,7 @@ const Navbar = () => {
           <span>Quizzy AI</span>
         </button>
 
-        {/* Mobile menu button */}
+        {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden p-3 hover:bg-surfaceHighlight rounded-[5px] transition-all duration-300 point"
