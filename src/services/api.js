@@ -39,9 +39,9 @@ export async function request(endpoint, method = "GET", body) {
 }
 
 export function login(email, password) {
-  return request("/api/auth/login", "POST", { email, password });
+  return request("/auth/login", "POST", { email, password });
 }
 
 export function register(name, email, password) {
-  return request("/api/auth/register", "POST", { name, email, password });
+  return request("/auth/register", "POST", { name, email, password });
 }
