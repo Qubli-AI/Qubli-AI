@@ -19,7 +19,7 @@ const FeaturesPage = () => {
         "Covers all major subjects and topics",
       ],
       image:
-        "https://images.unsplash.com/photo-1516979187457-635ffe35ebda?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=60",
+        "https://plus.unsplash.com/premium_photo-1678374802947-ad2d80cff2e9?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       icon: BookOpen,
@@ -33,7 +33,7 @@ const FeaturesPage = () => {
         "Progress tracking and analytics",
       ],
       image:
-        "https://images.unsplash.com/photo-1546186490-38150e383b3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=60",
+        "https://images.unsplash.com/photo-1663864796966-8b3402e94ca4?q=80&w=869&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       icon: BarChart3,
@@ -47,7 +47,7 @@ const FeaturesPage = () => {
         "Improvement recommendations",
       ],
       image:
-        "https://images.unsplash.com/photo-1516321318423-f06f70504504?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=60",
+        "https://plus.unsplash.com/premium_photo-1661384118133-8f8b6eef9715?q=80&w=1167&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       icon: Zap,
@@ -90,28 +90,26 @@ const FeaturesPage = () => {
         <div className="max-w-6xl mx-auto space-y-16">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
-            const isEven = index % 2 === 0;
+            const isOdd = index % 2 === 1;
 
             return (
               <div
                 key={index}
                 className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
               >
-                {/* Image - appears first on mobile */}
-                <div
-                  className={`md:order-${
-                    isEven ? 2 : 1
-                  } order-1 p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden`}
-                >
-                  <img
-                    src={feature.image}
-                    alt={feature.title}
-                    className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+                {/* Image */}
+                {isOdd ? (
+                  <div className="order-1 p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden">
+                    <img
+                      src={feature.image}
+                      alt={feature.title}
+                      className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ) : null}
 
-                {/* Content - appears second on mobile */}
-                <div className={`md:order-${isEven ? 1 : 2} order-2`}>
+                {/* Content */}
+                <div className={isOdd ? "order-2" : "order-1"}>
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-2xl flex items-center justify-center flex-shrink-0">
                       <IconComponent className="w-8 h-8 text-primary dark:text-blue-400" />
@@ -142,6 +140,17 @@ const FeaturesPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Image */}
+                {!isOdd ? (
+                  <div className="order-2 p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all overflow-hidden">
+                    <img
+                      src={feature.image}
+                      alt={feature.title}
+                      className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ) : null}
               </div>
             );
           })}
