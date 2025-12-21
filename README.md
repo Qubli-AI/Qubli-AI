@@ -114,22 +114,8 @@ npm run build
 
 | Shortcut                       | Action               |
 | ------------------------------ | -------------------- |
-| `Ctrl+K` / `Cmd+K`             | Open Command Palette |
-| `Ctrl+N` / `Cmd+N`             | Create New Quiz      |
 | `Ctrl+\` / `Cmd+\`             | Toggle Sidebar       |
-| `Right-Click`                  | Open Context Menu    |
-| `Ctrl+B` / `Cmd+B`             | Bold Text            |
-| `Ctrl+I` / `Cmd+I`             | Italic Text          |
-| `Ctrl+U` / `Cmd+U`             | Underline Text       |
-| `Ctrl+Shift+C` / `Cmd+Shift+C` | Inline Code          |
-| `Ctrl+Alt+1` / `Cmd+Alt+1`     | Heading 1            |
-| `Ctrl+Alt+2` / `Cmd+Alt+2`     | Heading 2            |
-| `Ctrl+Alt+3` / `Cmd+Alt+3`     | Heading 3            |
-| `Ctrl+Shift+B` / `Cmd+Shift+B` | Create Flashcard     |
-| `Ctrl+Shift+O` / `Cmd+Shift+O` | Create Quiz          |
-| `Ctrl+C` / `Cmd+C`             | Copy Selection       |
-| `Ctrl+X` / `Cmd+X`             | Cut                  |
-| `Ctrl+V` / `Cmd+V`             | Paste                | -->
+| `Ctrl+Shift+O` / `Cmd+Shift+O` | Create Quiz          | -->
 
 ## 📄 License
 
