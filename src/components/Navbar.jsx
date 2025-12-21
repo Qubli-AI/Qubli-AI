@@ -67,14 +67,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu backdrop */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm md:hidden z-40 animate-fadeIn"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
       {/* Mobile sidebar menu - slides from right */}
       <div
         className={`fixed top-16 right-0 h-max bg-surface border-l border-border md:hidden z-50 transition-all duration-300 ease-out transform rounded-lg ${
@@ -89,7 +81,7 @@ const Navbar = () => {
             onClick={() => setMobileMenuOpen(false)}
             className={`px-4 py-3 rounded-[5px] transition-all text-textMain duration-200 ${
               isActive("/features")
-                ? "bg-surfaceHighlight font-semibold translate-x-1"
+                ? "bg-surfaceHighlight text-textMain/80 font-semibold translate-x-1"
                 : "hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
             }`}
           >
@@ -100,7 +92,7 @@ const Navbar = () => {
             onClick={() => setMobileMenuOpen(false)}
             className={`px-4 py-3 rounded-[5px] transition-all text-textMain duration-200 ${
               isActive("/testimonials")
-                ? "bg-surfaceHighlight font-semibold translate-x-1"
+                ? "bg-surfaceHighlight text-textMain/80 font-semibold translate-x-1"
                 : "hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
             }`}
           >
