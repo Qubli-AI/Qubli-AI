@@ -86,15 +86,15 @@ const KPI_STATS = [
 // Difficulty Badge Styling Constant
 const DIFFICULTY_STYLES = {
   [Difficulty.Easy]: {
-    bg: "bg-green-100 dark:bg-green-900",
-    text: "text-green-600 dark:text-green-300",
+    bg: "bg-green-200 dark:bg-green-800/80",
+    text: "text-green-600 dark:text-green-400",
   },
   [Difficulty.Medium]: {
-    bg: "bg-orange-100 dark:bg-orange-900/60",
+    bg: "bg-orange-200 dark:bg-orange-900/70",
     text: "text-orange-700 dark:text-orange-300",
   },
   [Difficulty.Hard]: {
-    bg: "bg-red-100 dark:bg-red-900",
+    bg: "bg-red-200 dark:bg-red-900/70",
     text: "text-red-600 dark:text-red-300",
   },
 };
@@ -295,17 +295,17 @@ const Dashboard = ({ user }) => {
       {
         name: "Easy",
         score: stats.avgEasy,
-        fill: isDark ? "#ffffff" : "#10b981",
+        fill: isDark ? "#10b981" : "#10b981",
       },
       {
         name: "Medium",
         score: stats.avgMedium,
-        fill: isDark ? "#ffffff" : "#f59e0b",
+        fill: isDark ? "#f59e0b" : "#f59e0b",
       },
       {
         name: "Hard",
         score: stats.avgHard,
-        fill: isDark ? "#ffffff" : "#ef4444",
+        fill: isDark ? "#ef4444" : "#ef4444",
       },
     ],
     [stats, isDark]
@@ -667,12 +667,12 @@ const Dashboard = ({ user }) => {
                       <span
                         className={`text-sm font-bold ${
                           quiz.score === undefined
-                            ? "text-textMain dark:text-textMainDark"
+                            ? "text-textMain"
                             : quiz.score >= 80
-                            ? "text-green-600 dark:text-green-400"
+                            ? "text-green-600 dark:text-green-500"
                             : quiz.score >= 50
                             ? "text-orange-600 dark:text-orange-400"
-                            : "text-red-600 dark:text-red-400"
+                            : "text-red-600 dark:text-red-500"
                         }`}
                       >
                         {quiz.score !== undefined ? `${quiz.score}%` : "-"}

@@ -40,7 +40,7 @@ const LandingPage = () => {
             style={{ animationDelay: "200ms" }}
           >
             Master Any Topic with <br />
-            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <span className="text-primary dark:text-blue-500 bg-clip-text">
               Quizzy AI
             </span>
           </h1>
@@ -179,7 +179,7 @@ const LandingPage = () => {
           <div className="text-center mt-12">
             <a
               href="/features"
-              className="text-lg font-semibold text-primary hover:text-blue-700 transition-colors"
+              className="text-lg font-semibold text-primary hover:text-blue-700 dark:text-blue-500 dark:hover:text-primary transition-colors"
             >
               Explore All Features →
             </a>
@@ -301,7 +301,7 @@ const LandingPage = () => {
           <div className="text-center mt-12">
             <a
               href="/testimonials"
-              className="text-lg font-semibold text-primary hover:text-blue-700 transition-colors"
+              className="text-lg font-semibold text-primary hover:text-blue-700 dark:text-blue-500 dark:hover:text-primary transition-colors"
             >
               Read More Testimonials →
             </a>

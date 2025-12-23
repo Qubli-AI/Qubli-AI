@@ -62,7 +62,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
   const navItems = useMemo(
     () => [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
       { icon: PlusCircle, label: "New Quiz", path: "/generate" },
       { icon: BarChart, label: "Overview", path: "/overview" },
     ],
@@ -260,25 +260,17 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
                   <Link
                     to="/subscription"
-                    className="w-full flex items-center justify-center gap-2 text-white text-xs font-extrabold py-2.5 rounded-xl transition-all active:scale-[0.98] mt-5"
-                    style={{
-                      background:
-                        user.tier === "Free"
-                          ? "#2563eb"
-                          : user.tier === "Basic"
-                          ? "linear-gradient(to right, #f59e0b, #fb923c)"
-                          : "#2563eb",
-                      boxShadow:
-                        user.tier === "Free"
-                          ? "0 4px 12px rgba(37, 99, 235, 0.4)"
-                          : user.tier === "Basic"
-                          ? "0 4px 12px rgba(245, 158, 11, 0.4)"
-                          : "0 4px 12px rgba(37, 99, 235, 0.4)",
-                    }}
+                    className={`w-full flex items-center justify-center gap-2 text-white text-xs font-extrabold py-2.5 rounded-xl transition-all active:scale-[0.98] mt-5 ${
+                      user.tier === "Free"
+                        ? "bg-blue-600 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-500"
+                        : user.tier === "Basic"
+                        ? "bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
+                        : "bg-blue-600 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-500"
+                    }`}
                   >
                     {user.tier !== "Pro" ? (
                       <>
-                        <Crown className="w-[15px] h-[15px] fill-white -mt-0.5" />
+                        <Crown className="w-3.75 h-3.75 fill-white -mt-0.5" />
                         Upgrade Plan
                       </>
                     ) : (
@@ -294,7 +286,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   <Link
                     to="/subscription"
                     title="Upgrade Plan"
-                    className="p-2 rounded-md bg-transparent text-orange-500 hover:bg-surfaceHighlight"
+                    className="p-2 rounded-md bg-transparent text-amber-500 hover:bg-surfaceHighlight"
                   >
                     <Crown className="w-5 h-5" />
                   </Link>
@@ -336,26 +328,26 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="md:hidden fixed flex bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-border z-40 overflow-x-auto overflow-y-hidden pb-safe-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
+        className="md:hidden fixed flex bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-border z-40 overflow-x-auto overflow-y-hidden pb-safe-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
         style={{ scrollBehavior: "smooth" }}
       >
-        <div className="flex w-full justify-around gap-1 p-1 sm:p-2 px-2 sm:px-3 flex-shrink-0">
+        <div className="flex w-full justify-around gap-1 p-1 sm:p-2 px-2 sm:px-3 shrink-0">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all active:scale-95 flex-shrink-0 whitespace-nowrap ${
+                className={`flex flex-col items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all active:scale-95 shrink-0 whitespace-nowrap ${
                   isActive
-                    ? "text-primary bg-primary/10"
+                    ? "text-primary dark:text-blue-500 bg-primary/10"
                     : "text-textMuted hover:text-textMain"
                 }`}
                 aria-current={isActive ? "page" : undefined}
               >
                 <item.icon
                   className={`w-4 h-4 sm:w-5 sm:h-5 mb-0.5 ${
-                    isActive ? "fill-primary/20" : ""
+                    isActive ? "fill-primary/20 dark:text-blue-500/80" : ""
                   }`}
                   strokeWidth={isActive ? 2.5 : 2}
                 />

@@ -3,7 +3,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 /** Generic request helper with auto user storage */
 async function request(endpoint, method = "GET", body) {
   const token = localStorage.getItem("token");
-  if (!token && method !== "GET") {
+
+  // Allow unauthenticated requests for auth endpoints (login, register, verify-email, resend-code)
+  const isAuthEndpoint =
+    endpoint.includes("/auth/login") ||
+    endpoint.includes("/auth/register") ||
+    endpoint.includes("/auth/verify-email") ||
+    endpoint.includes("/auth/resend-code");
+
+  if (!token && method !== "GET" && !isAuthEndpoint) {
     throw new Error("Authentication token missing");
   }
 
@@ -64,15 +72,18 @@ const StorageService = {
       email,
       password,
     });
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    return data.user;
+    // Registration doesn't return a token - user must verify email first
+    return data;
   },
 
   login: async (email, password) => {
     const data = await request("/api/auth/login", "POST", { email, password });
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
     return data.user;
   },
 
@@ -87,7 +98,17 @@ const StorageService = {
 
   getCurrentUser: () => {
     const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
+    // Handle edge case where "undefined" string was stored
+    if (!user || user === "undefined") {
+      return null;
+    }
+    try {
+      return JSON.parse(user);
+    } catch (err) {
+      console.error("Failed to parse user from storage:", err);
+      localStorage.removeItem("user");
+      return null;
+    }
   },
 
   refreshUser: async () => {

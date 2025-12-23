@@ -614,7 +614,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                       user?.tier === "Pro" ||
                       user?.limits?.flashcardGenerationsRemaining > 0
-                        ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-400/20 dark:text-blue-300 dark:border-blue-400"
+                        ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-400/20 dark:text-blue-400 dark:border-blue-400"
                         : "bg-red-50 text-red-600 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-700"
                     }`}
                   >

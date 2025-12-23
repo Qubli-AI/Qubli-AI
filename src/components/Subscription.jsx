@@ -16,7 +16,8 @@ const TIER_DATA = {
       iconText: "text-gray-500 dark:text-gray-600",
       check: "text-green-500 dark:text-green-400",
       border: "border-border",
-      buttonBg: "bg-surfaceHighlight",
+      buttonBg:
+        "bg-surfaceHighlight hover:bg-gray-400/20 dark:hover:bg-gray-600/40",
       buttonText: "text-textMuted",
     },
     features: [
@@ -41,7 +42,7 @@ const TIER_DATA = {
       border:
         "border-blue-300 ring-2 ring-blue-100 dark:border-blue-900 dark:ring-blue-800",
       buttonBg:
-        "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700",
+        "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800",
       buttonText: "text-white",
     },
     features: [
@@ -107,8 +108,9 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
 
   const shadowClass =
     tier === SubscriptionTier.Basic
-      ? "shadow-lg shadow-blue-500"
-      : tier === SubscriptionTier.Pro && "shadow-lg shadow-amber-300";
+      ? "shadow-lg shadow-blue-500 dark:shadow-blue-600/40"
+      : tier === SubscriptionTier.Pro &&
+        "shadow-lg shadow-amber-300 dark:shadow-amber-600/40";
 
   return (
     <div
@@ -153,17 +155,14 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
         onClick={() => handleUpgrade(tier)}
         disabled={disabled}
         className={`w-full py-4 rounded-xl point ${
-          data.colorClasses.buttonBg
+          data.diffClass
+            ? "bg-linear-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 text-white shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
+            : data.colorClasses.buttonBg
         } ${
           data.colorClasses.buttonText
         } text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-auto ${
           isCurrent ? "border border-border/50 shadow-none" : ""
         }`}
-        style={
-          data.diffClass
-            ? { background: "linear-gradient(to right, #f59e0b, #f97316)" }
-            : {}
-        }
       >
         {buttonText}
       </button>

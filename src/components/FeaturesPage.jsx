@@ -74,7 +74,7 @@ const FeaturesPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
             Powerful Features for <br />
-            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <span className="text-primary dark:text-blue-500 bg-clip-text">
               Smarter Learning
             </span>
           </h1>

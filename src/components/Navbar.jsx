@@ -42,7 +42,7 @@ const Navbar = () => {
             href="/features"
             className={`transition-colors duration-200 ${
               isActive("/features")
-                ? "text-primary font-semibold"
+                ? "text-primary dark:text-blue-500 font-semibold"
                 : "text-textMuted hover:text-textMain"
             }`}
           >

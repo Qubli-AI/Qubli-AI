@@ -174,7 +174,7 @@ const QuizResultsView = ({
                 className={
                   q.isCorrect
                     ? "text-green-700 font-medium dark:text-green-400"
-                    : "text-red-700 font-medium dark:text-red-500"
+                    : "text-red-700 font-medium dark:text-red-400"
                 }
               >
                 {q.userAnswer || "(No answer)"}

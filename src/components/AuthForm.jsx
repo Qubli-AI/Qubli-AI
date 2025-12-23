@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
-const API_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
+import StorageService from "../services/storageService";
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -79,51 +79,27 @@ const AuthForm = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/${isLogin ? "login" : "register"}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            isLogin
-              ? { email: formData.email, password: formData.password }
-              : {
-                  name: formData.name,
-                  email: formData.email,
-                  password: formData.password,
-                }
-          ),
+      if (isLogin) {
+        const user = await StorageService.login(
+          formData.email,
+          formData.password
+        );
+        if (!user) {
+          throw new Error("Login failed: No user data returned");
         }
-      );
-
-      const data = await response.json();
-
-      // If registration, redirect to verification
-      if (!isLogin) {
-        if (!response.ok)
-          throw new Error(data.message || "Registration failed");
+        onLogin(user); // Update auth state in App
+        navigate("/dashboard", { replace: true });
+      } else {
+        const response = await StorageService.register(
+          formData.name,
+          formData.email,
+          formData.password
+        );
         navigate("/auth/verify-email", {
           state: { email: formData.email },
           replace: true,
         });
-        return;
       }
-
-      // For login
-      if (!response.ok) {
-        if (data.needsVerification) {
-          throw new Error(
-            "Please verify your email first. Check your inbox for the code."
-          );
-        }
-        throw new Error(data.message || "Login failed");
-      }
-
-      localStorage.setItem("token", data.token); // store JWT
-      localStorage.setItem("user", JSON.stringify(data.user));
-      onLogin(data.user); // pass logged-in user info
-
-      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -186,22 +162,22 @@ const AuthForm = ({ onLogin }) => {
   const renderStatusIcon = (isValid, value) => {
     if (!value) return null;
     return isValid ? (
-      <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 animate-in zoom-in duration-200" />
+      <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 dark:text-green-400 animate-in zoom-in duration-200" />
     ) : (
-      <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 animate-in zoom-in duration-200" />
+      <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 dark:text-red-400 animate-in zoom-in duration-200" />
     );
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Decorative Background */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-125 h-125 bg-blue-100 dark:bg-blue-900 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-125 h-125 bg-indigo-100 dark:bg-indigo-950 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
 
       <div className="max-w-md w-full bg-surface p-8 rounded-2xl border border-border shadow-2xl z-10 border-main transition-all duration-300">
         <div className="text-center mb-6">
           <div className="inline-flex p-3 rounded-2xl mb-4 shadow-lg shadow-primary/20">
-            <Brain className="w-8 h-8 text-primary" />
+            <Brain className="w-8 h-8 text-primary dark:text-blue-500" />
           </div>
           <h1 className="text-3xl font-bold text-textMain mb-2">
             {isLogin ? "Welcome Back" : "Join Quizzy AI"}
@@ -219,7 +195,7 @@ const AuthForm = ({ onLogin }) => {
               <label className="text-xs font-medium text-textMuted ml-1">
                 Full Name
               </label>
-              <div className="relative">
+              <div className="relative mt-1.5">
                 <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
@@ -229,7 +205,7 @@ const AuthForm = ({ onLogin }) => {
                   disabled={loading}
                   className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 disabled:opacity-60 ${
                     formData.name && !validations.name(formData.name)
-                      ? "border-red-300 bg-red-50/10"
+                      ? "border-red-300 dark:border-red-400 bg-red-50/10"
                       : "border-border"
                   }`}
                   placeholder="John Doe"
@@ -244,8 +220,8 @@ const AuthForm = ({ onLogin }) => {
                 <div
                   className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5.5 left-0 w-full truncate ${
                     !validations.name(formData.name)
-                      ? "text-red-500 font-medium"
-                      : "text-green-600"
+                      ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
+                      : "text-green-600 dark:text-green-400"
                   }`}
                 >
                   Full name must be at least 6 characters
@@ -262,7 +238,7 @@ const AuthForm = ({ onLogin }) => {
             <label className="text-xs font-medium text-textMuted ml-1">
               Email Address
             </label>
-            <div className="relative">
+            <div className="relative mt-1.5">
               <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
               <input
                 type="email"
@@ -274,7 +250,7 @@ const AuthForm = ({ onLogin }) => {
                   !isLogin &&
                   formData.email &&
                   !validations.email(formData.email)
-                    ? "border-red-300 bg-red-50/10"
+                    ? "border-red-300 dark:border-red-400 bg-red-50/10"
                     : "border-border"
                 }`}
                 placeholder="name@example.com"
@@ -287,10 +263,10 @@ const AuthForm = ({ onLogin }) => {
             {/* Inline Hint - Only show if user has started typing */}
             {formData.email.length > 0 && (
               <div
-                className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-[22px] left-0 w-full truncate ${
+                className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5.5 left-0 w-full truncate ${
                   !validations.email(formData.email)
-                    ? "text-red-500 font-medium"
-                    : "text-green-600"
+                    ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
+                    : "text-green-600 dark:text-green-400"
                 }`}
               >
                 Enter a valid email address
@@ -306,7 +282,7 @@ const AuthForm = ({ onLogin }) => {
             <label className="text-xs font-medium text-textMuted ml-1">
               Password
             </label>
-            <div className="relative">
+            <div className="relative mt-1.5">
               <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
               <input
                 type="password"
@@ -318,7 +294,7 @@ const AuthForm = ({ onLogin }) => {
                   !isLogin &&
                   formData.password &&
                   !validations.password(formData.password)
-                    ? "border-red-300 bg-red-50/10"
+                    ? "border-red-300 dark:border-red-400 bg-red-50/10"
                     : "border-border"
                 }`}
                 placeholder="••••••••"
@@ -331,10 +307,10 @@ const AuthForm = ({ onLogin }) => {
             {/* Inline Hint - Only show if user has started typing */}
             {formData.password.length > 0 && (
               <div
-                className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-[22px] left-0 w-full ${
+                className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-5.5 left-0 w-full ${
                   !validations.password(formData.password)
-                    ? "text-red-500 font-medium"
-                    : "text-green-600"
+                    ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
+                    : "text-green-600 dark:text-green-400"
                 }`}
               >
                 Min 6 chars & include a number and uppercase letter
@@ -343,7 +319,9 @@ const AuthForm = ({ onLogin }) => {
           </div>
 
           <div
-            style={{ height: formData.password.length > 0 ? "10px" : "0px" }}
+            style={{
+              height: formData.password.length > 0 ? "10px" : "0.1px",
+            }}
           ></div>
 
           {error && (
@@ -417,7 +395,7 @@ const AuthForm = ({ onLogin }) => {
                 setFormData({ name: "", email: "", password: "" });
                 setIsFormValid(false);
               }}
-              className="text-primary hover:underline cursor-pointer font-medium transition-colors"
+              className="text-primary dark:text-blue-500 hover:underline cursor-pointer font-medium transition-colors"
               disabled={loading}
             >
               {isLogin ? "Sign Up" : "Log In"}

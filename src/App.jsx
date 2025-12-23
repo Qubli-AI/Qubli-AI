@@ -74,6 +74,7 @@ const App = () => {
   const handleLogout = () => {
     StorageService.logout();
     setAuth({ isAuthenticated: false, user: null });
+    // Full page reload to clear all state and redirect to landing page
     window.location.href = "/";
   };
 

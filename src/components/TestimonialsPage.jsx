@@ -90,7 +90,7 @@ const TestimonialsPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
             Loved by <br />
-            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <span className="text-primary dark:text-blue-500 bg-clip-text">
               Students Worldwide
             </span>
           </h1>
