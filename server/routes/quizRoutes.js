@@ -8,11 +8,30 @@ import protect from "../middleware/auth.js";
 
 router.get("/", protect, async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ userId: req.userId }).sort({
-      createdAt: -1,
+    // Add pagination support to prevent loading too many quizzes at once
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const quizzes = await Quiz.find({ userId: req.userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(); // Use lean() for better performance when not modifying docs
+
+    const total = await Quiz.countDocuments({ userId: req.userId });
+
+    res.status(200).json({
+      quizzes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-    res.status(200).json(quizzes);
   } catch (error) {
+    console.error("Error fetching quizzes:", error);
     res.status(500).json({ message: "Failed to fetch quizzes." });
   }
 });
@@ -21,7 +40,12 @@ router.post("/", protect, async (req, res) => {
   try {
     const newQuiz = new Quiz({ ...req.body, userId: req.userId });
     await newQuiz.save();
-    res.status(201).json(newQuiz);
+
+    // Convert to plain object to ensure _id is properly serialized
+    const savedQuizData = newQuiz.toObject();
+
+    console.log("Quiz saved successfully with _id:", savedQuizData._id);
+    res.status(201).json(savedQuizData);
   } catch (error) {
     console.error("Quiz creation error:", error);
     res.status(400).json({ message: "Error saving quiz." });

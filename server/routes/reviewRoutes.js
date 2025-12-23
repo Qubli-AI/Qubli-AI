@@ -19,7 +19,8 @@ router.get("/last", protect, async (req, res) => {
   try {
     const lastReview = await Review.findOne({ userId: req.userId })
       .sort({ createdAt: -1 })
-      .limit(1);
+      .limit(1)
+      .lean(); // Use lean() for better performance when not modifying docs
 
     res.status(200).json({ review: lastReview || null });
   } catch (error) {

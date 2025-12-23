@@ -102,11 +102,11 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div className="flex justify-center items-center min-h-screen bg-linear-to-br from-primary/10 to-secondary/10 p-4">
+      <div className="w-full max-w-md bg-surface rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Mail className="w-12 h-12 text-primary" />
+            <Mail className="w-12 h-12 text-primary dark:text-blue-500" />
           </div>
           <h1 className="text-2xl font-bold text-textMain mb-2">
             Verify Your Email
@@ -128,7 +128,7 @@ const VerifyEmail = () => {
               placeholder="000000"
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border-2 border-border rounded-lg focus:border-primary focus:outline-none transition-colors"
+              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border-2 border-border rounded-lg focus:border-primary dark:focus:border-blue-500 focus:outline-none transition-colors"
             />
           </div>
 
@@ -136,7 +136,9 @@ const VerifyEmail = () => {
             <p className="text-sm text-textMuted mb-1">Code expires in</p>
             <p
               className={`text-2xl font-bold ${
-                timeLeft < 300 ? "text-red-600" : "text-primary"
+                timeLeft < 300
+                  ? "text-red-600 dark:text-red-500"
+                  : "text-primary dark:text-blue-500"
               }`}
             >
               {minutes}:{seconds.toString().padStart(2, "0")}
@@ -146,7 +148,7 @@ const VerifyEmail = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 point"
+            className="w-full bg-primary dark:bg-blue-700 text-white font-semibold py-3 rounded-lg hover:bg-primary/90 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 point"
           >
             {loading ? (
               <>
@@ -166,7 +168,7 @@ const VerifyEmail = () => {
           <button
             onClick={handleResendCode}
             disabled={resending}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-primary font-semibold border-2 border-primary rounded-lg hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all point"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-primary dark:text-blue-400 font-semibold border-2 border-primary dark:border-blue-500 rounded-lg hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all point"
           >
             {resending ? (
               <>

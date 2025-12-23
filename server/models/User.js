@@ -41,6 +41,17 @@ const UserSchema = new mongoose.Schema(
     twoFAPhone: { type: String, default: null }, // Phone number for SMS
     twoFABackupCodes: [{ type: String }], // Backup codes in case of lost device
 
+    // Sessions
+    sessions: [
+      {
+        deviceName: String,
+        userAgent: String,
+        ipAddress: String,
+        lastActive: { type: Date, default: Date.now },
+        isCurrent: { type: Boolean, default: false },
+      },
+    ],
+
     // Embed the Limits Schema
     limits: { type: LimitsSchema, required: true, default: {} },
 

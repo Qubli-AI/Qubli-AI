@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const REQUEST_TIMEOUT = 30000; // 30 second timeout
 
 export async function request(endpoint, method = "GET", body) {
   const token = localStorage.getItem("token");
@@ -7,35 +8,51 @@ export async function request(endpoint, method = "GET", body) {
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  // Create abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-  const text = await res.text(); // Get raw response
-
-  // Detect HTML error pages
-  if (text.startsWith("<") || text.startsWith("<!DOCTYPE")) {
-    throw new Error(
-      "AI is busy at the moment. Please refresh or try again later."
-    );
-  }
-
-  // Parse JSON safely
-  let data;
   try {
-    data = JSON.parse(text);
-  } catch (err) {
-    console.error("❌ JSON Parse Error:", err, text);
-    throw new Error("Server returned invalid JSON.");
-  }
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    throw new Error(data.message || "Request failed");
-  }
+    const text = await res.text(); // Get raw response
 
-  return data;
+    // Detect HTML error pages
+    if (text.startsWith("<") || text.startsWith("<!DOCTYPE")) {
+      throw new Error(
+        "AI is busy at the moment. Please refresh or try again later."
+      );
+    }
+
+    // Parse JSON safely
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("❌ JSON Parse Error:", err, text);
+      throw new Error("Server returned invalid JSON.");
+    }
+
+    if (!res.ok) {
+      throw new Error(
+        data.message || `Request failed with status ${res.status}`
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Request timeout. The server took too long to respond.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export function login(email, password) {

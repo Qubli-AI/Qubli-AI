@@ -230,42 +230,72 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       quiz.isFlashcardSet = generateFlashcards;
 
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/quizzes`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ...quiz, isFlashcardSet: generateFlashcards }),
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/quizzes`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              ...quiz,
+              isFlashcardSet: generateFlashcards,
+            }),
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || `Failed to save quiz: ${response.status}`
+          );
         }
-      );
 
-      const savedQuiz = await response.json();
+        const savedQuiz = await response.json();
 
-      if (generateFlashcards) {
-        const cards = quiz.questions.map((q) => ({
-          id: `fc_${q._id}`,
-          userId: user?.id,
-          quizId: savedQuiz._id,
-          front: q.text,
-          back: `${q.correctAnswer}\n\n${q.explanation}`,
-          nextReview: Date.now(),
-          interval: 0,
-          repetition: 0,
-          easeFactor: 2.5,
-        }));
-        await StorageService.saveFlashcards(cards);
-        await StorageService.decrementFlashcardGeneration();
+        // Validate response contains saved quiz ID
+        const quizId = savedQuiz._id || savedQuiz.id;
+        if (!quizId) {
+          console.error("Invalid response from quiz save:", savedQuiz);
+          throw new Error(
+            "Quiz was created but server response was invalid. Please refresh."
+          );
+        }
+
+        if (generateFlashcards) {
+          const cards = quiz.questions.map((q) => ({
+            id: `fc_${q._id || q.id}`,
+            userId: user?._id || user?.id,
+            quizId: savedQuiz._id || savedQuiz.id,
+            front: q.text,
+            back: `${q.correctAnswer}\n\n${q.explanation}`,
+            nextReview: Date.now(),
+            interval: 0,
+            repetition: 0,
+            easeFactor: 2.5,
+          }));
+          await StorageService.saveFlashcards(cards);
+          await StorageService.decrementFlashcardGeneration();
+        }
+
+        if (mode === "pdf") await StorageService.decrementPdfUpload();
+
+        onGenerateSuccess();
+        navigate(`/quiz/${quizId}`);
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      if (mode === "pdf") await StorageService.decrementPdfUpload();
-
-      onGenerateSuccess();
-      navigate(`/quiz/${savedQuiz._id}`);
-    } catch {
-      toast.error("Failed to generate quiz, try later.");
+    } catch (error) {
+      console.error("Quiz generation error:", error);
+      toast.error(error.message || "Failed to generate quiz, try later.");
     } finally {
       setLoading(false);
     }

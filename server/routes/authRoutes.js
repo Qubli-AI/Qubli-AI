@@ -40,6 +40,7 @@ router.post("/register", async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      passwordIsUserSet: true, // User set their own password during signup
       tier: defaultTier,
       limits,
       isVerified: false,
@@ -47,8 +48,10 @@ router.post("/register", async (req, res) => {
       verificationCodeExpires: codeExpires,
     });
 
-    // Send verification email
-    await sendVerificationEmail(email, verificationCode);
+    // Send verification email in background (non-blocking)
+    sendVerificationEmail(email, verificationCode).catch((err) => {
+      console.error("Failed to send verification email:", err);
+    });
 
     res.status(201).json({
       message:
@@ -112,6 +115,71 @@ router.post("/login", async (req, res) => {
       expiresIn: "7d",
     });
 
+    // Track session - capture real IP and device info
+    const userAgent = req.headers["user-agent"] || "";
+
+    // Get real IP address - try multiple sources
+    let ipAddress = req.ip;
+    if (req.headers["x-forwarded-for"]) {
+      ipAddress = req.headers["x-forwarded-for"].split(",")[0].trim();
+    } else if (req.connection.remoteAddress) {
+      ipAddress = req.connection.remoteAddress;
+    }
+
+    // Extract browser/device info from user agent
+    let deviceName = "";
+    if (userAgent.includes("Windows NT 10")) deviceName = "Windows 10";
+    else if (userAgent.includes("Windows NT 11")) deviceName = "Windows 11";
+    else if (userAgent.includes("Windows")) deviceName = "Windows";
+    else if (userAgent.includes("Macintosh")) deviceName = "Mac";
+    else if (userAgent.includes("iPhone")) deviceName = "iPhone";
+    else if (userAgent.includes("iPad")) deviceName = "iPad";
+    else if (userAgent.includes("Android")) deviceName = "Android";
+    else if (userAgent.includes("Linux")) deviceName = "Linux";
+    else deviceName = "Unknown Device";
+
+    // Extract browser info
+    let browserInfo = "";
+    if (userAgent.includes("Chrome") && !userAgent.includes("Chromium")) {
+      const chromeMatch = userAgent.match(/Chrome\/([\d.]+)/);
+      browserInfo = chromeMatch ? `Chrome ${chromeMatch[1]}` : "Chrome";
+    } else if (userAgent.includes("Firefox")) {
+      const firefoxMatch = userAgent.match(/Firefox\/([\d.]+)/);
+      browserInfo = firefoxMatch ? `Firefox ${firefoxMatch[1]}` : "Firefox";
+    } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+      browserInfo = "Safari";
+    } else if (userAgent.includes("Edge")) {
+      const edgeMatch = userAgent.match(/Edg\/([\d.]+)/);
+      browserInfo = edgeMatch ? `Edge ${edgeMatch[1]}` : "Edge";
+    }
+
+    const displayDeviceName = browserInfo
+      ? `${deviceName} - ${browserInfo}`
+      : deviceName;
+
+    // Add new session
+    user.sessions = user.sessions || [];
+    const newSession = {
+      deviceName: displayDeviceName,
+      userAgent,
+      ipAddress,
+      lastActive: new Date(),
+      isCurrent: true,
+      createdAt: new Date(),
+    };
+    user.sessions.push(newSession);
+
+    // Mark old sessions as not current
+    user.sessions.forEach((session, idx) => {
+      session.isCurrent = idx === user.sessions.length - 1;
+    });
+
+    console.log(
+      `New session created for user ${user._id}: ${displayDeviceName} (${ipAddress})`
+    );
+
+    await user.save();
+
     res.status(200).json({
       token,
       user: {
@@ -159,7 +227,7 @@ router.post("/verify-email", async (req, res) => {
     user.verificationCodeExpires = null;
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -205,8 +273,10 @@ router.post("/resend-code", async (req, res) => {
     user.verificationCodeExpires = codeExpires;
     await user.save();
 
-    // Send new code
-    await sendVerificationEmail(email, verificationCode);
+    // Send new code in background (non-blocking)
+    sendVerificationEmail(email, verificationCode).catch((err) => {
+      console.error("Failed to send verification email:", err);
+    });
 
     res.status(200).json({
       message: "Verification code sent to your email",
@@ -295,15 +365,16 @@ router.get("/sessions", protect, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Mock sessions data - in production, store actual session info in DB
-    const sessions = [
-      {
-        id: "session_1",
-        deviceName: "Current Device",
-        browser: "Chrome",
-        lastActive: new Date(),
-      },
-    ];
+    // Return user's actual sessions
+    const sessions = (user.sessions || []).map((session) => ({
+      _id: session._id,
+      id: session._id,
+      deviceName: session.deviceName || "Unknown Device",
+      userAgent: session.userAgent,
+      ipAddress: session.ipAddress,
+      lastActive: session.lastActive,
+      isCurrent: session.isCurrent || false,
+    }));
 
     res.status(200).json({ sessions });
   } catch (err) {
@@ -315,11 +386,62 @@ router.get("/sessions", protect, async (req, res) => {
 // Logout from specific session
 router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
   try {
-    // In production, remove the session from the database
-    // For now, just return success
+    const { sessionId } = req.params;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove the session from user's sessions array
+    const originalLength = user.sessions?.length || 0;
+    if (user.sessions && Array.isArray(user.sessions)) {
+      user.sessions = user.sessions.filter(
+        (session) => String(session._id) !== String(sessionId)
+      );
+      const newLength = user.sessions.length;
+
+      // Only save if something was actually removed
+      if (originalLength !== newLength) {
+        await user.save();
+        console.log(
+          `Session ${sessionId} removed for user ${user._id}. Sessions remaining: ${newLength}`
+        );
+        res.status(200).json({
+          message: "Session logout successful",
+          sessionsRemaining: newLength,
+        });
+      } else {
+        console.warn(`Session ${sessionId} not found for user ${user._id}`);
+        res.status(404).json({ message: "Session not found" });
+      }
+    } else {
+      res.status(200).json({
+        message: "Session logout successful",
+        sessionsRemaining: 0,
+      });
+    }
+  } catch (err) {
+    console.error("Session logout error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Logout from all devices
+router.post("/logout-all", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Clear all sessions
+    user.sessions = [];
+    await user.save();
 
     res.status(200).json({
-      message: "Session logout successful",
+      message: "Logged out from all devices successfully",
     });
   } catch (err) {
     console.error(err);
@@ -380,6 +502,38 @@ router.post("/oauth/callback", async (req, res) => {
     const token = jwt.sign({ id: updatedUser._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
+
+    // Track session
+    const userAgent = req.headers["user-agent"] || "Unknown";
+    const ipAddress =
+      req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "Unknown";
+
+    // Extract browser/device info from user agent
+    let deviceName = "Unknown Device";
+    if (userAgent.includes("Windows")) deviceName = "Windows Device";
+    else if (userAgent.includes("Mac")) deviceName = "Mac Device";
+    else if (userAgent.includes("iPhone")) deviceName = "iPhone";
+    else if (userAgent.includes("Android")) deviceName = "Android Device";
+    else if (userAgent.includes("Linux")) deviceName = "Linux Device";
+
+    // Add new session
+    updatedUser.sessions = updatedUser.sessions || [];
+    updatedUser.sessions.push({
+      deviceName,
+      userAgent,
+      ipAddress,
+      lastActive: new Date(),
+      isCurrent: true,
+    });
+
+    // Mark old sessions as not current
+    updatedUser.sessions.forEach((session, idx) => {
+      if (idx !== updatedUser.sessions.length - 1) {
+        session.isCurrent = false;
+      }
+    });
+
+    await updatedUser.save();
 
     res.status(200).json({
       message: "OAuth authentication successful",

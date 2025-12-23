@@ -218,7 +218,7 @@ const AuthForm = ({ onLogin }) => {
               {/* Inline Hint - Only show if user has started typing */}
               {formData.name.length > 0 && (
                 <div
-                  className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5.5 left-0 w-full truncate ${
+                  className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5 left-0 w-full truncate ${
                     !validations.name(formData.name)
                       ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
                       : "text-green-600 dark:text-green-400"
@@ -263,7 +263,7 @@ const AuthForm = ({ onLogin }) => {
             {/* Inline Hint - Only show if user has started typing */}
             {formData.email.length > 0 && (
               <div
-                className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5.5 left-0 w-full truncate ${
+                className={`text-[10px] mt-1 ml-1 transition-colors duration-200 absolute -bottom-5 left-0 w-full truncate ${
                   !validations.email(formData.email)
                     ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
                     : "text-green-600 dark:text-green-400"
@@ -307,7 +307,7 @@ const AuthForm = ({ onLogin }) => {
             {/* Inline Hint - Only show if user has started typing */}
             {formData.password.length > 0 && (
               <div
-                className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-5.5 left-0 w-full ${
+                className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-5 left-0 w-full ${
                   !validations.password(formData.password)
                     ? "text-red-500 dark:text-red-400 font-medium dark:font-normal"
                     : "text-green-600 dark:text-green-400"
@@ -325,7 +325,10 @@ const AuthForm = ({ onLogin }) => {
           ></div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-2">
+            <div
+              className="text-red-500 dark:text-red-300 text-sm text-center 
+            bg-red-50 dark:bg-red-800/70 p-2 rounded-lg border border-red-100 dark:border-red-900 animate-in fade-in slide-in-from-top-2"
+            >
               {error}
             </div>
           )}

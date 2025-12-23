@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   Settings,
@@ -15,8 +16,10 @@ import {
   AlertCircle,
   Check,
   Lock,
+  Trash2,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import StorageService from "../services/storageService.js";
 
 const SettingsModal = ({ onClose, user, refreshUser }) => {
@@ -46,6 +49,11 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
   const [feedback, setFeedback] = useState("");
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [showLogoutAllModal, setShowLogoutAllModal] = useState(false);
+  const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
 
   // 2FA State
   const [twoFAMethod, setTwoFAMethod] = useState("totp");
@@ -57,7 +65,6 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   const [twoFABackupCodes, setTwoFABackupCodes] = useState([]);
   const [twoFAStatus, setTwoFAStatus] = useState(null);
   const [isEnabling2FA, setIsEnabling2FA] = useState(false);
-  const [connectedAccounts, setConnectedAccounts] = useState({});
 
   const tabs = [
     { id: "account", label: "Account", icon: User },
@@ -102,41 +109,17 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     htmlElement.style.fontSize = fontSizeMap[fontSize];
   }, [fontSize]);
 
-  useEffect(() => {
-    if (user?.connectedAccounts) {
-      setConnectedAccounts(user.connectedAccounts);
-    }
-  }, [user]);
-
-  // Listen for OAuth updates from OAuthCallback
-  useEffect(() => {
-    const handleUserUpdated = (event) => {
-      const updatedUser = event.detail;
-      if (updatedUser?.connectedAccounts) {
-        setConnectedAccounts(updatedUser.connectedAccounts);
-      }
-    };
-
-    window.addEventListener("userUpdated", handleUserUpdated);
-    return () => window.removeEventListener("userUpdated", handleUserUpdated);
-  }, []);
-
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
-    // Current password only required if user has previously set one
-    if (user?.passwordIsUserSet && !currentPassword) {
-      toast.error("Current password is required");
-      return;
-    }
-
-    if (!newPassword || !confirmPassword) {
-      toast.error("Please fill in all password fields");
-      return;
-    }
-
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match");
+      return;
+    }
+
+    // Check if new password is the same as current password
+    if (currentPassword && newPassword === currentPassword) {
+      toast.error("New password must be different from current password");
       return;
     }
 
@@ -195,12 +178,11 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to permanently delete your account? This cannot be undone."
-    );
+    setShowDeleteModal(true);
+  };
 
-    if (!confirmed) return;
-
+  const confirmDeleteAccount = async () => {
+    setIsDeleting(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/auth/delete-account`,
@@ -213,15 +195,24 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       );
 
       if (response.ok) {
-        toast.success("Account deleted. Redirecting...");
         StorageService.logout();
-        window.location.href = "/auth";
+        window.location.href = "/";
       } else {
         toast.error("Failed to delete account");
+        setShowDeleteModal(false);
       }
     } catch (error) {
       toast.error("Error deleting account");
       console.error(error);
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    if (!isDeleting) {
+      setShowDeleteModal(false);
     }
   };
 
@@ -384,6 +375,11 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     }
   };
 
+  // Fetch sessions on mount
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
   // Fetch 2FA status on mount
   useEffect(() => {
     const fetch2FAStatus = async () => {
@@ -443,64 +439,81 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     fetch2FAStatus();
   }, []);
 
-  const handleOAuthConnect = async (provider) => {
+  // Handle logout from session
+  const handleLogoutSession = async (sessionId) => {
     try {
-      const oauthConfigs = {
-        Google: {
-          clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-          scopes: ["openid", "email", "profile"],
-        },
-        GitHub: {
-          clientId: import.meta.env.VITE_GITHUB_CLIENT_ID,
-          authUrl: "https://github.com/login/oauth/authorize",
-          scopes: ["user:email"],
-        },
-      };
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/sessions/${sessionId}/logout`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${StorageService.getToken()}`,
+          },
+        }
+      );
 
-      const config = oauthConfigs[provider];
-      if (!config || !config.clientId) {
-        toast.error(
-          `${provider} OAuth not configured. Please set credentials in .env`
-        );
-        return;
+      if (response.ok) {
+        toast.success("Session ended");
+        fetchSessions();
+      } else {
+        toast.error("Failed to end session");
       }
-
-      const redirectUri = `${window.location.origin}/auth/callback`;
-      const params = new URLSearchParams({
-        client_id: config.clientId,
-        redirect_uri: redirectUri,
-        response_type: "code",
-        scope: config.scopes.join(" "),
-        state: Math.random().toString(36).substring(7),
-      });
-
-      localStorage.setItem("oauthProvider", provider.toLowerCase());
-      localStorage.setItem("authMode", "settings");
-
-      window.location.href = `${config.authUrl}?${params.toString()}`;
     } catch (error) {
-      toast.error(`Failed to connect ${provider}`);
+      toast.error("Failed to end session");
       console.error(error);
     }
   };
 
-  // Handle logout from session
-  const handleLogoutSession = async (sessionId) => {
+  const fetchSessions = async () => {
     try {
-      const response = await fetch(`/api/auth/sessions/${sessionId}/logout`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${StorageService.getToken()}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/sessions`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${StorageService.getToken()}`,
+          },
+        }
+      );
 
       if (response.ok) {
-        toast.success("Session ended");
-        refreshUser();
+        const data = await response.json();
+        setSessions(data.sessions || []);
+      } else {
+        setSessions([]);
       }
     } catch (error) {
-      toast.error("Failed to end session");
+      console.error("Failed to fetch sessions:", error);
+      setSessions([]);
+    }
+  };
+
+  const handleLogoutAllDevices = async () => {
+    setIsLoggingOutAll(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/logout-all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${StorageService.getToken()}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        StorageService.logout();
+        window.location.href = "/";
+      } else {
+        toast.error("Failed to logout from all devices");
+        setShowLogoutAllModal(false);
+      }
+    } catch (error) {
+      toast.error("Error logging out from all devices");
+      console.error(error);
+      setShowLogoutAllModal(false);
+    } finally {
+      setIsLoggingOutAll(false);
     }
   };
 
@@ -600,7 +613,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 ${
                         newPassword &&
                         !/^(?=.*[A-Z])(?=.*\d).{6,}$/.test(newPassword)
-                          ? "border-red-300 bg-red-50/10"
+                          ? "border-red-300 dark:border-red-400 bg-red-50/10"
                           : "border-border"
                       }`}
                       placeholder="••••••••"
@@ -621,8 +634,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     <div
                       className={`text-[10px] mt-1 ml-1 leading-tight transition-colors duration-200 absolute -bottom-5 left-0 w-full ${
                         !/^(?=.*[A-Z])(?=.*\d).{6,}$/.test(newPassword)
-                          ? "text-red-500 font-medium"
-                          : "text-green-600"
+                          ? "text-red-500 dark:text-red-400 font-medium"
+                          : "text-green-600 dark:text-green-400"
                       }`}
                     >
                       Min 6 chars & include a number and uppercase letter
@@ -640,22 +653,22 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 ${
+                      className={`w-full pl-12 pr-10 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary dark:focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 ${
                         confirmPassword && newPassword !== confirmPassword
-                          ? "border-red-300 bg-red-50/10"
+                          ? "border-red-300 dark:border-red-500 bg-red-50/10"
                           : confirmPassword && newPassword === confirmPassword
-                          ? "border-green-300 bg-green-50/10"
+                          ? "border-green-300 dark:border-green-600 bg-green-50/10"
                           : "border-border"
                       }`}
                     />
                     {confirmPassword && newPassword === confirmPassword ? (
-                      <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500" />
+                      <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 dark:text-green-400" />
                     ) : confirmPassword && newPassword !== confirmPassword ? (
-                      <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500" />
+                      <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 dark:text-red-400" />
                     ) : null}
                   </div>
                   {confirmPassword && newPassword !== confirmPassword && (
-                    <div className="text-[10px] -bottom-5 mt-1 ml-1 text-red-500 font-medium">
+                    <div className="text-[10px] -bottom-5 mt-1 ml-1 text-red-500 dark:text-red-400 font-medium">
                       Passwords do not match
                     </div>
                   )}
@@ -663,51 +676,11 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                 <button
                   type="submit"
                   disabled={isUpdatingPassword}
-                  className="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors point"
+                  className="w-full bg-primary dark:bg-blue-700 text-white hover:text-white/90 font-semibold py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 transition-colors point"
                 >
                   {isUpdatingPassword ? "Updating..." : "Update Password"}
                 </button>
               </form>
-            </div>
-
-            <hr className="border-border" />
-
-            <div>
-              <h3 className="text-lg font-bold text-textMain mb-4">
-                Connected Accounts
-              </h3>
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleOAuthConnect("Google")}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-surfaceHighlight border border-border hover:bg-surface transition-colors point"
-                >
-                  <span className="text-textMain font-medium">Google</span>
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${
-                      connectedAccounts?.google
-                        ? "bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300"
-                        : "bg-blue-100 dark:bg-blue-800/70 text-blue-700 dark:text-blue-300"
-                    }`}
-                  >
-                    {connectedAccounts?.google ? "Connected" : "Connect"}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleOAuthConnect("GitHub")}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-surfaceHighlight border border-border hover:bg-surface transition-colors point"
-                >
-                  <span className="text-textMain font-medium">GitHub</span>
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${
-                      connectedAccounts?.github
-                        ? "bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300"
-                        : "bg-blue-100 dark:bg-blue-800/70 text-blue-700 dark:text-blue-300"
-                    }`}
-                  >
-                    {connectedAccounts?.github ? "Connected" : "Connect"}
-                  </span>
-                </button>
-              </div>
             </div>
 
             <hr className="border-border" />
@@ -842,7 +815,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       </span>
                     </div>
                     {maxPdfs !== Infinity && (
-                      <div className="dark:bg-[#374151] w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
                           className="h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 transition-all duration-300"
                           style={{
@@ -949,20 +922,92 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-textMain mb-2">
-                    Font Size
-                  </label>
-                  <select
-                    value={fontSize}
-                    onChange={(e) => setFontSize(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg text-textMain bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-primary point"
-                  >
-                    <option value="small">Small (14px)</option>
-                    <option value="normal">Normal (16px)</option>
-                    <option value="large">Large (18px)</option>
-                  </select>
+                  <FormControl fullWidth>
+                    <InputLabel
+                      id="font-size-label"
+                      sx={{
+                        color: "var(--color-textMuted)",
+                        "&.Mui-focused": {
+                          color: "var(--color-primary)",
+                        },
+                      }}
+                    >
+                      Font Size
+                    </InputLabel>
+                    <Select
+                      labelId="font-size-label"
+                      id="font-size-select"
+                      value={fontSize}
+                      label="Font Size"
+                      onChange={(e) => setFontSize(e.target.value)}
+                      disableScrollLock={true}
+                      sx={{
+                        color: "var(--color-textMain)",
+                        backgroundColor: "var(--color-surface)",
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "var(--color-border)",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "var(--color-border)",
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "var(--color-primary)",
+                        },
+                        "& .MuiSvgIcon-root": {
+                          color: "var(--color-textMain)",
+                        },
+                      }}
+                      MenuProps={{
+                        disableScrollLock: true,
+                        PaperProps: {
+                          sx: {
+                            backgroundColor: "var(--color-surface)",
+                            color: "var(--color-textMain)",
+                            border: "1px solid var(--color-border)",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                            maxHeight: "300px",
+                            "& .MuiMenuItem-root": {
+                              color: "var(--color-textMain)",
+                              "&:hover": {
+                                backgroundColor:
+                                  "var(--color-surfaceHighlight)",
+                              },
+                              "&.Mui-selected": {
+                                backgroundColor: "var(--color-primary)",
+                                color: "white",
+                                "&:hover": {
+                                  backgroundColor: "var(--color-primary)",
+                                },
+                              },
+                            },
+                            "& .MuiList-root": {
+                              overflow: "auto",
+                              scrollbarWidth: "auto",
+                              "&::-webkit-scrollbar": {
+                                width: "8px",
+                              },
+                              "&::-webkit-scrollbar-track": {
+                                backgroundColor: "transparent",
+                              },
+                              "&::-webkit-scrollbar-thumb": {
+                                backgroundColor: "var(--color-border)",
+                                borderRadius: "4px",
+                                "&:hover": {
+                                  backgroundColor: "var(--color-textMuted)",
+                                },
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem value="small">Small (14px)</MenuItem>
+                      <MenuItem value="normal">Normal (16px)</MenuItem>
+                      <MenuItem value="large">Large (18px)</MenuItem>
+                    </Select>
+                  </FormControl>
                   <p className="text-xs text-textMuted mt-2">
-                    <span className="-mt-1 text-red-600 dark:text-red-400">
+                    <span className="text-red-600 dark:text-red-400 text-sm mr-0.5">
                       *
                     </span>
                     Font size will be applied site-wide
@@ -1189,61 +1234,52 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                 Active Sessions
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-surfaceHighlight border border-border">
-                  <div>
-                    <p className="text-sm font-medium text-textMain">
-                      Current Session
-                    </p>
-                    <p className="text-xs text-textMuted">
-                      {navigator.userAgent.includes("Windows")
-                        ? "Windows"
-                        : "Device"}{" "}
-                      •{" "}
-                      {navigator.userAgent.includes("Chrome")
-                        ? "Chrome"
-                        : "Browser"}{" "}
-                      • {window.location.hostname}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-3 py-1 rounded-full">
-                    Active
-                  </span>
-                </div>
-                {user?.sessions && user.sessions.length > 1 && (
+                {sessions && sessions.length > 0 ? (
                   <>
-                    {user.sessions.map(
-                      (session, idx) =>
-                        idx !== 0 && (
-                          <div
-                            key={session.id}
-                            className="flex items-center justify-between p-4 rounded-lg bg-surfaceHighlight border border-border"
-                          >
-                            <div>
-                              <p className="text-sm font-medium text-textMain">
-                                {session.deviceName}
-                              </p>
-                              <p className="text-xs text-textMuted">
-                                Last active:{" "}
-                                {new Date(
-                                  session.lastActive
-                                ).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleLogoutSession(session.id)}
-                              className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold"
-                            >
-                              Logout
-                            </button>
-                          </div>
-                        )
-                    )}
+                    {sessions.map((session) => (
+                      <div
+                        key={session._id || session.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-surfaceHighlight border border-border"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-textMain">
+                            {session.deviceName ||
+                              `${session.userAgent || "Device"}`}
+                          </p>
+                          <p className="text-xs text-textMuted">
+                            {session.ipAddress && `IP: ${session.ipAddress}`}
+                            {session.ipAddress && session.lastActive && " • "}
+                            {session.lastActive &&
+                              `Last active: ${new Date(
+                                session.lastActive
+                              ).toLocaleDateString()}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() =>
+                            handleLogoutSession(session._id || session.id)
+                          }
+                          className="text-xs text-red-600 dark:text-red-500/90 hover:text-red-700 dark:hover:text-red-500 font-semibold point"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    ))}
                   </>
+                ) : (
+                  <p className="text-sm text-textMuted text-center py-4">
+                    No sessions found
+                  </p>
                 )}
               </div>
-              <button className="delete-btn w-full mt-4 px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors point">
-                Logout from All Devices
-              </button>
+              {sessions && sessions.length > 0 && (
+                <button
+                  onClick={() => setShowLogoutAllModal(true)}
+                  className="w-full mt-4 px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors point"
+                >
+                  Logout from All Devices
+                </button>
+              )}
             </div>
           </div>
         );
@@ -1324,58 +1360,36 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
-      onClick={onClose}
-    >
+    <>
       <div
-        className="relative w-full h-[90vh] sm:h-[85vh] md:h-[90vh] sm:max-w-4xl bg-surface rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+        onClick={onClose}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm p-3 sm:p-6 border-b border-border flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Settings className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-            <h2 className="text-lg sm:text-2xl font-extrabold text-textMain">
-              Settings
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-textMuted hover:text-textMain rounded-full transition-colors point hover:bg-surface"
-            title="Close"
-          >
-            <X className="w-5 sm:w-6 h-5 sm:h-6" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
-          {/* Sidebar Tabs */}
-          <div className="hidden md:flex md:w-48 bg-surface border-r gap-3 border-border flex-col p-2">
-            {tabs.map((tab) => {
-              const TabIcon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left font-medium point hover:pl-5.5 ${
-                    isActive
-                      ? "bg-primary/10 text-primary dark:text-blue-400 shadow-sm pl-5.5"
-                      : "text-textMuted hover:bg-surfaceHighlight"
-                  }`}
-                >
-                  <TabIcon className="w-5 h-5" />
-                  {tab.label}
-                </button>
-              );
-            })}
+        <div
+          className="relative w-full h-[90vh] sm:h-[85vh] md:h-[90vh] sm:max-w-4xl bg-surface rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm p-3 sm:p-6 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Settings className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <h2 className="text-lg sm:text-2xl font-extrabold text-textMain">
+                Settings
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 text-textMuted hover:text-textMain rounded-full transition-colors point hover:bg-surface"
+              title="Close"
+            >
+              <X className="w-5 sm:w-6 h-5 sm:h-6" />
+            </button>
           </div>
 
-          {/* Mobile Tab Buttons */}
-          <div className="md:hidden flex flex-col w-full">
-            <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
+            {/* Sidebar Tabs */}
+            <div className="hidden md:flex md:w-48 bg-surface border-r gap-3 border-border flex-col p-2">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1383,27 +1397,282 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left font-medium point hover:pl-5.5 ${
                       isActive
-                        ? "bg-primary text-white"
-                        : "bg-surfaceHighlight text-textMuted hover:text-textMain"
+                        ? "bg-primary/10 text-primary dark:text-blue-400 shadow-sm pl-5.5"
+                        : "text-textMuted hover:bg-surfaceHighlight"
                     }`}
                   >
-                    <TabIcon className="w-4 h-4" />
+                    <TabIcon className="w-5 h-5" />
                     {tab.label}
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 p-5 sm:px-7 py-5 md:p-8 overflow-y-auto">
-            {renderTabContent()}
+            {/* Mobile Tab Buttons */}
+            <div className="md:hidden flex flex-col w-full">
+              <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
+                {tabs.map((tab) => {
+                  const TabIcon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
+                        isActive
+                          ? "bg-primary text-white"
+                          : "bg-surfaceHighlight text-textMuted hover:text-textMain"
+                      }`}
+                    >
+                      <TabIcon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-1 p-5 sm:px-7 py-5 md:p-8 overflow-y-auto">
+              {renderTabContent()}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={cancelDelete}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="pointer-events-auto bg-surface dark:bg-surface border border-border rounded-xl shadow-2xl max-w-sm w-full mx-4"
+              >
+                <div className="p-6 space-y-4">
+                  {/* Header Icon */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mx-auto mb-2"
+                  >
+                    <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </motion.div>
+
+                  {/* Title */}
+                  <motion.h3
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-2xl font-bold text-center text-textMain"
+                  >
+                    Delete Account?
+                  </motion.h3>
+
+                  {/* Description */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-3"
+                  >
+                    <p className="text-textMuted text-center text-sm leading-relaxed">
+                      This action{" "}
+                      <span className="font-semibold text-red-600 dark:text-red-400">
+                        cannot be undone
+                      </span>
+                      . Your account and all associated data will be permanently
+                      deleted.
+                    </p>
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 space-y-2">
+                      <p className="text-xs font-semibold text-red-700 dark:text-red-400">
+                        The following will be deleted:
+                      </p>
+                      <ul className="text-xs text-red-600 dark:text-red-400 space-y-1">
+                        <li>• All your quizzes and flashcards</li>
+                        <li>• Your profile and settings</li>
+                        <li>• All saved data</li>
+                      </ul>
+                    </div>
+                  </motion.div>
+
+                  {/* Buttons */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25 }}
+                    className="flex gap-3 pt-2"
+                  >
+                    <button
+                      onClick={cancelDelete}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-surfaceHighlight dark:bg-[#374151] text-textMain font-medium hover:bg-gray-200 dark:hover:bg-[#4B5563] transition-colors disabled:opacity-50 disabled:cursor-not-allowed point"
+                    >
+                      Cancel
+                    </button>
+                    <motion.button
+                      whileHover={{ scale: isDeleting ? 1 : 1.02 }}
+                      whileTap={{ scale: isDeleting ? 1 : 0.98 }}
+                      onClick={confirmDeleteAccount}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 dark:bg-red-700 text-white font-medium hover:bg-red-700 dark:hover:bg-red-800 transition-colors disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 point"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "linear",
+                            }}
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                          />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </>
+                      )}
+                    </motion.button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+
+        {/* Logout All Devices Modal */}
+        {showLogoutAllModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isLoggingOutAll && setShowLogoutAllModal(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="pointer-events-auto bg-surface dark:bg-surface border border-border rounded-xl shadow-2xl max-w-sm w-full mx-4"
+              >
+                <div className="p-6 space-y-4">
+                  {/* Header Icon */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 mx-auto mb-2"
+                  >
+                    <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </motion.div>
+
+                  {/* Title */}
+                  <motion.h3
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-2xl font-bold text-center text-textMain"
+                  >
+                    Logout from All Devices?
+                  </motion.h3>
+
+                  {/* Description */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-3"
+                  >
+                    <p className="text-textMuted text-center text-sm leading-relaxed">
+                      You will be logged out from{" "}
+                      <span className="font-semibold text-amber-600 dark:text-amber-400">
+                        all devices and sessions
+                      </span>
+                      . You'll need to log in again.
+                    </p>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
+                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                        This will:
+                      </p>
+                      <ul className="text-xs text-amber-600 dark:text-amber-400 space-y-1">
+                        <li>• Terminate all active sessions</li>
+                        <li>• Log you out from all devices</li>
+                        <li>• Redirect you to the login page</li>
+                      </ul>
+                    </div>
+                  </motion.div>
+
+                  {/* Buttons */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25 }}
+                    className="flex gap-3 pt-2"
+                  >
+                    <button
+                      onClick={() =>
+                        !isLoggingOutAll && setShowLogoutAllModal(false)
+                      }
+                      disabled={isLoggingOutAll}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-surfaceHighlight dark:bg-[#374151] text-textMain font-medium hover:bg-gray-200 dark:hover:bg-[#4B5563] transition-colors disabled:opacity-50 disabled:cursor-not-allowed point"
+                    >
+                      Cancel
+                    </button>
+                    <motion.button
+                      whileHover={{ scale: isLoggingOutAll ? 1 : 1.02 }}
+                      whileTap={{ scale: isLoggingOutAll ? 1 : 0.98 }}
+                      onClick={handleLogoutAllDevices}
+                      disabled={isLoggingOutAll}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-amber-600 dark:bg-amber-700 text-white font-medium hover:bg-amber-700 dark:hover:bg-amber-800 transition-colors disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 point"
+                    >
+                      {isLoggingOutAll ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "linear",
+                            }}
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                          />
+                          Logging out...
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-4 h-4" />
+                          Logout All
+                        </>
+                      )}
+                    </motion.button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

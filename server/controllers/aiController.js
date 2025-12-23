@@ -8,6 +8,12 @@ import {
 export const generateQuizEndpoint = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);
 
+  if (!user) {
+    return res.status(404).json({
+      message: "User not found.",
+    });
+  }
+
   if (user.limits.generationsRemaining <= 0) {
     return res.status(403).json({
       message: "Daily generation limit reached. Please upgrade your tier.",

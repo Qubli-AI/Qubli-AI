@@ -378,48 +378,81 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   useEffect(() => {
     if (!user) return;
 
+    let retryCount = 0;
+    const maxRetries = 3;
+    let isMounted = true;
+    let timeoutId = null;
+
     async function fetchQuiz() {
       try {
-        const quizzes = (await StorageService.getQuizzes(user.id)) || [];
-        const q = quizzes.find((qq) => qq._id === id || qq.id === id);
+        const response = await StorageService.getQuizzes(user._id);
+
+        // Handle both paginated and non-paginated responses
+        const quizzes = response?.quizzes || response || [];
+
+        // Use fallback pattern for quiz ID matching with string comparison
+        const q = quizzes.find(
+          (qq) => String(qq._id) === String(id) || String(qq.id) === String(id)
+        );
 
         if (!q) {
-          console.warn("Quiz not found:", id);
-          navigate("/dashboard");
+          // If quiz not found and we haven't retried yet, retry after a short delay
+          if (retryCount < maxRetries) {
+            retryCount++;
+            timeoutId = setTimeout(fetchQuiz, 500);
+            return;
+          }
+          if (isMounted) navigate("/dashboard");
           return;
         }
 
-        const allCards = (await StorageService.getFlashcards(user.id)) || [];
+        // Fetch flashcards for this quiz
+        const allCards = (await StorageService.getFlashcards(user._id)) || [];
+        const qId = q._id || q.id;
+
+        // Match flashcards using fallback pattern
         const relevantCards = allCards.filter(
-          (c) => c.quizId === q.id || c.quizId === q._id
+          (c) =>
+            String(c.quizId) === String(qId) ||
+            String(c.quizId) === String(q._id) ||
+            String(c.quizId) === String(q.id)
         );
 
         const isFlashcardSet = relevantCards.length > 0;
         const updatedQuiz = { ...q, isFlashcardSet };
 
-        setQuiz(updatedQuiz);
-        setQuizFlashcards(relevantCards);
+        if (isMounted) {
+          setQuiz(updatedQuiz);
+          setQuizFlashcards(relevantCards);
 
-        if (q.score !== undefined) {
-          setStatus("completed");
-          const prevAnswers = {};
-          q.questions.forEach((ques) => {
-            const qid = ques.id || ques._id;
-            prevAnswers[qid] = ques.userAnswer || "";
-          });
-          setAnswers(prevAnswers);
-        } else {
-          setStatus("intro");
+          if (q.score !== undefined) {
+            setStatus("completed");
+            const prevAnswers = {};
+            q.questions.forEach((ques) => {
+              const qid = ques.id || ques._id;
+              prevAnswers[qid] = ques.userAnswer || "";
+            });
+            setAnswers(prevAnswers);
+          } else {
+            setStatus("intro");
+          }
+          setIsFetching(false);
         }
       } catch (err) {
         console.error("Failed to fetch quiz:", err);
-        navigate("/dashboard");
-      } finally {
-        setIsFetching(false);
+        if (isMounted) {
+          setIsFetching(false);
+          navigate("/dashboard");
+        }
       }
     }
 
     fetchQuiz();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [id, navigate, user]);
 
   if (isFetching || !quiz) {
@@ -509,12 +542,12 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   const manualCreateFlashcards = () => {
     if (!quiz || !user) return;
-    const quizIdKey = quiz._id || quiz.id;
+    const quizIdKey = quiz._id;
     const cards = quiz.questions.map((q) => {
       const qid = q.id || q._id;
       return {
         id: `fc_${qid}`,
-        userId: user.id,
+        userId: user._id,
         quizId: quizIdKey,
         front: q.text,
         back: `${q.correctAnswer}\n\n${

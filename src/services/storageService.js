@@ -1,6 +1,9 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const REQUEST_TIMEOUT = 30000; // 30 second timeout
+const REQUEST_CACHE = new Map(); // Simple in-memory cache for GET requests
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for GET requests
 
-/** Generic request helper with auto user storage */
+/** Generic request helper with auto user storage and caching */
 async function request(endpoint, method = "GET", body) {
   const token = localStorage.getItem("token");
 
@@ -15,16 +18,31 @@ async function request(endpoint, method = "GET", body) {
     throw new Error("Authentication token missing");
   }
 
+  // Check cache for GET requests
+  if (method === "GET" && REQUEST_CACHE.has(endpoint)) {
+    const cached = REQUEST_CACHE.get(endpoint);
+    if (Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    } else {
+      REQUEST_CACHE.delete(endpoint); // Invalidate expired cache
+    }
+  }
+
   const headers = {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
   };
+
+  // Create abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -36,8 +54,28 @@ async function request(endpoint, method = "GET", body) {
 
     const data = await res.json();
 
+    // Cache GET requests
+    if (method === "GET") {
+      REQUEST_CACHE.set(endpoint, { data, timestamp: Date.now() });
+    }
+
+    // Clear cache on DELETE/PUT/POST operations to ensure fresh data
+    if (
+      method === "DELETE" ||
+      method === "PUT" ||
+      (method === "POST" && endpoint.includes("/api/quizzes"))
+    ) {
+      REQUEST_CACHE.delete("/api/quizzes");
+      REQUEST_CACHE.delete("/api/flashcards");
+      REQUEST_CACHE.delete("/api/reviews");
+      REQUEST_CACHE.delete("/api/users/me");
+    }
+
     if (data.user) {
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Invalidate user-related caches on updates
+      REQUEST_CACHE.delete("/api/users/me");
 
       // Dispatch events based on the endpoint
       if (endpoint.includes("/limits/decrement/")) {
@@ -53,8 +91,14 @@ async function request(endpoint, method = "GET", body) {
 
     return data;
   } catch (err) {
+    if (err.name === "AbortError") {
+      console.error(`Request timeout for ${endpoint}`);
+      throw new Error("Request timeout. The server took too long to respond.");
+    }
     console.error(`Request failed for ${endpoint}:`, err);
     throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -90,10 +134,17 @@ const StorageService = {
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // Clear cache on logout
+    REQUEST_CACHE.clear();
   },
 
   getToken: () => {
     return localStorage.getItem("token");
+  },
+
+  // Clear cache when user logs out
+  clearCache: () => {
+    REQUEST_CACHE.clear();
   },
 
   getCurrentUser: () => {
@@ -126,6 +177,7 @@ const StorageService = {
   // --- QUIZZES ---
   getQuizzes: async (userId) => {
     try {
+      // Use the request function which handles auth and base URL
       const data = await request("/api/quizzes");
 
       // Ensure an array
@@ -134,6 +186,13 @@ const StorageService = {
       else if (data?.quizzes && Array.isArray(data.quizzes))
         quizzes = data.quizzes;
       else if (data) quizzes = [data]; // fallback if single object returned
+
+      // Normalize quiz objects to ensure both _id and id are present
+      quizzes = quizzes.map((q) => ({
+        ...q,
+        _id: q._id || q.id,
+        id: q.id || q._id,
+      }));
 
       if (!userId) return quizzes;
       return quizzes.filter((q) => q.userId === userId);
@@ -144,7 +203,8 @@ const StorageService = {
   },
 
   saveQuiz: async (quiz) => {
-    if (quiz._id) return request(`/api/quizzes/${quiz._id}`, "PUT", quiz);
+    const quizId = quiz._id || quiz.id;
+    if (quizId) return request(`/api/quizzes/${quizId}`, "PUT", quiz);
     return request("/api/quizzes", "POST", quiz);
   },
 
@@ -153,8 +213,24 @@ const StorageService = {
   // --- FLASHCARDS ---
   getFlashcards: async (userId) => {
     const data = await request("/api/flashcards");
-    if (!userId) return data;
-    return data.filter((c) => c.userId === userId);
+
+    // Ensure we have an array
+    let flashcards = [];
+    if (Array.isArray(data)) flashcards = data;
+    else if (data?.flashcards && Array.isArray(data.flashcards))
+      flashcards = data.flashcards;
+    else if (data) flashcards = [data];
+
+    // Normalize flashcard objects to ensure both _id and id are present
+    flashcards = flashcards.map((c) => ({
+      ...c,
+      _id: c._id || c.id,
+      id: c.id || c._id,
+      quizId: c.quizId, // Keep quizId as-is for filtering
+    }));
+
+    if (!userId) return flashcards;
+    return flashcards.filter((c) => c.userId === userId);
   },
 
   saveFlashcards: async (cards) =>

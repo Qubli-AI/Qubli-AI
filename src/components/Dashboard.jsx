@@ -165,8 +165,8 @@ const Dashboard = ({ user }) => {
     setIsLoading(true);
     try {
       const userQuizzes = await StorageService.getQuizzes(user._id);
-      setQuizzes(userQuizzes);
-      calculateAdvancedStats(userQuizzes);
+      setQuizzes(userQuizzes?.quizzes || userQuizzes); // Handle paginated response
+      calculateAdvancedStats(userQuizzes?.quizzes || userQuizzes);
     } catch (err) {
       console.error("Failed to refresh quizzes:", err);
       toast.error("Failed to load quizzes. Please try again.");
@@ -177,77 +177,81 @@ const Dashboard = ({ user }) => {
 
   const isDark = useTailwindDark();
 
-  const calculateAdvancedStats = (data) => {
-    if (!data || data.length === 0) return;
-    const completed = data.filter((q) => q.score !== undefined);
-    if (!completed.length) return;
+  // Memoize stats calculation to avoid recalculating on every render
+  const calculateAdvancedStats = useMemo(
+    () => (data) => {
+      if (!data || data.length === 0) return;
+      const completed = data.filter((q) => q.score !== undefined);
+      if (!completed.length) return;
 
-    const diffStats = {
-      [Difficulty.Easy]: { total: 0, sum: 0 },
-      [Difficulty.Medium]: { total: 0, sum: 0 },
-      [Difficulty.Hard]: { total: 0, sum: 0 },
-    };
-    const typeStats = {};
-    const topicStats = {};
+      const diffStats = {
+        [Difficulty.Easy]: { total: 0, sum: 0 },
+        [Difficulty.Medium]: { total: 0, sum: 0 },
+        [Difficulty.Hard]: { total: 0, sum: 0 },
+      };
+      const typeStats = {};
+      const topicStats = {};
 
-    completed.forEach((q) => {
-      diffStats[q.difficulty].total++;
-      diffStats[q.difficulty].sum += q.score || 0;
+      completed.forEach((q) => {
+        diffStats[q.difficulty].total++;
+        diffStats[q.difficulty].sum += q.score || 0;
 
-      const topic = q.topic.toLowerCase();
-      if (!topicStats[topic]) topicStats[topic] = { total: 0, sum: 0 };
-      topicStats[topic].total++;
-      topicStats[topic].sum += q.score || 0;
+        const topic = q.topic.toLowerCase();
+        if (!topicStats[topic]) topicStats[topic] = { total: 0, sum: 0 };
+        topicStats[topic].total++;
+        topicStats[topic].sum += q.score || 0;
 
-      q.questions.forEach((ques) => {
-        if (!typeStats[ques.type])
-          typeStats[ques.type] = { total: 0, correct: 0 };
-        typeStats[ques.type].total++;
-        if (ques.isCorrect) typeStats[ques.type].correct++;
+        q.questions.forEach((ques) => {
+          if (!typeStats[ques.type])
+            typeStats[ques.type] = { total: 0, correct: 0 };
+          typeStats[ques.type].total++;
+          if (ques.isCorrect) typeStats[ques.type].correct++;
+        });
       });
-    });
 
-    let minTopicScore = 101,
-      weakTopic = "N/A";
-    Object.entries(topicStats).forEach(([t, s]) => {
-      const avg = s.sum / s.total;
-      if (avg < minTopicScore) {
-        minTopicScore = avg;
-        weakTopic = t;
-      }
-    });
+      let minTopicScore = 101,
+        weakTopic = "N/A";
+      Object.entries(topicStats).forEach(([t, s]) => {
+        const avg = s.sum / s.total;
+        if (avg < minTopicScore) {
+          minTopicScore = avg;
+          weakTopic = t;
+        }
+      });
 
-    let minTypeScore = 1.1,
-      weakType = "N/A";
-    Object.entries(typeStats).forEach(([t, s]) => {
-      const avg = s.correct / s.total;
-      if (avg < minTypeScore) {
-        minTypeScore = avg;
-        weakType = t;
-      }
-    });
+      let minTypeScore = 1.1,
+        weakType = "N/A";
+      Object.entries(typeStats).forEach(([t, s]) => {
+        const avg = s.correct / s.total;
+        if (avg < minTypeScore) {
+          minTypeScore = avg;
+          weakType = t;
+        }
+      });
 
-    setStats({
-      avgEasy: diffStats[Difficulty.Easy].total
-        ? Math.round(
-            diffStats[Difficulty.Easy].sum / diffStats[Difficulty.Easy].total
-          )
-        : 0,
-      avgMedium: diffStats[Difficulty.Medium].total
-        ? Math.round(
-            diffStats[Difficulty.Medium].sum /
-              diffStats[Difficulty.Medium].total
-          )
-        : 0,
-      avgHard: diffStats[Difficulty.Hard].total
-        ? Math.round(
-            diffStats[Difficulty.Hard].sum / diffStats[Difficulty.Hard].total
-          )
-        : 0,
-      weakestTopic: weakTopic.charAt(0).toUpperCase() + weakTopic.slice(1),
-      weakestType: weakType,
-    });
-  };
+      setStats({
+        avgEasy: diffStats[Difficulty.Easy].total
+          ? Math.round(
+              diffStats[Difficulty.Easy].sum / diffStats[Difficulty.Easy].total
+            )
+          : 0,
+        avgMedium: diffStats[Difficulty.Medium].total
+          ? Math.round(
+              diffStats[Difficulty.Medium].sum /
+                diffStats[Difficulty.Medium].total
+            )
+          : 0,
+        avgHard: diffStats[Difficulty.Hard].total
+          ? Math.round(
+              diffStats[Difficulty.Hard].sum / diffStats[Difficulty.Hard].total
+            )
+          : 0,
+        weakestTopic: weakTopic.charAt(0).toUpperCase() + weakTopic.slice(1),
+        weakestType: weakType,
+      });
+    },
+    []
+  );
 
   const handleDeleteClick = (e, id, title) => {
     e.preventDefault();
@@ -606,7 +610,7 @@ const Dashboard = ({ user }) => {
             ) : (
               filteredQuizzes.map((quiz) => (
                 <motion.div
-                  key={quiz.id}
+                  key={quiz._id}
                   initial={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}

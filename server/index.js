@@ -28,6 +28,9 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
+// Trust proxy to capture real IP addresses
+app.set("trust proxy", 1);
+
 // CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
@@ -59,6 +62,7 @@ app.get("/api/users/me", protect, async (req, res) => {
     const updatedUser = await checkDailyReset(user, TIER_LIMITS);
     res.status(200).json({ user: updatedUser });
   } catch (error) {
+    console.error("Error fetching user:", error);
     res.status(500).json({ message: "Internal Server Error, Try Again!" });
   }
 });

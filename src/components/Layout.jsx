@@ -203,7 +203,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                           ? "bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-300"
                           : user.tier === "Basic"
                           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/80 dark:text-blue-300"
-                          : "bg-gray-200 text-gray-600 dark:bg-gray-900/40 dark:text-gray-300"
+                          : "bg-gray-200 text-gray-600 dark:bg-gray-900/30 dark:text-gray-300"
                       }
 `}
                     >
@@ -260,12 +260,12 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
                   <Link
                     to="/subscription"
-                    className={`w-full flex items-center justify-center gap-2 text-white text-xs font-extrabold py-2.5 rounded-xl transition-all active:scale-[0.98] mt-5 ${
+                    className={`w-full flex items-center justify-center gap-2 text-white hover:text-white/90 text-xs font-extrabold py-2.5 rounded-xl transition-all active:scale-[0.98] mt-5 ${
                       user.tier === "Free"
-                        ? "bg-blue-600 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-500"
+                        ? "bg-blue-600 dark:bg-blue-700 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-700/80"
                         : user.tier === "Basic"
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
-                        : "bg-blue-600 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-500"
+                        ? "bg-linear-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
+                        : "bg-blue-600 dark:bg-blue-700 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-700/80"
                     }`}
                   >
                     {user.tier !== "Pro" ? (

@@ -12,7 +12,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const PRO_MODEL = "gemini-2.5-flash";
 const BASIC_MODEL = "gemini-2.5-flash";
 
-async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
+async function retryGeminiRequest(fn, retries = 5, baseDelay = 1000) {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
@@ -21,15 +21,30 @@ async function retryGeminiRequest(fn, retries = 5, delay = 1500) {
 
       // Retry only on overload or rate-limit
       if (status === 503 || status === 429) {
-        console.warn(`Gemini overloaded → retrying (${i + 1}/${retries})`);
-        await new Promise((res) => setTimeout(res, delay));
+        // Use exponential backoff with jitter
+        const exponentialDelay = baseDelay * Math.pow(2, i);
+        const jitter = Math.random() * 1000;
+        const waitTime = exponentialDelay + jitter;
+        console.warn(
+          `Gemini overloaded → retrying (${
+            i + 1
+          }/${retries}) after ${Math.round(waitTime)}ms`
+        );
+        await new Promise((res) => setTimeout(res, waitTime));
+      } else if (i === retries - 1) {
+        // Last attempt failed
+        console.error(`AI failed after ${retries} retries. Status: ${status}`);
+        throw err;
       } else {
-        throw err; // non-retryable error
+        // Non-retryable error on first attempt, retry anyway
+        const delay = baseDelay * Math.pow(2, i);
+        console.warn(`Gemini error → retrying (${i + 1}/${retries})`);
+        await new Promise((res) => setTimeout(res, delay));
       }
     }
   }
 
-  console.error(`AI failed after ${retries} retries.`);
+  throw new Error(`AI service failed after ${retries} retry attempts.`);
 }
 
 // Helper function to build the final API URL
@@ -292,7 +307,7 @@ ${
       examStyle: styleLabel,
     };
   } catch (error) {
-    toast.error("AI Review temporarily unavailable.");
+    console.error("Quiz generation error:", error);
     throw new Error(
       "Failed to generate quiz. Please try again or check server logs."
     );
@@ -333,18 +348,23 @@ Output: A sharp, direct, high-impact review.
   const payload = { contents };
 
   try {
-    const response = await fetch(getApiUrl(model), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const response = await retryGeminiRequest(() =>
+      fetch(getApiUrl(model), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          const error = new Error("Gemini Review API Error");
+          error.response = { status: res.status, text };
+          throw error;
+        }
+        return res;
+      })
+    );
 
     const resultText = await response.text();
-
-    if (!response.ok) {
-      console.error("Gemini API Review Error:", resultText);
-      throw new Error(`Review API failed: ${response.status}`);
-    }
 
     let result;
     try {
@@ -354,13 +374,21 @@ Output: A sharp, direct, high-impact review.
       result = null;
     }
 
+    if (!result) {
+      throw new Error("Invalid review response from AI");
+    }
+
     const review = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    console.info("Performance review generated!");
+    if (!review) {
+      throw new Error("AI returned empty review");
+    }
+
+    console.info("Performance review generated successfully!");
 
     return review;
-  } catch (e) {
-    console.error("Performance review error:", e);
-    throw new Error("AI Review temporarily unavailable.");
+  } catch (error) {
+    console.error("Performance review error:", error);
+    throw new Error("Failed to generate performance review. Please try again.");
   }
 };
