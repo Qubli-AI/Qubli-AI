@@ -22,6 +22,12 @@ import OAuthCallback from "./components/OAuthCallback.jsx";
 import LandingPage from "./components/LandingPage.jsx";
 import FeaturesPage from "./components/FeaturesPage.jsx";
 import TestimonialsPage from "./components/TestimonialsPage.jsx";
+// Static pages
+import Pricing from "./components/Pricing.jsx";
+import About from "./components/About.jsx";
+import Contact from "./components/Contact.jsx";
+import Policies from "./components/Policies.jsx";
+import Terms from "./components/Terms.jsx";
 import StorageService from "./services/storageService.js";
 import { useTheme } from "./hooks/useTheme.js";
 
@@ -35,6 +41,15 @@ const ProtectedRoute = ({ children, auth }) => {
 
   if (!auth.user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Public Only Route Wrapper - prevents authenticated users from accessing
+const PublicOnlyRoute = ({ children, auth }) => {
+  if (auth.isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -92,7 +107,7 @@ const App = () => {
       const updatedUser = await StorageService.refreshUser();
       setAuth({ ...auth, user: updatedUser });
     } catch (error) {
-      console.error("Failed to refresh user:", error);
+      // Failed to refresh user - ignore and keep current auth state
     }
   };
 
@@ -144,9 +159,66 @@ const App = () => {
 
           <Route path="/auth/verify-email" element={<VerifyEmail />} />
 
-          <Route path="/features" element={<FeaturesPage />} />
+          <Route
+            path="/features"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <FeaturesPage />
+              </PublicOnlyRoute>
+            }
+          />
 
-          <Route path="/testimonials" element={<TestimonialsPage />} />
+          <Route
+            path="/testimonials"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <TestimonialsPage />
+              </PublicOnlyRoute>
+            }
+          />
+
+          {/* Static pages */}
+          <Route
+            path="/pricing"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <Pricing />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <About />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route path="/contact" element={<Contact />} />
+          <Route
+            path="/policies"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <Policies />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <Policies />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <PublicOnlyRoute auth={auth}>
+                <Terms />
+              </PublicOnlyRoute>
+            }
+          />
 
           <Route
             path="/"
@@ -154,7 +226,9 @@ const App = () => {
               auth.isAuthenticated ? (
                 <Navigate to="/dashboard" replace />
               ) : (
-                <LandingPage onLogin={handleLoginSuccess} />
+                <PublicOnlyRoute auth={auth}>
+                  <LandingPage onLogin={handleLoginSuccess} />
+                </PublicOnlyRoute>
               )
             }
           />

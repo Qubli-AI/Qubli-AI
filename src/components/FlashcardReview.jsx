@@ -45,8 +45,7 @@ export const FlashcardReview = () => {
       }
       setIsFlipped(false);
     } catch (e) {
-      // [DX_IMPROVEMENT]: Log error and provide user feedback via toast.
-      console.error("Failed to load flashcards:", e);
+      // Could not load flashcards - user is notified
       toast.error("Could not load flashcards.");
     } finally {
       setIsLoading(false);

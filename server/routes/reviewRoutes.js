@@ -10,7 +10,7 @@ router.post("/", protect, async (req, res) => {
     await newReview.save();
     res.status(201).json({ review: newReview });
   } catch (error) {
-    console.error("Failed to save AI review:", error);
+    // Failed to save AI review
     res.status(500).json({ message: "Failed to save AI review." });
   }
 });
@@ -24,7 +24,7 @@ router.get("/last", protect, async (req, res) => {
 
     res.status(200).json({ review: lastReview || null });
   } catch (error) {
-    console.error("Failed to fetch last review:", error);
+    // Failed to fetch last review
     res.status(500).json({ message: "Failed to fetch last review." });
   }
 });

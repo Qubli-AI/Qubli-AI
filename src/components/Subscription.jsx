@@ -114,7 +114,13 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
 
   return (
     <div
-      className={`bg-surface rounded-2xl p-8 border ${data.colorClasses.border} ${shadowClass} flex flex-col h-full relative overflow-hidden transition-all hover:scale-[1.01] duration-300`}
+      className={`bg-surface rounded-2xl p-8 border ${
+        data.colorClasses.border
+      } ${shadowClass} flex flex-col h-full relative overflow-hidden ${
+        tier !== SubscriptionTier.Pro
+          ? "transition-all hover:scale-[1.01] duration-300"
+          : ""
+      }`}
     >
       {tier === SubscriptionTier.Pro && (
         <>
@@ -192,6 +198,21 @@ const Subscription = ({ user, onUpgrade }) => {
     }
   };
 
+  const handleRefund = async () => {
+    const confirmRefund = window.confirm(
+      "Request a refund? You will lose access to premium features immediately. This action cannot be undone."
+    );
+    if (!confirmRefund) return;
+
+    try {
+      await StorageService.requestRefund();
+      toast.success("Refund request submitted. Check your email for details.");
+      if (onUpgrade) onUpgrade();
+    } catch (err) {
+      toast.error("Failed to request refund. Please contact support.");
+    }
+  };
+
   return (
     <div className="py-6 md:py-10">
       <div className="mb-6 md:mb-10">
@@ -220,6 +241,27 @@ const Subscription = ({ user, onUpgrade }) => {
           handleUpgrade={handleUpgrade}
         />
       </div>
+
+      {currentTier !== SubscriptionTier.Free && (
+        <div className="mt-10 pt-8 border-t border-border">
+          <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/60 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-textMain mb-4.5">
+              Want to request a refund?
+            </h3>
+            <p className="text-textMuted mb-5">
+              We offer a 30-day money-back guarantee on all paid subscriptions.
+              If you're not satisfied, you can request a full refund with no
+              questions asked.
+            </p>
+            <button
+              onClick={handleRefund}
+              className="px-6 py-2 bg-red-700/90 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white rounded-lg font-semibold transition-all point"
+            >
+              Request Refund
+            </button>
+          </div>
+        </div>
+      )}
 
       <p className="text-center text-xs text-textMuted mt-8 border-t border-border pt-4">
         *Payments are simulated in this environment. No real charges will occur.

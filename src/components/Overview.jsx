@@ -81,7 +81,7 @@ const Overview = ({ user }) => {
           const reviewText = await generateAndSaveReview(user, userQuizzes);
           setAiReview(reviewText ?? "");
         } catch (e) {
-          console.error("Initial AI Review Generation Failed:", e);
+          // AI review generation failed; set fallback text
           setAiReview("Could not generate initial review at this time.");
         } finally {
           setLoading(false);
@@ -161,7 +161,7 @@ const Overview = ({ user }) => {
         />
       </div>
 
-      <div className="p-8 rounded-3xl border border-indigo-100 dark:border-indigo-700/80 shadow-lg relative overflow-hidden group bg-linear-to-r from-[#e6e9f3] to-[#eef2ff] dark:bg-linear-to-r dark:from-[#1e293b] dark:to-[#0f172a]">
+      <div className="p-8 rounded-3xl border border-indigo-100 dark:border-indigo-700/40 shadow-lg relative overflow-hidden group bg-linear-to-r from-[#e6e9f3] to-[#eef2ff] dark:bg-linear-to-r dark:from-[#1e293b] dark:to-[#0f172a]">
         <div className="flex flex-col md:flex-row items-start gap-6 relative z-10">
           <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-200 shrink-0 dark:shadow-indigo-900">
             <Sparkles className="w-8 h-8" />
@@ -204,7 +204,7 @@ const Overview = ({ user }) => {
       <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border flex justify-between items-center">
           <h2 className="font-bold text-lg text-textMain">
-            Recent History ({completedQuizzes.length})
+            Recent History ({quizzes.length})
           </h2>
         </div>
         <div className="overflow-x-auto">
@@ -219,7 +219,7 @@ const Overview = ({ user }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {completedQuizzes
+              {quizzes
                 .slice()
                 .reverse()
                 .map((q) => {
@@ -265,17 +265,21 @@ const Overview = ({ user }) => {
                         </span>
                       </td>
                       <td className="p-5 text-center">
-                        <span
-                          className={`font-extrabold text-base ${
-                            (q?.score ?? 0) >= 80
-                              ? "text-green-600"
-                              : (q?.score ?? 0) >= 50
-                              ? "text-orange-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {q?.score ?? 0}%
-                        </span>
+                        {q?.score === undefined ? (
+                          <span className="text-textMuted">-</span>
+                        ) : (
+                          <span
+                            className={`font-extrabold text-base ${
+                              q?.score >= 80
+                                ? "text-green-600"
+                                : q?.score >= 50
+                                ? "text-orange-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {q?.score}%
+                          </span>
+                        )}
                       </td>
                       <td className="p-5 font-medium">
                         {obtainedMarks !== null ? (
@@ -288,13 +292,15 @@ const Overview = ({ user }) => {
                             </span>
                           </div>
                         ) : (
-                          "-"
+                          <span className="text-textMuted flex justify-center">
+                            -
+                          </span>
                         )}
                       </td>
                     </tr>
                   );
                 })}
-              {completedQuizzes.length === 0 && (
+              {quizzes.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-textMuted">
                     <BarChart3 className="w-6 h-6 mx-auto mb-3" />

@@ -29,7 +29,7 @@ router.get("/", protect, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching flashcards:", error);
+    // Failed to fetch flashcards
     res.status(500).json({ message: "Failed to fetch flashcards." });
   }
 });
@@ -44,7 +44,7 @@ router.post("/bulk", protect, async (req, res) => {
     const newCards = await Flashcard.insertMany(cardsWithUser);
     res.status(201).json(newCards);
   } catch (error) {
-    console.error("Bulk insert error:", error);
+    // Bulk insert failed
     res.status(400).json({ message: "Error saving flashcards." });
   }
 });

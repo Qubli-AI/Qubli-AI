@@ -50,10 +50,8 @@ export const sendVerificationEmail = async (email, code) => {
       html: htmlContent,
     });
 
-    console.log(`✅ Verification email sent to ${email}`);
     return true;
   } catch (error) {
-    console.error("❌ Email sending error:", error.message);
     throw new Error(`Failed to send verification email: ${error.message}`);
   }
 };

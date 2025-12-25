@@ -231,40 +231,20 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
       const token = localStorage.getItem("token");
 
-      // Create abort controller for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Save quiz using StorageService so caches are properly invalidated
+      const payload = {
+        ...quiz,
+        isFlashcardSet: generateFlashcards,
+        userId: user?._id || user?.id,
+      };
 
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/quizzes`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              ...quiz,
-              isFlashcardSet: generateFlashcards,
-            }),
-            signal: controller.signal,
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.message || `Failed to save quiz: ${response.status}`
-          );
-        }
-
-        const savedQuiz = await response.json();
+        const savedQuiz = await StorageService.saveQuiz(payload);
 
         // Validate response contains saved quiz ID
         const quizId = savedQuiz._id || savedQuiz.id;
         if (!quizId) {
-          console.error("Invalid response from quiz save:", savedQuiz);
+          // Server returned an unexpected response when saving the quiz
           throw new Error(
             "Quiz was created but server response was invalid. Please refresh."
           );
@@ -288,13 +268,17 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
         if (mode === "pdf") await StorageService.decrementPdfUpload();
 
+        // Notify app that a quiz was generated so lists can refresh
+        window.dispatchEvent(new Event("quizGenerated"));
+
         onGenerateSuccess();
-        navigate(`/quiz/${quizId}`);
-      } finally {
-        clearTimeout(timeoutId);
+        // Navigate and provide the saved quiz in state to avoid an extra fetch
+        navigate(`/quiz/${quizId}`, { state: { quiz: savedQuiz } });
+      } catch (err) {
+        throw err;
       }
     } catch (error) {
-      console.error("Quiz generation error:", error);
+      // Quiz generation failed; notify user
       toast.error(error.message || "Failed to generate quiz, try later.");
     } finally {
       setLoading(false);
@@ -390,7 +374,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     isDragging
                       ? "border-primary bg-primary/5"
                       : files.length > 0
-                      ? "border-primary/20 bg-white"
+                      ? "border-primary/20 bg-surface"
                       : "border-dashed border-border bg-transparent hover:bg-surfaceHighlight"
                   }`}
                   aria-label="PDF upload area"
@@ -409,8 +393,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                           key={file.id || index}
                           className="flex items-center gap-4 p-3 bg-surfaceHighlight/50 rounded-lg border border-border pointer-events-auto"
                         >
-                          <div className="flex-shrink-0">
-                            <div className="w-10 h-10 rounded-lg bg-white border border-border flex items-center justify-center">
+                          <div className="shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-surface/80 border border-border flex items-center justify-center">
                               <FileText className="w-5 h-5 text-primary" />
                             </div>
                           </div>
@@ -429,7 +413,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                                 onClick={(e) =>
                                   handlePreview(e, file.previewUrl)
                                 }
-                                className="p-2 hover:bg-surfaceHighlight rounded-lg text-textMuted hover:text-primary transition-colors"
+                                className="p-2 hover:bg-surfaceHighlight rounded-lg text-textMuted hover:text-primary dark:hover:text-blue-500 transition-colors point"
                                 title="Preview PDF"
                               >
                                 <Eye className="w-4 h-4" />
@@ -438,7 +422,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                             <button
                               type="button"
                               onClick={(e) => removeFile(e, file.id)}
-                              className="p-2 hover:bg-red-50 rounded-lg text-textMuted hover:text-red-500 transition-colors"
+                              className="p-2 hover:bg-red-50 dark:hover:bg-red-800/40 rounded-lg text-textMuted hover:text-red-500 dark:hover:text-red-400 transition-colors point"
                               title="Remove file"
                             >
                               <X className="w-4 h-4" />

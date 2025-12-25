@@ -33,7 +33,7 @@ router.get("/initiate", protect, async (req, res) => {
       manualEntryKey: setup.manualEntryKey,
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -92,7 +92,7 @@ router.post("/enable", protect, async (req, res) => {
         "Save these backup codes in a safe place. You can use them if you lose access to your 2FA device.",
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -138,7 +138,7 @@ router.post("/verify", protect, async (req, res) => {
       verified: true,
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -184,7 +184,7 @@ router.post("/disable", protect, async (req, res) => {
       message: "2FA disabled successfully",
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -203,7 +203,7 @@ router.get("/status", protect, async (req, res) => {
       backupCodesCount: user.twoFABackupCodes.length,
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });

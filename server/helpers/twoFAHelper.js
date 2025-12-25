@@ -19,7 +19,6 @@ export async function initiate2FA(userEmail) {
       manualEntryKey: secret.base32,
     };
   } catch (error) {
-    console.error("Error initiating 2FA:", error);
     throw new Error("Failed to initiate 2FA setup");
   }
 }
@@ -36,7 +35,6 @@ export function verify2FAToken(secret, token) {
 
     return verified;
   } catch (error) {
-    console.error("Error verifying 2FA token:", error);
     return false;
   }
 }

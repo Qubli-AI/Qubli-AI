@@ -353,12 +353,18 @@ const LandingPage = () => {
               <h4 className="font-bold mb-4">Product</h4>
               <ul className="space-y-2 text-textMuted text-sm">
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
+                  <a
+                    href="/features"
+                    className="hover:text-textMain transition-colors"
+                  >
                     Features
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
+                  <a
+                    href="/pricing"
+                    className="hover:text-textMain transition-colors"
+                  >
                     Pricing
                   </a>
                 </li>
@@ -375,12 +381,18 @@ const LandingPage = () => {
               <h4 className="font-bold mb-4">Company</h4>
               <ul className="space-y-2 text-textMuted text-sm">
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
+                  <a
+                    href="/about"
+                    className="hover:text-textMain transition-colors"
+                  >
                     About
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
+                  <a
+                    href="/contact"
+                    className="hover:text-textMain transition-colors"
+                  >
                     Contact
                   </a>
                 </li>
@@ -397,12 +409,18 @@ const LandingPage = () => {
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-textMuted text-sm">
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
-                    Privacy
+                  <a
+                    href="/policies"
+                    className="hover:text-textMain transition-colors"
+                  >
+                    Policies
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
+                  <a
+                    href="/terms"
+                    className="hover:text-textMain transition-colors"
+                  >
                     Terms
                   </a>
                 </li>
@@ -420,28 +438,28 @@ const LandingPage = () => {
               <div className="flex gap-6">
                 <a
                   href="#"
-                  className="text-textMuted hover:text-primary transition-colors"
+                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                   aria-label="Twitter"
                 >
                   <Twitter className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="text-textMuted hover:text-primary transition-colors"
+                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                   aria-label="Github"
                 >
                   <Github className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="text-textMuted hover:text-primary transition-colors"
+                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="text-textMuted hover:text-primary transition-colors"
+                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                   aria-label="Email"
                 >
                   <Mail className="w-5 h-5" />

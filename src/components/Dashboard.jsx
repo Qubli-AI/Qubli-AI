@@ -143,6 +143,12 @@ const Dashboard = ({ user }) => {
 
   useEffect(() => {
     if (user) refreshQuizzes();
+
+    // Refresh when a new quiz is generated elsewhere
+    const handleQuizGenerated = () => refreshQuizzes();
+    window.addEventListener("quizGenerated", handleQuizGenerated);
+    return () =>
+      window.removeEventListener("quizGenerated", handleQuizGenerated);
   }, [user]);
 
   useEffect(() => {
@@ -168,7 +174,7 @@ const Dashboard = ({ user }) => {
       setQuizzes(userQuizzes?.quizzes || userQuizzes); // Handle paginated response
       calculateAdvancedStats(userQuizzes?.quizzes || userQuizzes);
     } catch (err) {
-      console.error("Failed to refresh quizzes:", err);
+      // Failed to refresh quizzes - notify user
       toast.error("Failed to load quizzes. Please try again.");
     } finally {
       setIsLoading(false);
@@ -277,7 +283,7 @@ const Dashboard = ({ user }) => {
         isDeleting: false,
       });
     } catch (error) {
-      console.error("Delete failed", error);
+      // Delete failed - notify user
       toast.error("Failed to delete quiz.");
       setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
     }
@@ -370,7 +376,7 @@ const Dashboard = ({ user }) => {
           </p>
         </div>
         <div className="text-left md:text-right flex items-center gap-3">
-          <div className="text-right">
+          <div className="md:text-right">
             <div className="text-sm text-textMuted">Current Plan</div>
             <div
               className={`text-lg font-bold ${
@@ -614,12 +620,12 @@ const Dashboard = ({ user }) => {
                   initial={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
-                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1"
+                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={(e) => handleDeleteClick(e, quiz._id, quiz.title)}
-                    className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-surfaceHighlight rounded-lg cursor-pointer transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-surfaceHighlight rounded-lg point transition-colors duration-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="Delete Quiz"
                   >
                     <Trash2 className="w-4 h-4 pointer-events-none" />
@@ -713,9 +719,9 @@ const Dashboard = ({ user }) => {
                     {/* Animated gradient spinner */}
                     <div className="relative w-16 h-16 mb-6">
                       <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
-                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-400 animate-spin"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-800 animate-spin"></div>
                       <div
-                        className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-300 animate-spin"
+                        className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-700 animate-spin"
                         style={{
                           animationDirection: "reverse",
                           animationDuration: "1.5s",
@@ -758,7 +764,7 @@ const Dashboard = ({ user }) => {
                       <button
                         onClick={handleConfirmDelete}
                         disabled={deleteModal.isDeleting}
-                        className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
+                        className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-800 dark:hover:bg-red-800/90 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
                       >
                         Delete
                       </button>

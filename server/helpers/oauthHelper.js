@@ -48,10 +48,6 @@ export const exchangeCodeForToken = async (provider, code, redirectUri) => {
 
     return response.data.access_token;
   } catch (error) {
-    console.error(
-      `Error exchanging code for ${provider}:`,
-      error.response?.data || error.message
-    );
     throw new Error(
       `Failed to exchange code for token: ${
         error.response?.data?.error_description || error.message
@@ -95,7 +91,6 @@ export const getOAuthUserInfo = async (provider, accessToken) => {
         const primaryEmail = emailResponse.data.find((e) => e.primary);
         email = primaryEmail?.email || data.login + "@github.com";
       } catch (emailError) {
-        console.warn("Could not fetch GitHub email, using fallback");
         email = data.login + "@github.com";
       }
     }
@@ -112,10 +107,6 @@ export const getOAuthUserInfo = async (provider, accessToken) => {
       providerId: data.id || data.sub,
     };
   } catch (error) {
-    console.error(
-      `Error getting user info from ${provider}:`,
-      error.response?.data || error.message
-    );
     throw new Error(
       `Failed to get user info: ${
         error.response?.data?.message || error.message

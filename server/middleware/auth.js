@@ -21,7 +21,6 @@ const protect = asyncHandler(async (req, res, next) => {
       }
 
       if (!JWT_SECRET) {
-        console.error("JWT_SECRET is not defined");
         return res.status(500).json({ message: "Server configuration error" });
       }
 
@@ -59,7 +58,6 @@ const protect = asyncHandler(async (req, res, next) => {
       if (error.name === "TokenExpiredError") {
         return res.status(401).json({ message: "Token expired" });
       }
-      console.error(error);
       res.status(401).json({ message: "Not authorized, token failed." });
     }
   } else {

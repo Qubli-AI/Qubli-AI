@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 import {
   Check,
@@ -16,7 +17,9 @@ import {
   BookOpen,
   ChevronLeft,
   Lock,
+  Loader2,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 import StorageService from "../services/storageService.js";
 import { QuestionType } from "../../server/config/types.js";
@@ -89,6 +92,7 @@ const QuizResultsView = ({
   navigate,
   manualCreateFlashcards,
   setActiveTab,
+  isCreatingFlashcards,
 }) => (
   <div className="space-y-6">
     {/* Summary Card */}
@@ -113,9 +117,19 @@ const QuizResultsView = ({
           {quizFlashcards?.length === 0 || !quiz?.isFlashcardSet ? (
             <button
               onClick={manualCreateFlashcards}
-              className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100 dark:border-indigo-700 point"
+              disabled={isCreatingFlashcards}
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 dark:bg-indigo-900/80 dark:text-indigo-300 dark:hover:bg-indigo-900 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100 dark:border-indigo-700 point disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Layers className="w-4 h-4" /> Create Flashcards
+              {isCreatingFlashcards ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Generating Flashcards</span>
+                </>
+              ) : (
+                <>
+                  <Layers className="w-4 h-4" /> Create Flashcards
+                </>
+              )}
             </button>
           ) : (
             <button
@@ -206,9 +220,16 @@ const QuizResultsView = ({
   </div>
 );
 
-const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
+const StudyFlashcards = ({
+  quizFlashcards,
+  quiz,
+  manualCreateFlashcards,
+  isCreatingFlashcards,
+  flashcardsResetKey,
+}) => {
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Clamp index when flashcards change (avoid out-of-range)
   useEffect(() => {
@@ -220,10 +241,18 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
     setCardIndex((idx) => Math.min(idx, quizFlashcards.length - 1));
   }, [quizFlashcards?.length]);
 
-  // Reset flip on card change
+  // When a reset key changes (new flashcards created), force index back to 0 and show a tiny placeholder to avoid flashing a stale card
   useEffect(() => {
+    if (flashcardsResetKey == null) return;
+    if (!quizFlashcards || quizFlashcards.length === 0) return;
+
+    setIsResetting(true);
+    setCardIndex(0);
     setFlipped(false);
-  }, [cardIndex]);
+
+    const raf = requestAnimationFrame(() => setIsResetting(false));
+    return () => cancelAnimationFrame(raf);
+  }, [flashcardsResetKey, quizFlashcards?.length]);
 
   // Keyboard navigation: left/right/space. Ignore when typing in inputs.
   useEffect(() => {
@@ -251,10 +280,24 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [quizFlashcards?.length]);
 
+  // Reset flip on card change
+  useEffect(() => {
+    setFlipped(false);
+  }, [cardIndex]);
+
+  if (isResetting) {
+    return (
+      <div className="text-center py-12 bg-surface rounded-2xl border border-border">
+        <Loader2 className="w-12 h-12 text-primary mx-auto animate-spin mb-4" />
+        <div className="text-textMuted">Preparing flashcards...</div>
+      </div>
+    );
+  }
+
   if (quizFlashcards?.length === 0 || !quiz?.isFlashcardSet) {
     return (
       <div className="text-center py-12 bg-surface rounded-2xl border border-border">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
           <Layers className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-xl font-bold text-textMain mb-2">
@@ -265,9 +308,17 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
         </p>
         <button
           onClick={manualCreateFlashcards}
-          className="px-6 py-2 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors text-sm"
+          disabled={isCreatingFlashcards}
+          className="px-6 py-2 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors text-sm point disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
         >
-          Generate Flashcards Now
+          {isCreatingFlashcards ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Generating Flashcards</span>
+            </>
+          ) : (
+            "Generate Flashcards Now"
+          )}
         </button>
       </div>
     );
@@ -303,16 +354,21 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
           className="w-full h-full relative cursor-pointer"
           style={{
             transformStyle: "preserve-3d",
+            WebkitTransformStyle: "preserve-3d",
+            transformOrigin: "center",
+            willChange: "transform",
             transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            transition:
-              "transform 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+            transition: "transform 350ms cubic-bezier(0.645, 0.045, 0.355, 1)",
             minHeight: "300px",
           }}
         >
           {/* Front - Question */}
           <div
             className="absolute inset-0 bg-surface border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center"
-            style={{ backfaceVisibility: "hidden" }}
+            style={{
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
           >
             <span className="absolute top-4 left-4 text-xs font-bold text-primary dark:text-blue-400 tracking-widest uppercase">
               Question
@@ -327,7 +383,8 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
             className="absolute inset-0 bg-surface border border-border rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center"
             style={{
               backfaceVisibility: "hidden",
-              transform: "rotateY(180deg)",
+              WebkitBackfaceVisibility: "hidden",
+              transform: "rotateY(180deg) translateZ(0)",
             }}
           >
             <span className="absolute top-4 left-4 text-xs font-bold text-secondary dark:text-indigo-300 tracking-widest uppercase">
@@ -363,20 +420,68 @@ const StudyFlashcards = ({ quizFlashcards, quiz, manualCreateFlashcards }) => {
 const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [quiz, setQuiz] = useState(null);
   const [status, setStatus] = useState("loading");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tab State
   const [activeTab, setActiveTab] = useState("exam");
   const [quizFlashcards, setQuizFlashcards] = useState([]);
+  const [isCreatingFlashcards, setIsCreatingFlashcards] = useState(false);
+  // Increment this key to force remounting the StudyFlashcards component when new cards are created
+  const [flashcardsResetKey, setFlashcardsResetKey] = useState(0);
 
   const isLast = quiz && currentIdx === quiz.questions.length - 1;
 
   useEffect(() => {
     if (!user) return;
+
+    // If navigate state contains the saved quiz (from generator), use it directly
+    if (
+      location?.state?.quiz &&
+      String(location.state.quiz._id || location.state.quiz.id) === String(id)
+    ) {
+      const q = location.state.quiz;
+      (async () => {
+        try {
+          const allCards = (await StorageService.getFlashcards(user._id)) || [];
+          const qId = q._id || q.id;
+          const relevantCards = allCards.filter(
+            (c) =>
+              String(c.quizId) === String(qId) ||
+              String(c.quizId) === String(q._id) ||
+              String(c.quizId) === String(q.id)
+          );
+          const isFlashcardSet = relevantCards.length > 0;
+          const updatedQuiz = { ...q, isFlashcardSet };
+
+          setQuiz(updatedQuiz);
+          setQuizFlashcards(relevantCards);
+          setCurrentIdx(0);
+
+          if (q.score !== undefined) {
+            setStatus("completed");
+            const prevAnswers = {};
+            q.questions.forEach((ques) => {
+              const qid = ques.id || ques._id;
+              prevAnswers[qid] = ques.userAnswer || "";
+            });
+            setAnswers(prevAnswers);
+          } else {
+            // Always show the intro page; the user must click Start Quiz
+            setStatus("intro");
+          }
+          setIsFetching(false);
+        } catch (err) {
+          // Hydration from nav state failed - fallback to fetch flow
+        }
+      })();
+      return;
+    }
 
     let retryCount = 0;
     const maxRetries = 3;
@@ -439,7 +544,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           setIsFetching(false);
         }
       } catch (err) {
-        console.error("Failed to fetch quiz:", err);
+        // Failed to fetch quiz - navigate back to dashboard
         if (isMounted) {
           setIsFetching(false);
           navigate("/dashboard");
@@ -453,7 +558,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [id, navigate, user]);
+  }, [id, navigate, user, location?.state?.quiz]);
 
   if (isFetching || !quiz) {
     return (
@@ -484,35 +589,51 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     return Math.round((correct / quiz.questions.length) * 100);
   };
 
-  const handleSubmit = () => {
-    if (!quiz) return;
+  const handleSubmit = async () => {
+    if (!quiz || isSubmitting) return;
     const currentQId =
       quiz.questions[currentIdx].id || quiz.questions[currentIdx]._id;
     if (!answers[currentQId] || answers[currentQId].trim() === "") return;
 
-    const score = calculateScore();
-    const updatedQuiz = {
-      ...quiz,
-      score,
-      completedAt: Date.now(),
-      isFlashcardSet: quiz.isFlashcardSet || false,
-    };
-
-    updatedQuiz.questions = updatedQuiz.questions.map((q) => {
-      const qid = q.id || q._id; // Use consistent ID
-      return {
-        ...q,
-        userAnswer: answers[qid] || "",
-        isCorrect:
-          answers[qid]?.toLowerCase().trim() ===
-          q.correctAnswer?.toLowerCase().trim(),
+    setIsSubmitting(true);
+    try {
+      const score = calculateScore();
+      const updatedQuiz = {
+        ...quiz,
+        score,
+        completedAt: Date.now(),
+        isFlashcardSet: quiz.isFlashcardSet || false,
       };
-    });
 
-    StorageService.saveQuiz(updatedQuiz);
-    setQuiz(updatedQuiz);
-    setStatus("completed");
-    onComplete();
+      updatedQuiz.questions = updatedQuiz.questions.map((q) => {
+        const qid = q.id || q._id; // Use consistent ID
+        return {
+          ...q,
+          userAnswer: answers[qid] || "",
+          isCorrect:
+            answers[qid]?.toLowerCase().trim() ===
+            q.correctAnswer?.toLowerCase().trim(),
+        };
+      });
+
+      // Save and use server response if available
+      const saved = await StorageService.saveQuiz(updatedQuiz);
+      const finalQuiz =
+        saved && (saved._id || saved.id)
+          ? { ...updatedQuiz, ...saved }
+          : updatedQuiz;
+      // Replace the current history state so hydration uses the saved quiz and we avoid refetch races
+      navigate(`/quiz/${id}`, { replace: true, state: { quiz: finalQuiz } });
+      setQuiz(finalQuiz);
+      setCurrentIdx(0);
+      setStatus("completed");
+      if (onComplete) onComplete();
+    } catch (err) {
+      // Failed to submit quiz - notify user
+      toast.error("Failed to submit quiz. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = () => {
@@ -540,31 +661,73 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     setTimeout(() => window.print(), 100);
   };
 
-  const manualCreateFlashcards = () => {
+  const manualCreateFlashcards = async () => {
     if (!quiz || !user) return;
-    const quizIdKey = quiz._id;
-    const cards = quiz.questions.map((q) => {
-      const qid = q.id || q._id;
-      return {
-        id: `fc_${qid}`,
-        userId: user._id,
-        quizId: quizIdKey,
-        front: q.text,
-        back: `${q.correctAnswer}\n\n${
-          q.explanation || "No explanation provided."
-        }`, // Added fallback
-        nextReview: Date.now(),
-        interval: 0,
-        repetition: 0,
-        easeFactor: 2.5,
-      };
-    });
-    StorageService.saveFlashcards(cards);
-    const updatedQuiz = { ...quiz, isFlashcardSet: true };
-    setQuiz(updatedQuiz);
-    StorageService.saveQuiz(updatedQuiz);
-    setQuizFlashcards(cards);
-    setActiveTab("flashcards");
+    if (quiz.isFlashcardSet) {
+      toast.info("Flashcards already created for this quiz.");
+      return;
+    }
+
+    // Check quota for non-Pro users
+    if (
+      user.tier !== "Pro" &&
+      (user.limits?.flashcardGenerationsRemaining ?? 0) <= 0
+    ) {
+      toast.error("You have reached your daily flashcard generation limit.");
+      return;
+    }
+
+    setIsCreatingFlashcards(true);
+    try {
+      const quizIdKey = quiz._id;
+      const cards = quiz.questions.map((q) => {
+        const qid = q.id || q._id;
+        return {
+          id: `fc_${qid}`,
+          userId: user._id,
+          quizId: quizIdKey,
+          front: q.text,
+          back: `${q.correctAnswer}\n\n${
+            q.explanation || "No explanation provided."
+          }`,
+          nextReview: Date.now(),
+          interval: 0,
+          repetition: 0,
+          easeFactor: 2.5,
+        };
+      });
+
+      await StorageService.saveFlashcards(cards);
+
+      const updatedQuiz = { ...quiz, isFlashcardSet: true };
+      const saved = await StorageService.saveQuiz(updatedQuiz);
+      const finalQuiz =
+        saved && (saved._id || saved.id)
+          ? { ...updatedQuiz, ...saved }
+          : updatedQuiz;
+
+      // Decrement user's flashcard generation quota
+      const success = await StorageService.decrementFlashcardGeneration();
+      if (!success) {
+        toast.error(
+          "Failed to decrement flashcard quota. Please try again later."
+        );
+      }
+
+      setQuiz(finalQuiz);
+      setQuizFlashcards(cards);
+      // Force StudyFlashcards to remount so it starts on the first card (avoids showing stale index)
+      setFlashcardsResetKey((k) => k + 1);
+      setActiveTab("flashcards");
+
+      // Let parent know limits changed so UI updates
+      if (onLimitUpdate) onLimitUpdate();
+    } catch (err) {
+      // Failed to create flashcards; inform user
+      toast.error("Failed to create flashcards. Please try again.");
+    } finally {
+      setIsCreatingFlashcards(false);
+    }
   };
 
   const currentQ = quiz.questions[currentIdx];
@@ -584,7 +747,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             <div className="flex items-center gap-2 mb-1">
               <button
                 onClick={() => navigate("/dashboard")}
-                className="text-textMuted hover:text-textMain flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-surfaceHighlight"
+                className="text-textMuted hover:text-textMain flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-surfaceHighlight point"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
@@ -642,13 +805,13 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         <div className="flex bg-surfaceHighlight p-1 rounded-xl mb-8">
           <button
             onClick={() => setActiveTab("exam")}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 point ${
               activeTab === "exam"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
-                : "text-textMuted hover:text-textMain"
+                : "text-textMuted hover:text-textMain/85"
             }`}
           >
-            Exam Mode
+            <AssignmentIcon sx={{ width: 20, height: 20 }} /> Quiz Mode
           </button>
           <button
             onClick={() => status === "completed" && setActiveTab("flashcards")}
@@ -658,12 +821,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 ? "Complete the quiz to unlock flashcards"
                 : ""
             }
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 point ${
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+              status === "completed" ? "point" : "cursor-not-allowed"
+            } ${
               activeTab === "flashcards"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : status !== "completed"
-                ? "text-gray-500 cursor-not-allowed"
-                : "text-textMuted hover:text-textMain"
+                ? "text-gray-500 dark:text-gray-400"
+                : "text-textMuted hover:text-textMain/85"
             }`}
           >
             <Layers className="w-4 h-4" /> Flashcards
@@ -674,9 +839,12 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         {/* --- CONTENT BASED ON TAB --- */}
         {activeTab === "flashcards" ? (
           <StudyFlashcards
+            key={flashcardsResetKey}
+            flashcardsResetKey={flashcardsResetKey}
             quizFlashcards={quizFlashcards}
             quiz={quiz}
             manualCreateFlashcards={manualCreateFlashcards}
+            isCreatingFlashcards={isCreatingFlashcards}
           />
         ) : (
           <>
@@ -693,6 +861,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 navigate={navigate}
                 manualCreateFlashcards={manualCreateFlashcards}
                 setActiveTab={setActiveTab}
+                isCreatingFlashcards={isCreatingFlashcards}
               />
             )}
 
@@ -764,7 +933,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                         value={answers[currentQId] || ""}
                         onChange={(e) => handleAnswer(e.target.value)}
                         placeholder="Type your answer here..."
-                        className="w-full min-h-[150px] p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
+                        className="w-full min-h-37.5 p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none"
                       />
                     )}
                   </div>
@@ -784,10 +953,19 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                   {isLast ? (
                     <button
                       onClick={handleSubmit}
-                      disabled={!hasAnsweredCurrent}
+                      disabled={!hasAnsweredCurrent || isSubmitting}
                       className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-green-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
                     >
-                      Submit Quiz <Check className="w-5 h-5" />
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Submitting...</span>
+                        </>
+                      ) : (
+                        <>
+                          Submit Quiz <Check className="w-5 h-5" />
+                        </>
+                      )}
                     </button>
                   ) : (
                     <button

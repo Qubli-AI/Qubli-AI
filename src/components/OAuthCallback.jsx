@@ -65,7 +65,7 @@ const OAuthCallback = () => {
           navigate("/auth");
         }
       } catch (error) {
-        console.error("OAuth callback error:", error);
+        // OAuth callback processing failed; notify user and redirect
         toast.error("Error processing OAuth callback");
         navigate("/auth");
       }

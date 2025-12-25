@@ -10,8 +10,10 @@ import {
   Loader2,
   Settings,
 } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import SettingsModal from "./SettingsModal.jsx";
+import ConfirmLogoutModal from "./ConfirmLogoutModal.jsx";
 
 const getProgressWidth = (remaining, max) => {
   if (max === Infinity) return "0%";
@@ -25,6 +27,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [quizzesLeft, setQuizzesLeft] = useState(
     user?.limits?.generationsRemaining || 0
   );
@@ -70,10 +73,15 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
   );
 
   const handleLogoutClick = () => {
+    setLogoutModalOpen(true);
+  };
+
+  const handleConfirmLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
       onLogout();
       setIsLoggingOut(false);
+      setLogoutModalOpen(false);
     }, 1000);
   };
 
@@ -414,13 +422,25 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
       </main>
 
       {/* Settings Modal */}
-      {showSettings && (
-        <SettingsModal
-          onClose={() => setShowSettings(false)}
-          user={user}
-          refreshUser={refreshUser}
+      <AnimatePresence>
+        {showSettings && (
+          <SettingsModal
+            onClose={() => setShowSettings(false)}
+            user={user}
+            refreshUser={refreshUser}
+          />
+        )}
+        <ConfirmLogoutModal
+          open={logoutModalOpen}
+          onClose={() => setLogoutModalOpen(false)}
+          onConfirm={handleConfirmLogout}
+          isProcessing={isLoggingOut}
+          title="Logout"
+          description="Are you sure you want to logout from this device?"
+          confirmLabel="Logout"
+          cancelLabel="Cancel"
         />
-      )}
+      </AnimatePresence>
     </div>
   );
 };

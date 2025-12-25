@@ -31,7 +31,7 @@ router.get("/", protect, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching quizzes:", error);
+    // Failed to fetch quizzes
     res.status(500).json({ message: "Failed to fetch quizzes." });
   }
 });
@@ -44,10 +44,9 @@ router.post("/", protect, async (req, res) => {
     // Convert to plain object to ensure _id is properly serialized
     const savedQuizData = newQuiz.toObject();
 
-    console.log("Quiz saved successfully with _id:", savedQuizData._id);
     res.status(201).json(savedQuizData);
   } catch (error) {
-    console.error("Quiz creation error:", error);
+    // Quiz creation failed
     res.status(400).json({ message: "Error saving quiz." });
   }
 });

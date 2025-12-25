@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import nodemailer from "nodemailer";
 
 // 2. Models
 import User from "./models/User.js";
@@ -62,7 +63,6 @@ app.get("/api/users/me", protect, async (req, res) => {
     const updatedUser = await checkDailyReset(user, TIER_LIMITS);
     res.status(200).json({ user: updatedUser });
   } catch (error) {
-    console.error("Error fetching user:", error);
     res.status(500).json({ message: "Internal Server Error, Try Again!" });
   }
 });
@@ -110,7 +110,6 @@ app.post("/api/limits/decrement/:type", protect, async (req, res) => {
 
     res.status(200).json({ success, message, remaining: user.get(limitField) });
   } catch (error) {
-    console.error("Decrement limit error:", error);
     res.status(500).json({
       success: false,
       message: "Server error during limit decrement.",
@@ -147,8 +146,100 @@ app.post("/api/subscription/upgrade", protect, async (req, res) => {
       user: { ...user.toObject(), password: undefined },
     });
   } catch (error) {
-    console.error("Upgrade error:", error);
     res.status(500).json({ message: "Server error during upgrade." });
+  }
+});
+
+// Request Refund
+app.post("/api/subscription/refund", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    if (user.tier === "Free") {
+      return res
+        .status(400)
+        .json({ message: "Free tier users cannot request refunds." });
+    }
+
+    const previousTier = user.tier;
+    const refundAmount = previousTier === "Pro" ? "$9.99" : "$4.99";
+
+    // Reset user to Free tier
+    const freeLimits = TIER_LIMITS["Free"];
+    user.tier = "Free";
+    user.limits = freeLimits;
+    user.limits.lastReset = Date.now();
+    await user.save();
+
+    // Send refund confirmation email to user
+    try {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+          <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-top: 0;">Refund Confirmation</h2>
+            <p style="color: #666; line-height: 1.6;">Hi ${
+              user.name || "User"
+            },</p>
+            
+            <p style="color: #666; line-height: 1.6;">Thank you for using Quizzy AI. Your refund request has been processed successfully.</p>
+            
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #6366f1;">
+              <h3 style="color: #333; margin-top: 0;">Refund Details</h3>
+              <p style="color: #666; margin: 8px 0;"><strong>Previous Plan:</strong> ${previousTier}</p>
+              <p style="color: #666; margin: 8px 0;"><strong>Refund Amount:</strong> ${refundAmount}</p>
+              <p style="color: #666; margin: 8px 0;"><strong>Effective Date:</strong> ${new Date().toLocaleDateString()}</p>
+              <p style="color: #666; margin: 8px 0;"><strong>New Plan:</strong> Free Tier</p>
+            </div>
+            
+            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 6px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Free Tier Features</h3>
+              <ul style="color: #666; margin: 10px 0; padding-left: 20px;">
+                <li>7 Quiz generation per day</li>
+                <li>3 Flashcard sets per day</li>
+                <li>Max 10 Questions per quiz</li>
+                <li>Max 30 Marks per quiz</li>
+                <li>3 PDF imports per day</li>
+                <li>3 PDF exports per day</li>
+                <li>Upload 1 PDF per quiz</li>
+              </ul>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6;">If you have any questions or need further assistance, please don't hesitate to contact our support team.</p>
+            
+            <p style="color: #999; font-size: 12px; margin-top: 30px;">Best regards,<br>Quizzy AI Team</p>
+          </div>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: `Refund Confirmation - Quizzy AI (${previousTier} → Free)`,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      // Don't fail the refund if email fails
+    }
+
+    res.status(200).json({
+      message:
+        "Refund request submitted. Your plan has been downgraded to Free tier. A confirmation email has been sent to your email address.",
+      user: { ...user.toObject(), password: undefined },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error during refund request." });
   }
 });
 

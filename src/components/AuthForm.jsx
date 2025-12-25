@@ -102,6 +102,10 @@ const AuthForm = ({ onLogin }) => {
       }
     } catch (err) {
       setError(err.message);
+      // Show toast for quick feedback on login failures
+      toast.error(
+        err.message || "Login failed. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }
@@ -149,8 +153,8 @@ const AuthForm = ({ onLogin }) => {
       // Redirect to OAuth provider
       window.location.href = `${config.authUrl}?${params.toString()}`;
     } catch (error) {
+      // Failed to initiate OAuth flow; notify user
       toast.error(`Failed to connect ${provider}`);
-      console.error(error);
     }
   };
 
@@ -327,7 +331,7 @@ const AuthForm = ({ onLogin }) => {
           {error && (
             <div
               className="text-red-500 dark:text-red-300 text-sm text-center 
-            bg-red-50 dark:bg-red-800/70 p-2 rounded-lg border border-red-100 dark:border-red-900 animate-in fade-in slide-in-from-top-2"
+            bg-red-50 dark:bg-red-800/40 p-2 rounded-lg border border-red-100 dark:border-red-900 animate-in fade-in slide-in-from-top-2"
             >
               {error}
             </div>

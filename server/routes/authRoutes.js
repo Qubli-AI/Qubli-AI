@@ -49,9 +49,7 @@ router.post("/register", async (req, res) => {
     });
 
     // Send verification email in background (non-blocking)
-    sendVerificationEmail(email, verificationCode).catch((err) => {
-      console.error("Failed to send verification email:", err);
-    });
+    sendVerificationEmail(email, verificationCode).catch(() => {});
 
     res.status(201).json({
       message:
@@ -60,7 +58,7 @@ router.post("/register", async (req, res) => {
       email: user.email,
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: err.message || "Server error" });
   }
 });
@@ -179,9 +177,7 @@ router.post("/login", async (req, res) => {
       session.isCurrent = idx === user.sessions.length - 1;
     });
 
-    console.log(
-      `New session created for user ${user._id}: ${displayDeviceName} (${ipAddress})`
-    );
+    // New session created for user; session saved
 
     await user.save();
 
@@ -205,8 +201,37 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: err.message });
+  }
+});
+
+// Confirm password for sensitive operations
+router.post("/confirm-password", protect, async (req, res) => {
+  const { password } = req.body;
+  if (!password || password.trim() === "") {
+    return res.status(400).json({ message: "Password is required" });
+  }
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.password) {
+      return res
+        .status(400)
+        .json({ message: "No password set for this account" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    return res.status(200).json({ message: "Password confirmed" });
+  } catch (err) {
+    // Server error
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -292,7 +317,7 @@ router.post("/verify-email", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -321,15 +346,13 @@ router.post("/resend-code", async (req, res) => {
     await user.save();
 
     // Send new code in background (non-blocking)
-    sendVerificationEmail(email, verificationCode).catch((err) => {
-      console.error("Failed to send verification email:", err);
-    });
+    sendVerificationEmail(email, verificationCode).catch(() => {});
 
     res.status(200).json({
       message: "Verification code sent to your email",
     });
   } catch (err) {
-    console.error(err);
+    // Server error
     res.status(500).json({ message: err.message });
   }
 });
@@ -379,7 +402,6 @@ router.post("/change-password", protect, async (req, res) => {
       message: "Password changed successfully",
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -399,7 +421,6 @@ router.delete("/delete-account", protect, async (req, res) => {
       message: "Account deleted successfully",
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -425,7 +446,6 @@ router.get("/sessions", protect, async (req, res) => {
 
     res.status(200).json({ sessions });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -451,9 +471,6 @@ router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
       // Only save if something was actually removed
       if (originalLength !== newLength) {
         await user.save();
-        console.log(
-          `Session ${sessionId} removed for user ${user._id}. Sessions remaining: ${newLength}`
-        );
 
         const currentSessionDeleted =
           String(sessionId) === String(req.sessionId);
@@ -464,7 +481,6 @@ router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
           currentSessionDeleted,
         });
       } else {
-        console.warn(`Session ${sessionId} not found for user ${user._id}`);
         res.status(404).json({ message: "Session not found" });
       }
     } else {
@@ -474,7 +490,6 @@ router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
       });
     }
   } catch (err) {
-    console.error("Session logout error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -496,7 +511,6 @@ router.post("/logout-all", protect, async (req, res) => {
       message: "Logged out from all devices successfully",
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -524,7 +538,6 @@ router.post("/2fa/setup", protect, async (req, res) => {
 
     res.status(200).json(setupData);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -616,7 +629,6 @@ router.post("/oauth/callback", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("OAuth callback error:", err.message);
     res.status(500).json({
       message: "OAuth authentication failed",
       error: err.message,
@@ -667,7 +679,6 @@ router.post("/oauth/link", protect, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("OAuth link error:", err);
     res
       .status(500)
       .json({ message: "Failed to link OAuth account", error: err.message });
@@ -695,7 +706,6 @@ router.delete("/oauth/disconnect/:provider", protect, async (req, res) => {
       res.status(404).json({ message: "OAuth account not connected" });
     }
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });

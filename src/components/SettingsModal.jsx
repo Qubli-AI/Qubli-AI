@@ -17,10 +17,12 @@ import {
   Check,
   Lock,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import StorageService from "../services/storageService.js";
+import ConfirmLogoutModal from "./ConfirmLogoutModal";
 
 const SettingsModal = ({ onClose, user, refreshUser }) => {
   const [activeTab, setActiveTab] = useState("account");
@@ -51,9 +53,30 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Active sessions
   const [sessions, setSessions] = useState([]);
   const [showLogoutAllModal, setShowLogoutAllModal] = useState(false);
   const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
+  // Session deletion processing state (blocks other session actions while a session delete is in-flight)
+  const [processingSessionId, setProcessingSessionId] = useState(null);
+  const [isSessionProcessing, setIsSessionProcessing] = useState(false);
+
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutTargetSessionId, setLogoutTargetSessionId] = useState(null);
+
+  // Delete account modal password confirmation
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteChecksDone, setDeleteChecksDone] = useState(false);
+  const [deletePasswordError, setDeletePasswordError] = useState(null);
+  // For non-password (OAuth) users require typing DELETE to confirm
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+  const [deleteConfirmError, setDeleteConfirmError] = useState(null);
+  // For password-based accounts require re-entry and avoid re-checking the same password
+  const [deletePasswordConfirm, setDeletePasswordConfirm] = useState("");
+  const [lastCheckedDeletePassword, setLastCheckedDeletePassword] =
+    useState("");
+  const [isCheckingDeletePassword, setIsCheckingDeletePassword] =
+    useState(false);
 
   // 2FA State
   const [twoFAMethod, setTwoFAMethod] = useState("totp");
@@ -117,9 +140,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       return;
     }
 
-    // Check if new password is the same as current password
+    // If new password equals current password, show error and abort
     if (currentPassword && newPassword === currentPassword) {
-      toast.error("New password must be different from current password");
+      toast.error("New password must be different from old password!");
       return;
     }
 
@@ -171,7 +194,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error changing password");
-      console.error(error);
+      // Error reported to user via toast; no debug log kept here
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -181,7 +204,120 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     setShowDeleteModal(true);
   };
 
+  // Validate the user's password for destructive actions when required
+  const checkDeletePassword = async (pw) => {
+    if (!pw || pw.trim() === "") {
+      setDeleteChecksDone(false);
+      setDeletePasswordError(null);
+      return;
+    }
+    setDeleteChecksDone(false);
+    setDeletePasswordError(null);
+
+    try {
+      setIsCheckingDeletePassword(true);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/confirm-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${StorageService.getToken()}`,
+          },
+          body: JSON.stringify({ password: pw }),
+        }
+      );
+
+      if (res.ok) {
+        setDeleteChecksDone(true);
+        setDeletePasswordError(null);
+        setLastCheckedDeletePassword(pw);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setDeletePasswordError(data?.message || "Invalid password");
+        setDeleteChecksDone(false);
+        setLastCheckedDeletePassword("");
+      }
+    } catch (err) {
+      setDeletePasswordError("Error validating password");
+      setDeleteChecksDone(false);
+    } finally {
+      setIsCheckingDeletePassword(false);
+    }
+  };
+
+  // Run password or confirmation checks (debounced) when delete modal is open
+  useEffect(() => {
+    if (!showDeleteModal) {
+      setDeletePassword("");
+      setDeletePasswordConfirm("");
+      setDeleteConfirmationText("");
+      setDeleteChecksDone(false);
+      setDeletePasswordError(null);
+      setDeleteConfirmError(null);
+      setLastCheckedDeletePassword("");
+      return;
+    }
+
+    // If the user signed up with OAuth and has no password, require typing DELETE to confirm
+    if (!user?.passwordIsUserSet) {
+      const confirmed = deleteConfirmationText === "DELETE";
+      setDeleteChecksDone(confirmed);
+      setDeleteConfirmError(
+        deleteConfirmationText && !confirmed ? 'Type "DELETE" to confirm' : null
+      );
+      return;
+    }
+
+    // For password-based accounts, require the user to re-enter the password to confirm locally
+    if (!deletePassword && !deletePasswordConfirm) {
+      setDeleteChecksDone(false);
+      setDeletePasswordError(null);
+      return;
+    }
+
+    if (deletePassword !== deletePasswordConfirm) {
+      setDeleteChecksDone(false);
+      setDeletePasswordError("Passwords do not match");
+      return;
+    }
+
+    // If we've already validated this exact password, avoid another server call
+    if (lastCheckedDeletePassword === deletePassword) {
+      setDeleteChecksDone(true);
+      setDeletePasswordError(null);
+      return;
+    }
+
+    // Otherwise debounce and validate once
+    setDeleteChecksDone(false);
+    setDeletePasswordError(null);
+    const t = setTimeout(() => {
+      checkDeletePassword(deletePassword);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [
+    deletePassword,
+    deletePasswordConfirm,
+    deleteConfirmationText,
+    showDeleteModal,
+    user?.passwordIsUserSet,
+    lastCheckedDeletePassword,
+  ]);
+
   const confirmDeleteAccount = async () => {
+    // Require confirmation checks to pass (password or typing DELETE)
+    if (!deleteChecksDone) {
+      if (user?.passwordIsUserSet) {
+        toast.error(
+          "Please confirm your password before deleting your account."
+        );
+      } else {
+        toast.error('Please type "DELETE" to confirm account deletion.');
+      }
+      return;
+    }
+
     setIsDeleting(true);
     try {
       const response = await fetch(
@@ -203,7 +339,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error deleting account");
-      console.error(error);
+      // No debug log — user is notified and modal closed
       setShowDeleteModal(false);
     } finally {
       setIsDeleting(false);
@@ -261,7 +397,6 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error sending feedback");
-      console.error(error);
     } finally {
       setIsSendingFeedback(false);
     }
@@ -292,7 +427,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error initiating 2FA");
-      console.error(error);
+      // Error forwarded to user via toast; debug log removed
     }
   };
 
@@ -332,7 +467,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error enabling 2FA");
-      console.error(error);
+      // Debug log removed; user notified via toast
     } finally {
       setIsEnabling2FA(false);
     }
@@ -371,7 +506,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error disabling 2FA");
-      console.error(error);
+      // Debug log removed; user notified via toast
     }
   };
 
@@ -387,7 +522,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
       // Only fetch if we have a valid token
       if (!token || token.trim() === "") {
-        console.warn("No token available for 2FA status check");
+        // No token available — treat 2FA as disabled locally
         setTwoFAStatus({
           twoFAEnabled: false,
           twoFAMethod: "none",
@@ -426,8 +561,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           });
         }
       } catch (error) {
-        console.warn("Could not fetch 2FA status:", error.message);
-        // Set default status if fetch fails
+        // Could not fetch 2FA status - set default to disabled
         setTwoFAStatus({
           twoFAEnabled: false,
           twoFAMethod: "none",
@@ -441,6 +575,10 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
   // Handle logout from session
   const handleLogoutSession = async (sessionId) => {
+    // Prevent concurrent session operations
+    if (isSessionProcessing) return;
+    setProcessingSessionId(sessionId);
+    setIsSessionProcessing(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/auth/sessions/${sessionId}/logout`,
@@ -472,7 +610,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Failed to end session");
-      console.error(error);
+    } finally {
+      setIsSessionProcessing(false);
+      setProcessingSessionId(null);
     }
   };
 
@@ -495,12 +635,17 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         setSessions([]);
       }
     } catch (error) {
-      console.error("Failed to fetch sessions:", error);
+      // Failed to fetch sessions — show no sessions
       setSessions([]);
     }
   };
 
   const handleLogoutAllDevices = async () => {
+    if (isSessionProcessing) {
+      toast.info("Another session action is in progress. Please wait.");
+      return;
+    }
+
     setIsLoggingOutAll(true);
     try {
       const response = await fetch(
@@ -523,10 +668,58 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       }
     } catch (error) {
       toast.error("Error logging out from all devices");
-      console.error(error);
+      // Debug logging removed; user notified via toast
       setShowLogoutAllModal(false);
     } finally {
       setIsLoggingOutAll(false);
+    }
+  };
+
+  const handleConfirmLogoutSession = (sessionId) => {
+    setLogoutTargetSessionId(sessionId);
+    setProcessingSessionId(sessionId);
+    setLogoutModalOpen(true);
+  };
+
+  const handleConfirmModal = async () => {
+    if (!logoutTargetSessionId) return;
+    setIsSessionProcessing(true);
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/auth/sessions/${logoutTargetSessionId}/logout`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${StorageService.getToken()}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json().catch(() => ({}));
+        toast.success("Session ended");
+        if (data && data.currentSessionDeleted) {
+          StorageService.logout();
+          window.dispatchEvent(new CustomEvent("sessionLogout"));
+        } else {
+          fetchSessions();
+        }
+      } else if (response.status === 401) {
+        StorageService.logout();
+        window.dispatchEvent(new CustomEvent("sessionLogout"));
+      } else {
+        toast.error("Failed to end session");
+      }
+    } catch (err) {
+      // Failed to end session — notify user
+      toast.error("Failed to end session");
+    } finally {
+      setIsSessionProcessing(false);
+      setProcessingSessionId(null);
+      setLogoutModalOpen(false);
+      setLogoutTargetSessionId(null);
     }
   };
 
@@ -686,13 +879,37 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     </div>
                   )}
                 </div>
-                <button
-                  type="submit"
-                  disabled={isUpdatingPassword}
-                  className="w-full bg-primary dark:bg-blue-700 text-white hover:text-white/90 font-semibold py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 transition-colors point"
-                >
-                  {isUpdatingPassword ? "Updating..." : "Update Password"}
-                </button>
+                {/* Disable update until the new password regex and confirm match are fulfilled */}
+                {(() => {
+                  const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+                  const newPasswordValid = passwordRegex.test(newPassword);
+                  const passwordsMatch =
+                    newPassword === confirmPassword &&
+                    confirmPassword.trim() !== "";
+                  const canUpdatePassword =
+                    newPasswordValid && passwordsMatch && !isUpdatingPassword;
+
+                  return (
+                    <button
+                      type="submit"
+                      disabled={!canUpdatePassword}
+                      aria-busy={isUpdatingPassword}
+                      className={`w-full bg-primary dark:bg-blue-700 text-white hover:text-white/90 font-semibold py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors point`}
+                    >
+                      {isUpdatingPassword ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2
+                            className="w-5 h-5 animate-spin text-white"
+                            aria-hidden
+                          />
+                          <span className="sr-only">Updating...</span>
+                        </div>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </button>
+                  );
+                })()}
               </form>
             </div>
 
@@ -1246,51 +1463,80 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
               <h3 className="text-lg font-bold text-textMain mb-4">
                 Active Sessions
               </h3>
-              <div className="space-y-3">
-                {sessions && sessions.length > 0 ? (
-                  <>
-                    {sessions.map((session) => (
-                      <div
-                        key={session._id || session.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-surfaceHighlight border border-border"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-textMain">
-                            {session.deviceName ||
-                              `${session.userAgent || "Device"}`}
-                          </p>
-                          <p className="text-xs text-textMuted">
-                            {session.ipAddress && `IP: ${session.ipAddress}`}
-                            {session.ipAddress && session.lastActive && " • "}
-                            {session.lastActive &&
-                              `Last active: ${new Date(
-                                session.lastActive
-                              ).toLocaleDateString()}`}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() =>
-                            handleLogoutSession(session._id || session.id)
-                          }
-                          className="text-xs text-red-600 dark:text-red-500/90 hover:text-red-700 dark:hover:text-red-500 font-semibold point"
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <p className="text-sm text-textMuted text-center py-4">
-                    No sessions found
-                  </p>
-                )}
+              <div className="relative">
+                <div
+                  className={`space-y-3 ${
+                    isSessionProcessing ? "opacity-60 pointer-events-none" : ""
+                  }`}
+                >
+                  {sessions && sessions.length > 0 ? (
+                    <>
+                      {sessions.map((session) => {
+                        const sid = session._id || session.id;
+                        return (
+                          <div
+                            key={sid}
+                            className="flex items-center justify-between p-4 rounded-lg bg-surfaceHighlight border border-border"
+                          >
+                            <div>
+                              <p className="text-sm font-medium text-textMain">
+                                {session.deviceName ||
+                                  `${session.userAgent || "Device"}`}
+                              </p>
+                              <p className="text-xs text-textMuted">
+                                {session.ipAddress &&
+                                  `IP: ${session.ipAddress}`}
+                                {session.ipAddress &&
+                                  session.lastActive &&
+                                  " • "}
+                                {session.lastActive &&
+                                  `Last active: ${new Date(
+                                    session.lastActive
+                                  ).toLocaleDateString()}`}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleConfirmLogoutSession(sid)}
+                              disabled={isSessionProcessing}
+                              className={`text-xs text-red-600 dark:text-red-500/90 hover:text-red-700 dark:hover:text-red-500 font-semibold point ${
+                                isSessionProcessing
+                                  ? "opacity-60 cursor-not-allowed"
+                                  : ""
+                              }`}
+                            >
+                              {processingSessionId === sid &&
+                              isSessionProcessing
+                                ? "Deleting..."
+                                : "Logout"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <p className="text-sm text-textMuted text-center py-4">
+                      No sessions found
+                    </p>
+                  )}
+                </div>
               </div>
               {sessions && sessions.length > 0 && (
                 <button
-                  onClick={() => setShowLogoutAllModal(true)}
-                  className="w-full mt-4 px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors point"
+                  onClick={() =>
+                    !isLoggingOutAll &&
+                    !isSessionProcessing &&
+                    setShowLogoutAllModal(true)
+                  }
+                  disabled={isLoggingOutAll || isSessionProcessing}
+                  className={`w-full mt-4 px-4 py-2 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-semibold transition-colors point ${
+                    isLoggingOutAll || isSessionProcessing
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
-                  Logout from All Devices
+                  {isSessionProcessing
+                    ? "Operation in progress..."
+                    : "Logout from All Devices"}
                 </button>
               )}
             </div>
@@ -1374,13 +1620,21 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md"
         onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
       >
-        <div
+        <motion.div
           className="relative w-full h-[90vh] sm:h-[85vh] md:h-[90vh] sm:max-w-4xl bg-surface rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.98, opacity: 0, y: 8 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.98, opacity: 0, y: 8 }}
+          transition={{ type: "spring", damping: 22, stiffness: 400 }}
         >
           {/* Header */}
           <div className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm p-3 sm:p-6 border-b border-border flex items-center justify-between">
@@ -1452,8 +1706,29 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
               {renderTabContent()}
             </div>
           </div>
+        </motion.div>
+      </motion.div>
+
+      {isSessionProcessing && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-md pointer-events-auto">
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-6 rounded-xl bg-surface/90 border border-border shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4"
+          >
+            <div className="w-20 h-20 rounded-full shadow-xl flex items-center justify-center">
+              <div className="w-10 h-10 border-4 border-white/30 border-t-primary dark:border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
+            <div className="text-textMain text-lg font-semibold">
+              Deleting session…
+            </div>
+            <div className="text-textMuted text-sm text-center">
+              You cannot log out from other sessions or logout from all devices
+              until this completes.
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Delete Account Confirmation Modal */}
       <AnimatePresence>
@@ -1520,6 +1795,88 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         <li>• All saved data</li>
                       </ul>
                     </div>
+
+                    {/* Password confirmation (if user has a password) or text confirmation for OAuth users */}
+                    {user?.passwordIsUserSet ? (
+                      <div className="pt-2 space-y-2">
+                        <div>
+                          <label className="block text-sm font-medium text-textMuted mb-2">
+                            Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="Enter your password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            className="w-full px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+
+                        <div className="relative">
+                          <label className="block text-sm font-medium text-textMuted mb-2">
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="Re-enter your password"
+                            value={deletePasswordConfirm}
+                            onChange={(e) =>
+                              setDeletePasswordConfirm(e.target.value)
+                            }
+                            className="w-full px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+
+                          {/* Visual feedback: mismatch X, checking spinner, or success check */}
+                          {deletePasswordConfirm &&
+                          deletePasswordConfirm !== deletePassword ? (
+                            <X className="absolute right-3 top-9.5 w-5 h-5 text-red-500 dark:text-red-400" />
+                          ) : deletePasswordConfirm &&
+                            isCheckingDeletePassword ? (
+                            <Loader2 className="absolute right-3 top-9.5 w-5 h-5 animate-spin text-textMuted" />
+                          ) : deletePasswordConfirm &&
+                            deleteChecksDone &&
+                            lastCheckedDeletePassword === deletePassword ? (
+                            <Check className="absolute right-3 top-9.5 w-5 h-5 text-green-500 dark:text-green-400" />
+                          ) : null}
+                        </div>
+
+                        {deletePasswordError && (
+                          <div className="text-xs text-red-500 mt-1">
+                            {deletePasswordError}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="pt-2">
+                        <label className="block text-sm font-medium text-textMuted mb-2">
+                          Type <i className="font-semibold">DELETE</i> exactly
+                          as shown
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Type..."
+                            value={deleteConfirmationText}
+                            onChange={(e) =>
+                              setDeleteConfirmationText(e.target.value)
+                            }
+                            className="w-full px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+
+                          {deleteConfirmationText &&
+                          deleteConfirmationText !== "DELETE" ? (
+                            <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 dark:text-red-400" />
+                          ) : deleteConfirmationText === "DELETE" ? (
+                            <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 dark:text-green-400" />
+                          ) : null}
+                        </div>
+                        {deleteConfirmError && (
+                          <div className="text-xs text-red-500 mt-2">
+                            {deleteConfirmError}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* Buttons */}
@@ -1527,7 +1884,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.25 }}
-                    className="flex gap-3 pt-2"
+                    className="flex gap-3 pt-1"
                   >
                     <button
                       onClick={cancelDelete}
@@ -1540,8 +1897,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       whileHover={{ scale: isDeleting ? 1 : 1.02 }}
                       whileTap={{ scale: isDeleting ? 1 : 0.98 }}
                       onClick={confirmDeleteAccount}
-                      disabled={isDeleting}
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 dark:bg-red-700 text-white font-medium hover:bg-red-700 dark:hover:bg-red-800 transition-colors disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 point"
+                      disabled={isDeleting || !deleteChecksDone}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed point"
                     >
                       {isDeleting ? (
                         <>
@@ -1668,8 +2025,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                               ease: "linear",
                             }}
                             className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                            style={{ borderTopColor: "var(--color-primary)" }}
                           />
-                          Logging out...
+                          <span className="sr-only">Logging out...</span>
                         </>
                       ) : (
                         <>
@@ -1684,6 +2042,16 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             </div>
           </>
         )}
+        <ConfirmLogoutModal
+          open={logoutModalOpen}
+          onClose={() => setLogoutModalOpen(false)}
+          onConfirm={handleConfirmModal}
+          isProcessing={isSessionProcessing}
+          title="Logout Session"
+          description="Are you sure you want to log out this session?"
+          confirmLabel="Logout"
+          cancelLabel="Cancel"
+        />
       </AnimatePresence>
     </>
   );

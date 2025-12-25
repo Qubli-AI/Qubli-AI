@@ -48,12 +48,16 @@ async function request(endpoint, method = "GET", body) {
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       // If token or session is invalid, clear local auth state and redirect to login
+      // BUT do not automatically redirect for auth endpoints (e.g. failed login)
       if (res.status === 401) {
+        // Clear any stored auth state
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         REQUEST_CACHE.clear();
-        // Redirect to login/root
-        window.location.href = "/";
+        if (!isAuthEndpoint) {
+          // Only redirect when hitting protected endpoints - keep user on same page for login failures
+          window.location.href = "/";
+        }
         throw new Error(errorData.message || "Unauthorized");
       }
       throw new Error(
@@ -101,10 +105,10 @@ async function request(endpoint, method = "GET", body) {
     return data;
   } catch (err) {
     if (err.name === "AbortError") {
-      console.error(`Request timeout for ${endpoint}`);
+      // Request aborted due to timeout (handled by throwing a descriptive error)
       throw new Error("Request timeout. The server took too long to respond.");
     }
-    console.error(`Request failed for ${endpoint}:`, err);
+    // Propagate error to caller for centralized handling
     throw err;
   } finally {
     clearTimeout(timeoutId);
@@ -165,7 +169,7 @@ const StorageService = {
     try {
       return JSON.parse(user);
     } catch (err) {
-      console.error("Failed to parse user from storage:", err);
+      // Failed to parse stored user — clear corrupted value
       localStorage.removeItem("user");
       return null;
     }
@@ -206,7 +210,7 @@ const StorageService = {
       if (!userId) return quizzes;
       return quizzes.filter((q) => q.userId === userId);
     } catch (err) {
-      console.error("Failed to fetch quizzes:", err);
+      // Failed to fetch quizzes - return empty list to avoid breaking UI
       return [];
     }
   },
@@ -254,6 +258,11 @@ const StorageService = {
     return data.user || data;
   },
 
+  requestRefund: async () => {
+    const data = await request("/api/subscription/refund", "POST", {});
+    return data;
+  },
+
   decrementFlashcardGeneration: async () => decrementLimit("flashcard"),
   decrementPdfUpload: async () => decrementLimit("pdfupload"),
   decrementPdfExport: async () => decrementLimit("pdfexport"),
@@ -264,7 +273,7 @@ const StorageService = {
       const data = await request("/api/reviews/last");
       return data.review || null;
     } catch (err) {
-      console.error("No previous AI review found.");
+      // No previous AI review found or an error occurred
       return null;
     }
   },

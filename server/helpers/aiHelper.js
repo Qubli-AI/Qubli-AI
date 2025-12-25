@@ -25,20 +25,13 @@ async function retryGeminiRequest(fn, retries = 5, baseDelay = 1000) {
         const exponentialDelay = baseDelay * Math.pow(2, i);
         const jitter = Math.random() * 1000;
         const waitTime = exponentialDelay + jitter;
-        console.warn(
-          `Gemini overloaded → retrying (${
-            i + 1
-          }/${retries}) after ${Math.round(waitTime)}ms`
-        );
         await new Promise((res) => setTimeout(res, waitTime));
       } else if (i === retries - 1) {
         // Last attempt failed
-        console.error(`AI failed after ${retries} retries. Status: ${status}`);
         throw err;
       } else {
         // Non-retryable error on first attempt, retry anyway
         const delay = baseDelay * Math.pow(2, i);
-        console.warn(`Gemini error → retrying (${i + 1}/${retries})`);
         await new Promise((res) => setTimeout(res, delay));
       }
     }
@@ -194,11 +187,9 @@ ${
   // Handle both single file and array of files
   if (fileData) {
     const filesArray = Array.isArray(fileData) ? fileData : [fileData];
-    console.log(`Processing ${filesArray.length} file(s) for quiz generation`);
 
     for (const file of filesArray) {
       if (file && file.mimeType && file.data) {
-        console.log(`Adding file with mime type: ${file.mimeType}`);
         parts.push({
           inlineData: { mimeType: file.mimeType, data: file.data },
         });
@@ -243,7 +234,6 @@ ${
     const resultText = await response.text();
 
     if (!response.ok) {
-      console.error("Failed to generate quiz. Try again.");
       throw new Error(
         `API call failed with status ${
           response.status
@@ -255,7 +245,6 @@ ${
     try {
       result = resultText ? JSON.parse(resultText) : null;
     } catch (err) {
-      console.error("Failed to parse JSON:", err, "Raw response:", resultText);
       result = null;
     }
 
@@ -278,7 +267,6 @@ ${
         ? JSON.parse(candidate.content.parts[0].text)
         : null;
     } catch (err) {
-      console.error("Failed to parse AI content JSON:", err);
       data = null;
     }
 
@@ -294,8 +282,6 @@ ${
       marks: q.marks || 1,
     }));
 
-    console.info("Quiz generated successfully!");
-
     return {
       title: data.title || `${topic} Quiz`,
       topic,
@@ -307,10 +293,7 @@ ${
       examStyle: styleLabel,
     };
   } catch (error) {
-    console.error("Quiz generation error:", error);
-    throw new Error(
-      "Failed to generate quiz. Please try again or check server logs."
-    );
+    throw new Error("Failed to generate quiz. Please try again!");
   }
 };
 
@@ -370,7 +353,6 @@ Output: A sharp, direct, high-impact review.
     try {
       result = resultText ? JSON.parse(resultText) : null;
     } catch (err) {
-      console.error("Failed to parse JSON:", err, "Raw response:", resultText);
       result = null;
     }
 
@@ -384,11 +366,8 @@ Output: A sharp, direct, high-impact review.
       throw new Error("AI returned empty review");
     }
 
-    console.info("Performance review generated successfully!");
-
     return review;
   } catch (error) {
-    console.error("Performance review error:", error);
     throw new Error("Failed to generate performance review. Please try again.");
   }
 };
