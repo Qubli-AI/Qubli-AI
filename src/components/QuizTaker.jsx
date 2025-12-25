@@ -22,6 +22,7 @@ import {
 import { toast } from "react-toastify";
 
 import StorageService from "../services/storageService.js";
+import { generateAndSaveReview } from "../services/geminiService.js";
 import { QuestionType } from "../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 
@@ -627,6 +628,16 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       setQuiz(finalQuiz);
       setCurrentIdx(0);
       setStatus("completed");
+
+      // Generate and save AI review after quiz completion
+      try {
+        const updatedQuizzes = await StorageService.getQuizzes(user._id);
+        await generateAndSaveReview(user, updatedQuizzes);
+      } catch (reviewErr) {
+        // Review generation failed but quiz was saved; don't interrupt the user
+        console.error("Review generation failed:", reviewErr);
+      }
+
       if (onComplete) onComplete();
     } catch (err) {
       // Failed to submit quiz - notify user
@@ -958,7 +969,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <Loader2 className="w-5 h-5 animate-spin text-white" />
                           <span>Submitting...</span>
                         </>
                       ) : (
