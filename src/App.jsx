@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ToastContainer, Zoom } from "react-toastify";
+import { Analytics } from "@vercel/analytics/react";
 
 import {
   BrowserRouter as Router,
@@ -142,6 +143,7 @@ const App = () => {
           fontWeight: "500",
         }}
       />
+      <Analytics />
       <Router>
         <Routes>
           <Route path="/auth/callback" element={<OAuthCallback />} />
