@@ -273,7 +273,7 @@ const generateReceiptHTML = (data) => {
             <!-- Support -->
             <div class="support">
               <p><strong>Questions?</strong></p>
-              <p>If you need help or have any questions about your subscription, feel free to <a href="https://qubli-ai-d6yb.vercel.app/contact">contact our support team</a>.</p>
+              <p>If you need help or have any questions about your subscription, feel free to <a href="https://qubli-ai.vercel.app/contact">contact our support team</a>.</p>
               <p>We're here to help and typically respond within 48 hours.</p>
             </div>
           </div>

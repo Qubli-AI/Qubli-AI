@@ -47,7 +47,7 @@ app.set("trust proxy", 1);
 // CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://qubli-ai-d6yb.vercel.app",
+  "https://qubli-ai.vercel.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
