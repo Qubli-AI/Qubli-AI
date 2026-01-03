@@ -125,7 +125,7 @@ function AdminQuizDetail() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/admin/quizzes")}
-            className="p-2 hover:bg-surface rounded-xl transition-all"
+            className="p-2 hover:bg-surface rounded-xl transition-all point"
             title="Back to quizzes"
           >
             <ArrowLeft size={20} className="text-textMain" />
@@ -141,7 +141,7 @@ function AdminQuizDetail() {
         </div>
         <button
           onClick={handleDownloadQuiz}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium hover:shadow-lg hover:shadow-primary/20 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl point font-medium hover:shadow-lg hover:shadow-primary/20 transition-all"
         >
           <Download size={18} />
           Download
@@ -164,7 +164,7 @@ function AdminQuizDetail() {
                 <label className="text-xs text-textMuted font-semibold uppercase">
                   Title
                 </label>
-                <p className="text-textMain font-medium mt-2 break-words">
+                <p className="text-textMain font-medium mt-2 wrap-break-word">
                   {quiz.title}
                 </p>
               </div>

@@ -3,6 +3,8 @@ import Quiz from "../models/Quiz.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+import mongoose from "mongoose";
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // Admin Login
@@ -66,6 +68,11 @@ export const adminLogin = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message || "Server error" });
   }
+};
+
+const getStorageUsedMB = async () => {
+  const stats = await mongoose.connection.db.stats();
+  return Math.round(stats.dataSize / (1024 * 1024));
 };
 
 // Get Dashboard Stats
@@ -133,10 +140,13 @@ export const getDashboardStats = async (req, res) => {
       }
     });
 
+    const storageUsedMB = await getStorageUsedMB();
+
     const statsData = {
       stats: {
         totalUsers,
         totalQuizzes,
+        storageUsedMB,
         totalAttempts,
         newUsersToday,
       },

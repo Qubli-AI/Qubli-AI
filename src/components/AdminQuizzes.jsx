@@ -343,7 +343,7 @@ export default function AdminQuizzes() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-block px-3 py-1 rounded-lg text-sm text-textMain dark:bg-slate-800 truncate max-w-50">
+                      <span className="inline-block px-3 py-1 rounded-lg text-sm text-textMain truncate max-w-50">
                         {quiz.topic}
                       </span>
                     </td>

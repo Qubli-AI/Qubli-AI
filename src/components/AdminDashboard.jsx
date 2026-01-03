@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom"; // Import if you pass state from Layout
 import {
   AreaChart,
   Area,
@@ -11,14 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Users,
-  FileQuestion,
-  Activity,
-  Trophy,
-  Clock,
-  ArrowUpRight,
-} from "lucide-react";
+import { Users, HardDrive, Clock, ArrowUpRight } from "lucide-react";
 import { getDashboardStats } from "../services/adminService";
 import useAdminSocket from "../hooks/useAdminSocket";
 
@@ -85,20 +77,13 @@ export default function AdminDashboard() {
     estimatedDailyAverage
   );
 
-  const MetricCard = ({
-    title,
-    value,
-    iconComponent,
-    trend,
-    bgColor,
-    textColor,
-  }) => {
+  const MetricCard = ({ title, value, iconComponent, trend, bgColor }) => {
     const isNegativeTrend = trend && trend.startsWith("-");
     return (
       <div className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-4">
           <div className={`p-3 rounded-xl ${bgColor}`}>{iconComponent}</div>
-          {trend && (
+          {trend != 0 && trend && (
             <div
               className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
                 isNegativeTrend
@@ -117,7 +102,7 @@ export default function AdminDashboard() {
           )}
         </div>
         <div>
-          <h3 className="text-3xl font-bold text-textMain tracking-tight">
+          <h3 className="text-2xl font-bold text-textMain tracking-tight">
             {loading ? "..." : value}
           </h3>
           <p className="text-sm text-textMuted font-medium mt-1">{title}</p>
@@ -148,7 +133,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricCard
           title="Total Users"
           value={stats.totalUsers ?? 0}
@@ -156,23 +141,12 @@ export default function AdminDashboard() {
           bgColor="bg-blue-100 dark:bg-blue-900/30"
           trend={newUsersTrend}
         />
+
         <MetricCard
-          title="Active Quizzes"
-          value={stats.totalQuizzes ?? 0}
-          iconComponent={<FileQuestion size={22} className="text-violet-500" />}
-          bgColor="bg-violet-100 dark:bg-violet-900/30"
-        />
-        <MetricCard
-          title="Total Attempts"
-          value={stats.totalAttempts ?? 0}
-          iconComponent={<Activity size={22} className="text-amber-500" />}
-          bgColor="bg-amber-100 dark:bg-amber-900/30"
-        />
-        <MetricCard
-          title="Avg. Score"
-          value={`${Math.round(stats.averageScore || 0)}%`}
-          iconComponent={<Trophy size={22} className="text-emerald-500" />}
-          bgColor="bg-emerald-100 dark:bg-emerald-900/30"
+          title="Storage Remaining"
+          value={`${512 - stats.storageUsedMB}MB / 512MB`}
+          iconComponent={<HardDrive size={22} className="text-indigo-500" />}
+          bgColor="bg-indigo-100 dark:bg-indigo-900/30"
         />
       </div>
 

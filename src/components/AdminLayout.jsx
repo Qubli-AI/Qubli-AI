@@ -17,7 +17,6 @@ const menuItems = [
   { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/quizzes", label: "Quizzes", icon: BookOpenCheck },
-  { to: "/admin/results", label: "Results", icon: BarChart3 },
 ];
 
 export default function AdminLayout() {

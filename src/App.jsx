@@ -33,7 +33,6 @@ import AdminUsers from "./components/AdminUsers.jsx";
 import AdminUserDetail from "./components/AdminUserDetail.jsx";
 import AdminQuizzes from "./components/AdminQuizzes.jsx";
 import AdminQuizDetail from "./components/AdminQuizDetail.jsx";
-import AdminResults from "./components/AdminResults.jsx";
 // Static pages
 import Pricing from "./components/Pricing.jsx";
 import About from "./components/About.jsx";
@@ -224,7 +223,6 @@ const App = () => {
             <Route path="users/:userId" element={<AdminUserDetail />} />
             <Route path="quizzes" element={<AdminQuizzes />} />
             <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
-            <Route path="results" element={<AdminResults />} />
           </Route>
 
           <Route
