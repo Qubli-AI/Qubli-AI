@@ -88,7 +88,7 @@ export default function AdminLayout() {
           <div className="animate-spin">
             <div className="w-12 h-12 border-4 border-border rounded-full border-t-primary"></div>
           </div>
-          <p className="text-textMuted font-medium">Checking access...</p>
+          <p className="text-textMuted font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -113,7 +113,7 @@ export default function AdminLayout() {
               {!sidebarCollapsed && (
                 <Link
                   to="/admin/dashboard"
-                  className={`flex items-center gap-1 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity duration-300 hover:opacity-90 overflow-x-none min-w-fit ${
+                  className={`flex items-center gap-2 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity duration-300 hover:opacity-90 overflow-x-none min-w-fit ${
                     sidebarCollapsed
                       ? "justify-center opacity-0"
                       : "text-xl opacity-100"
@@ -122,7 +122,7 @@ export default function AdminLayout() {
                   title="Qubli AI"
                 >
                   <img
-                    src="/icons/favicon.png"
+                    src="/icons/favicon-main.png"
                     className="w-10 h-10"
                     alt="Brand Icon"
                     loading="lazy"

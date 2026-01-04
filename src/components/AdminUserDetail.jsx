@@ -171,7 +171,7 @@ function AdminUserDetail() {
       );
     if (user.active)
       return (
-        <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-sm font-bold uppercase tracking-wider">
+        <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-sm font-bold uppercase tracking-wider max-w-fit mx-auto sm:mx-0">
           Active
         </span>
       );
@@ -242,7 +242,7 @@ function AdminUserDetail() {
 
         {/* User Profile Card */}
         <div className="bg-surface border border-border rounded-2xl p-8 mb-8 shadow-sm">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-8">
+          <div className="flex flex-col md:flex-row justify-center items-center sm:justify-start sm:items-start gap-8 mb-8">
             <div className="w-32 h-32 rounded-2xl bg-primary flex items-center justify-center text-white text-5xl font-black shadow-lg shadow-primary/30 overflow-hidden shrink-0">
               {user.picture ? (
                 <img
@@ -257,7 +257,7 @@ function AdminUserDetail() {
             </div>
 
             <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-center text-center sm:text-left justify-center sm:justify-between gap-4 mb-4">
                 <div>
                   <h1 className="text-4xl font-bold text-textMain mb-2">
                     {user.name}
@@ -265,12 +265,12 @@ function AdminUserDetail() {
                   <p className="text-sm text-textMuted mb-3">{user.email}</p>
                   <div className="flex items-center gap-3">
                     {user.role === "admin" ? (
-                      <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                      <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold text-sm mx-auto sm:mx-0">
                         <Shield size={16} />
                         Admin
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 font-semibold text-sm">
+                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 font-semibold text-sm mx-auto sm:mx-0">
                         <Users size={16} />
                         User
                       </div>
@@ -324,7 +324,7 @@ function AdminUserDetail() {
             <h2 className="text-xl font-bold text-textMain mb-4">
               Performance & Activity
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 icon={Activity}
                 label="Total Quizzes"

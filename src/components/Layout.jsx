@@ -6,7 +6,6 @@ import {
   BarChart,
   LogOut,
   Crown,
-  Brain,
   Loader2,
   Settings,
   Trophy,
@@ -133,7 +132,12 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   aria-label="Go to Qubli AI Dashboard"
                   title="Qubli AI"
                 >
-                  <Brain className="w-7 h-7" />
+                  <img
+                    src="/icons/favicon-main.png"
+                    className="w-10 h-10 mx-auto"
+                    alt="Brand Icon"
+                    loading="lazy"
+                  />
                   {!sidebarCollapsed && (
                     <span
                       className={`transition-opacity duration-300 ease-in-out ${
@@ -472,7 +476,12 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
               className="flex items-center gap-2 text-primary font-bold text-xl hover:opacity-80 transition-opacity cursor-pointer bg-none border-none p-0"
               aria-label="Go to Qubli AI Dashboard"
             >
-              <Brain className="w-7 h-7" />
+              <img
+                src="/icons/favicon-main.png"
+                className="w-10 h-10"
+                alt="Brand Icon"
+                loading="lazy"
+              />
               <span>Qubli AI</span>
             </button>
 

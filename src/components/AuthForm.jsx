@@ -6,7 +6,6 @@ import {
   Lock,
   Mail,
   User,
-  Brain,
   Loader2,
   Check,
   X,
@@ -180,9 +179,12 @@ const AuthForm = ({ onLogin }) => {
 
       <div className="max-w-md w-full bg-surface py-8 px-5 sm:px-8 rounded-2xl border border-border shadow-2xl z-10 border-main transition-all duration-300">
         <div className="text-center mb-6">
-          <div className="inline-flex p-3 rounded-2xl mb-4 shadow-lg shadow-primary/20">
-            <Brain className="w-8 h-8 text-primary dark:text-blue-500" />
-          </div>
+          <img
+            src="/icons/favicon-main.png"
+            className="w-18 h-18 xs:w-20 xs:h-20 mb-4 mx-auto"
+            alt="Brand Icon"
+            loading="lazy"
+          />
           <h1 className="text-3xl font-bold text-textMain mb-2">
             {isLogin ? "Welcome Back" : "Join Qubli AI"}
           </h1>

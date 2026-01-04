@@ -350,7 +350,12 @@ const LandingPage = () => {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2 font-bold text-lg text-primary dark:text-blue-400 mb-4 justify-center md:justify-start">
-                <Brain className="w-6 h-6" />
+                <img
+                  src="/icons/favicon-main.png"
+                  className="w-10 h-10"
+                  alt="Brand Icon"
+                  loading="lazy"
+                />
                 <span>Qubli AI</span>
               </div>
               <p className="text-textMuted text-sm">

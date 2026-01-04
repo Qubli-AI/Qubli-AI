@@ -135,7 +135,7 @@ export default function AdminQuizzes() {
             Manage and monitor platform curriculum.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-col xs:flex-row gap-3">
           <div className="relative group">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted group-focus-within:text-primary transition-colors"
@@ -202,7 +202,7 @@ export default function AdminQuizzes() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {[
           {
             label: "Total Quizzes",
@@ -374,7 +374,7 @@ export default function AdminQuizzes() {
                           <MoreVertical size={18} />
                         </button>
                         {openDropdown === quiz._id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-200 dark:bg-slate-900">
+                          <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-500 dark:bg-slate-900">
                             <button
                               onClick={async (e) => {
                                 e.stopPropagation();

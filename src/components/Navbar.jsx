@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Brain, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -20,7 +20,12 @@ const Navbar = () => {
           onClick={handleLogoClick}
           className="flex items-center gap-2 font-bold text-xl text-primary dark:text-blue-400 hover:opacity-80 transition-opacity point"
         >
-          <Brain className="w-7 h-7" />
+          <img
+            src="/icons/favicon-main.png"
+            className="w-10 h-10"
+            alt="Brand Icon"
+            loading="lazy"
+          />
           <span>Qubli AI</span>
         </button>
 

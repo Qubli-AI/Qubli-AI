@@ -121,7 +121,7 @@ function AdminQuizDetail() {
   return (
     <div className="space-y-8 animate-fade-in w-full pb-10">
       {/* Header with Back Button */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/admin/quizzes")}
