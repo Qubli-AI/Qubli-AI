@@ -23,7 +23,8 @@ export const generateQuiz = async (
   totalMarks,
   examStyleId = "standard",
   fileData,
-  onProgress
+  onProgress,
+  extraOptions = {}
 ) => {
   const payload = {
     topic,
@@ -33,6 +34,7 @@ export const generateQuiz = async (
     totalMarks,
     examStyleId,
     fileData,
+    ...extraOptions,
   };
 
   // Get token from localStorage
@@ -152,5 +154,22 @@ export const generateAndSaveReview = async (user, updatedQuizzes) => {
 
   await StorageService.saveReview(reviewText);
 
+  await StorageService.saveReview(reviewText);
+
   return reviewText;
+};
+
+/**
+ * Sends a chat message to the AI Study Buddy.
+ * @param {object[]} messages - Array of message objects {role: 'user'|'model', content: string}
+ * @param {object} context - Context object {type, topic, questionText, correctAnswer, explanation}
+ * @returns {Promise<string>} The AI's reply.
+ */
+export const chatWithAI = async (messages, context) => {
+  const payload = {
+    messages,
+    context,
+  };
+  const response = await request("/api/ai/chat", "POST", payload);
+  return response.reply;
 };

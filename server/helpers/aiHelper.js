@@ -1,5 +1,5 @@
-// --- Core Dependencies ---
 import { v4 as uuidv4 } from "uuid";
+import { YoutubeTranscript } from "youtube-transcript";
 
 // --- Server Config Imports ---
 import { EXAM_STYLES } from "../config/constants.js";
@@ -8,9 +8,9 @@ import { SubscriptionTier, QuestionType } from "../config/types.js";
 // --- Gemini Configuration ---
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
-const PRO_MODEL = "gemini-3-pro-preview";
-const BASIC_MODEL = "gemini-2.5-flash";
-const FREE_MODEL = "gemini-2.5-flash-lite";
+const PRO_MODEL = "gemini-2.0-flash"; // Upgraded for better reasoning
+const BASIC_MODEL = "gemini-2.0-flash";
+const FREE_MODEL = "gemini-2.0-flash";
 
 // Select API key based on user tier
 const selectApiKey = (user) => {
@@ -227,6 +227,34 @@ ${
       parts[0].text += ` Use the attached document${
         filesArray.length > 1 ? "s" : ""
       } context to generate relevant questions.`;
+    }
+  }
+
+  // Handle YouTube URL
+  if (clientData.youtubeUrl) {
+    try {
+      if (sendProgress) sendProgress("Fetching video transcript", 10);
+      const transcriptItems = await YoutubeTranscript.fetchTranscript(
+        clientData.youtubeUrl
+      );
+      const transcriptText = transcriptItems.map((item) => item.text).join(" ");
+
+      // Truncate if too long (approx 30k chars to be safe with tokens, though Pro handles more)
+      const truncatedTranscript =
+        transcriptText.length > 50000
+          ? transcriptText.substring(0, 50000) + "... [truncated]"
+          : transcriptText;
+
+      parts.push({
+        text: `\n\nVideo Transcript Context:\n${truncatedTranscript}\n\n**CRITICAL: Generate questions ONLY based on the video transcript provided above.**`,
+      });
+    } catch (err) {
+      console.error("YouTube Transcript Error:", err);
+      // Fallback: ask AI to try its internal knowledge if transcript fails, or error out.
+      // For now, let's error so user knows.
+      throw new Error(
+        "Could not fetch YouTube transcript. Video might be missing captions."
+      );
     }
   }
 
@@ -606,5 +634,93 @@ Output: A sharp, direct, high-impact review.
     return review;
   } catch (error) {
     throw new Error("Failed to generate performance review. Please try again.");
+  }
+};
+
+// --- Chat with AI Helper ---
+export const chatWithAIHelper = async (user, messages, context) => {
+  const model = selectModel(user);
+  const apiKey = selectApiKey(user);
+
+  // Construct system instruction based on context
+  let systemInstruction = `You are Qubli AI's intelligent Study Buddy. Your goal is to help students learn, explain concepts, and answer questions based on the provided context.
+  
+  User Info:
+  - Name: ${user.name}
+  - Level: ${user.tier === "Pro" ? "Advanced" : "Student"}
+  
+  Guidelines:
+  1. Be encouraging, helpful, and concise.
+  2. If the user asks for the answer to a question in the context, try to guide them or explain the concept rather than just giving the letter (unless they are reviewing results).
+  3. Use markdown for formatting (bold, italic, code blocks, lists).
+  4. Keep responses strict and relevant to the study context.
+  `;
+
+  if (context) {
+    if (context.type === "quiz_review") {
+      systemInstruction += `\n
+      Active Context: Quiz Review
+      Quiz Topic: ${context.topic}
+      Question being discussed: ${context.questionText}
+      Correct Answer: ${context.correctAnswer}
+      Explanation: ${context.explanation}
+      
+      The user is reviewing a specific question. Help them understand why the correct answer is correct and why their answer (if explicitly mentioned) might be wrong.`;
+    } else if (context.type === "dashboard") {
+      systemInstruction += `\nActive Context: Dashboard / General Study. Answer general questions or questions about their progress.`;
+    }
+  }
+
+  // Convert history to Gemini format
+  const history = messages.map((msg) => ({
+    role: msg.role === "user" ? "user" : "model",
+    parts: [{ text: msg.content }],
+  }));
+
+  // Add system instruction as the first part or use systemInstruction if model supports it (Gemini 1.5 does via systemInstruction param, but here we simply prepend context to the first user message or history for simplicity with existing helper structure)
+
+  // Note: For simple chat endpoint, we might not use the full multi-turn history object if we just send the new message + history as text,
+  // but using the proper structure is better.
+
+  const payload = {
+    contents: history,
+    systemInstruction: {
+      parts: [{ text: systemInstruction }],
+    },
+  };
+
+  try {
+    const response = await retryGeminiRequest(() =>
+      fetch(getApiUrl(model, apiKey), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          const error = new Error("Gemini Chat API Error");
+          error.response = { status: res.status, text };
+          throw error;
+        }
+        return res;
+      })
+    );
+
+    const resultText = await response.text();
+    let result;
+    try {
+      result = resultText ? JSON.parse(resultText) : null;
+    } catch (err) {
+      result = null;
+    }
+
+    if (!result) throw new Error("Invalid chat response.");
+
+    const reply = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw new Error("Empty response from AI.");
+
+    return reply;
+  } catch (error) {
+    throw new Error(`Chat failed: ${error.message}`);
   }
 };

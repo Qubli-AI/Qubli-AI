@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import {
   generateQuizHelper,
   generatePerformanceReviewHelper,
+  chatWithAIHelper,
 } from "../helpers/aiHelper.js";
 
 export const generateQuizEndpoint = async (req, res) => {
@@ -83,4 +84,16 @@ export const generateReviewEndpoint = asyncHandler(async (req, res) => {
   const reviewText = await generatePerformanceReviewHelper(user, quizzes);
 
   res.status(200).json({ review: reviewText });
+});
+
+export const chatWithAIEndpoint = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  const { messages, context } = req.body;
+
+  if (!messages || !Array.isArray(messages)) {
+    return res.status(400).json({ message: "Messages array is required." });
+  }
+
+  const reply = await chatWithAIHelper(user, messages, context);
+  res.status(200).json({ reply });
 });

@@ -30,6 +30,7 @@ import { generateAndSaveReview } from "../services/geminiService.js";
 import { QuestionType } from "../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 import AchievementCelebration from "./AchievementCelebration.jsx";
+import StudyBuddy from "./StudyBuddy.jsx";
 
 const parseBoldText = (text) => {
   if (!text) return null;
@@ -483,6 +484,9 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   // Achievement celebration state
   const [celebratingAchievement, setCelebratingAchievement] = useState(null);
+
+  // Study Buddy state
+  const [isStudyBuddyOpen, setIsStudyBuddyOpen] = useState(false);
 
   const isLast = quiz && currentIdx === quiz.questions.length - 1;
 
@@ -2357,6 +2361,36 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* AI Study Buddy */}
+        {quiz && (
+          <>
+            {!isStudyBuddyOpen && (
+              <button
+                onClick={() => setIsStudyBuddyOpen(true)}
+                className="fixed bottom-6 right-6 z-40 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up md:bottom-8 md:right-8"
+                title="Open AI Study Buddy"
+              >
+                <div className="bg-white/20 p-1 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="font-bold hidden sm:inline">Ask AI</span>
+              </button>
+            )}
+            <StudyBuddy
+              isOpen={isStudyBuddyOpen}
+              onClose={() => setIsStudyBuddyOpen(false)}
+              context={{
+                type: status === "completed" ? "quiz_review" : "quiz_active",
+                quizId: quiz._id || quiz.id,
+                topic: quiz.topic,
+                questionText: quiz.questions[currentIdx]?.text,
+                correctAnswer: quiz.questions[currentIdx]?.correctAnswer,
+                explanation: quiz.questions[currentIdx]?.explanation,
+              }}
+            />
+          </>
         )}
       </div>
     </>

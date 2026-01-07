@@ -13,8 +13,10 @@ import {
   Loader2,
   Sparkles,
   X,
+  Youtube,
+  Image as ImageIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { generateQuiz } from "../services/geminiService.js";
 import StorageService from "../services/storageService.js";
@@ -27,10 +29,18 @@ import {
 
 const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [mode, setMode] = useState("text");
+  const [mode, setMode] = useState("text"); // text, pdf, youtube, image
   const [topic, setTopic] = useState("");
+
+  useEffect(() => {
+    if (location.state?.topic) {
+      setTopic(location.state.topic);
+    }
+  }, [location.state]);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
   const [questionCount, setQuestionCount] = useState(5);
   const [totalMarks, setTotalMarks] = useState(10);
@@ -105,8 +115,15 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     }
 
     const validFiles = incomingArray.filter((f) => {
-      if (f.type !== "application/pdf") {
+      const isPdf = f.type === "application/pdf";
+      const isImage = f.type.startsWith("image/");
+
+      if (mode === "pdf" && !isPdf) {
         toast.error("Skipped non-PDF files.");
+        return false;
+      }
+      if (mode === "image" && !isImage) {
+        toast.error("Skipped non-image files.");
         return false;
       }
       if (f.size > 10 * 1024 * 1024) {
@@ -226,17 +243,30 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       return toast.error(`Max ${userMaxQuestions} questions allowed.`);
     if (totalMarks > userMaxMarks)
       return toast.error(`Max ${userMaxMarks} marks allowed.`);
-    if (!hasQuota("generationsRemaining"))
-      return toast.error(`Monthly quiz limit reached.`);
     if (generateFlashcards && !hasQuota("flashcardGenerationsRemaining"))
       return toast.error(`Monthly flashcard limit reached.`);
     if (mode === "pdf" && !hasQuota("pdfUploadsRemaining"))
       return toast.error("Monthly PDF upload limit reached.");
+
+    // Check YouTube/Image quotas (reuse PDF quota or add new one? reused for now or ignored if logic allows)
+    // For now assuming PDF upload limit covers media uploads generally
+    if (
+      (mode === "image" || mode === "youtube") &&
+      !hasQuota("pdfUploadsRemaining") &&
+      user.tier !== "Pro"
+    ) {
+      return toast.error("Monthly media upload limit reached.");
+    }
+
     if (!selectedTypes?.length)
       return toast.error("Select at least one question type");
     if (mode === "pdf" && !files.length)
       return toast.error("Upload at least one PDF file.");
+    if (mode === "image" && !files.length)
+      return toast.error("Upload at least one Image file.");
     if (mode === "text" && !topic.trim()) return toast.error("Enter a topic.");
+    if (mode === "youtube" && !youtubeUrl.trim())
+      return toast.error("Enter a YouTube URL.");
 
     setLoading(true);
     setProgress(0);
@@ -248,12 +278,14 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
     try {
       const filesDataPayload =
-        mode === "pdf"
+        mode === "pdf" || mode === "image"
           ? files.map((f) => ({ mimeType: f.mime, data: f.data }))
           : undefined;
 
-      const promptTopic =
-        mode === "pdf" ? "the attached document content" : topic;
+      let promptTopic = topic;
+      if (mode === "pdf") promptTopic = "the attached document content";
+      if (mode === "image") promptTopic = "the attached image content";
+      if (mode === "youtube") promptTopic = "the provided video transcript";
 
       const quiz = await generateQuiz(
         promptTopic,
@@ -263,7 +295,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         totalMarks,
         examStyleId,
         filesDataPayload,
-        handleProgress
+        handleProgress,
+        { youtubeUrl: mode === "youtube" ? youtubeUrl : undefined }
       );
 
       quiz.userId = user?.id;
@@ -430,6 +463,28 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           >
             <Upload className="w-4 h-4" /> Upload PDF
           </button>
+          <button
+            type="button"
+            onClick={() => setMode("image")}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              mode === "image"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                : "text-textMuted hover:text-textMain"
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" /> Images
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("youtube")}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              mode === "youtube"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                : "text-textMuted hover:text-textMain"
+            }`}
+          >
+            <Youtube className="w-4 h-4" /> YouTube
+          </button>
         </div>
 
         <form onSubmit={handleGenerate} className="space-y-8">
@@ -447,10 +502,32 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   className="w-full p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
                 />
               </div>
+            ) : mode === "youtube" ? (
+              <div>
+                <label className="block text-sm font-bold text-textMain mb-2">
+                  YouTube Video URL
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Youtube className="absolute left-3 top-3.5 w-5 h-5 text-red-600" />
+                    <input
+                      type="url"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className="w-full pl-10 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-textMuted mt-2 ml-1">
+                  Enter a video URL to generate a quiz from its transcript.
+                  (Video must have captions)
+                </p>
+              </div>
             ) : (
               <div>
                 <label className="block text-sm font-bold text-textMain mb-2">
-                  Upload Study Material (PDF)
+                  Upload Study Material {mode === "pdf" ? "(PDF)" : "(Images)"}
                 </label>
                 <div
                   onDrop={handleDrop}
@@ -464,11 +541,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                       ? "border-primary/20 bg-surface"
                       : "border-dashed border-border bg-transparent hover:bg-surfaceHighlight"
                   }`}
-                  aria-label="PDF upload area"
+                  aria-label="File upload area"
                 >
                   <input
                     type="file"
-                    accept="application/pdf"
+                    accept={mode === "pdf" ? "application/pdf" : "image/*"}
                     multiple={user?.tier === "Pro"}
                     onChange={handleFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -482,7 +559,11 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                         >
                           <div className="shrink-0">
                             <div className="w-10 h-10 rounded-lg bg-surface/80 border border-border flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-primary" />
+                              {mode === "pdf" ? (
+                                <FileText className="w-5 h-5 text-primary" />
+                              ) : (
+                                <ImageIcon className="w-5 h-5 text-purple-500" />
+                              )}
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -501,7 +582,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                                   handlePreview(e, file.previewUrl)
                                 }
                                 className="p-2 hover:bg-surfaceHighlight rounded-lg text-textMuted hover:text-primary dark:hover:text-blue-500 transition-colors point"
-                                title="Preview PDF"
+                                title="Preview File"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -542,13 +623,15 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                       <div className="text-sm font-semibold text-textMain">
                         {reading
                           ? "Processing files..."
-                          : "Drag & drop PDF here"}
+                          : `Drag & drop ${
+                              mode === "pdf" ? "PDF" : "Images"
+                            } here`}
                       </div>
                       {!reading && (
                         <div className="text-xs text-textMuted">
                           {user?.tier === "Pro"
-                            ? "Upload multiple PDFs • Max 10MB each"
-                            : "Single PDF limit • Max 10MB"}
+                            ? "Upload multiple files • Max 10MB each"
+                            : "Single file limit • Max 10MB"}
                         </div>
                       )}
                     </div>

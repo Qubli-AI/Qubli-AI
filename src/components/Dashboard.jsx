@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,7 +19,7 @@ import {
 } from "recharts";
 
 import {
-  Trophy,
+  Bot,
   Target,
   Trash2,
   Zap,
@@ -32,6 +32,7 @@ import {
 
 import StorageService from "../services/storageService.js";
 import { Difficulty } from "../../server/config/types.js";
+import StudyBuddy from "./StudyBuddy.jsx";
 
 const KPI_STATS = [
   {
@@ -86,16 +87,16 @@ const KPI_STATS = [
 // Difficulty Badge Styling Constant
 const DIFFICULTY_STYLES = {
   [Difficulty.Easy]: {
-    bg: "bg-green-200 dark:bg-green-800/80",
-    text: "text-green-600 dark:text-green-400",
+    bg: "bg-emerald-200/70 dark:bg-emerald-800/40",
+    text: "text-emerald-600 dark:text-emerald-500",
   },
   [Difficulty.Medium]: {
-    bg: "bg-orange-200 dark:bg-orange-900/70",
-    text: "text-orange-700 dark:text-orange-300",
+    bg: "bg-amber-200/70 dark:bg-amber-800/30",
+    text: "text-amber-600",
   },
   [Difficulty.Hard]: {
-    bg: "bg-red-200 dark:bg-red-900/70",
-    text: "text-red-600 dark:text-red-300",
+    bg: "bg-red-200 dark:bg-red-800/30",
+    text: "text-red-600 dark:text-red-500",
   },
 };
 // --- END EXTRACTED CONSTANTS ---
@@ -123,6 +124,7 @@ function useTailwindDark() {
 
 const Dashboard = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
@@ -140,6 +142,7 @@ const Dashboard = ({ user }) => {
     weakestTopic: "N/A",
     weakestType: "N/A",
   });
+  const [isStudyBuddyOpen, setIsStudyBuddyOpen] = useState(false);
 
   useEffect(() => {
     if (user) refreshQuizzes();
@@ -428,6 +431,37 @@ const Dashboard = ({ user }) => {
           </div>
         ))}
       </div>
+
+      {/* Smart Actions */}
+      {stats.weakestTopic !== "N/A" && (
+        <div className="bg-linear-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg-custom animate-fade-in relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-300" />
+                Boost Your Scores!
+              </h3>
+              <p className="opacity-90 max-w-xl">
+                We noticed you're struggling a bit with{" "}
+                <strong>{stats.weakestTopic}</strong>. Generate a personalized
+                quiz to turn that weakness into a strength.
+              </p>
+            </div>
+            <button
+              onClick={() =>
+                navigate("/generate", {
+                  state: { topic: `Review: ${stats.weakestTopic}` },
+                })
+              }
+              className="whitespace-nowrap px-6 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            >
+              <Target className="w-5 h-5" />
+              Target Weak Points
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -776,6 +810,23 @@ const Dashboard = ({ user }) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AI Study Buddy */}
+      {!isStudyBuddyOpen && (
+        <button
+          onClick={() => setIsStudyBuddyOpen(true)}
+          className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
+          title="Open AI Study Buddy"
+        >
+          <Bot className="w-6 h-6" />
+          <span className="font-bold hidden sm:inline">Study Buddy</span>
+        </button>
+      )}
+      <StudyBuddy
+        isOpen={isStudyBuddyOpen}
+        onClose={() => setIsStudyBuddyOpen(false)}
+        context={{ type: "dashboard", topic: "General Study" }}
+      />
     </div>
   );
 };
