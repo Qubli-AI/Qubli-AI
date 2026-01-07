@@ -184,7 +184,7 @@ function AdminUserDetail() {
 
   const StatCard = ({ icon: Icon, label, value, tooltip }) => (
     <CustomTooltip content={tooltip} position="top">
-      <div className="p-4 bg-surfaceHighlight/30 rounded-2xl border border-border/50 cursor-help">
+      <div className="p-4 bg-surfaceHighlight/30 shadow-sm-custom rounded-2xl border border-border/50 cursor-help">
         <div className="flex items-start gap-3 mb-2">
           <Icon size={16} className="text-primary mt-0.5" />
           <p className="text-xs uppercase font-bold text-textMuted tracking-widest">
@@ -241,7 +241,7 @@ function AdminUserDetail() {
         </button>
 
         {/* User Profile Card */}
-        <div className="bg-surface border border-border rounded-2xl p-8 mb-8 shadow-sm">
+        <div className="bg-surface border border-border rounded-2xl p-8 mb-8 shadow-lg-custom">
           <div className="flex flex-col md:flex-row justify-center items-center sm:justify-start sm:items-start gap-8 mb-8">
             <div className="w-32 h-32 rounded-2xl bg-primary flex items-center justify-center text-white text-5xl font-black shadow-lg shadow-primary/30 overflow-hidden shrink-0">
               {user.picture ? (
@@ -397,11 +397,11 @@ function AdminUserDetail() {
             <h2 className="text-xl font-bold text-textMain mb-4">
               Active Devices & IP History
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {stats.devices.map((device, idx) => (
                 <div
                   key={idx}
-                  className="p-4 bg-surfaceHighlight/20 rounded-xl border border-border/50 flex items-between justify-between"
+                  className="p-4 bg-surfaceHighlight/20 rounded-xl border shadow-sm-custom border-border/50 flex items-between justify-between"
                 >
                   <div>
                     <p className="font-semibold text-textMain text-sm">

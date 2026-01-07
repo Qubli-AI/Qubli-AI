@@ -401,7 +401,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-textMain">Create New Quiz</h1>
-        <div className="text-sm text-textMuted bg-surfaceHighlight px-3 py-1 rounded-full">
+        <div className="text-sm text-textMuted bg-surfaceHighlight shadow-sm-custom px-4 py-1.5 rounded-full">
           {getGenerationMessage(user)}
         </div>
       </div>
@@ -413,7 +413,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             onClick={() => setMode("text")}
             className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
               mode === "text"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -576,7 +576,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   <div
                     key={style.id}
                     onClick={() => handleExamStyleSelect(style.id, style.tier)}
-                    className={`relative p-4 rounded-xl min-h-38 border-2 transition-all cursor-pointer flex flex-col justify-between h-full ${
+                    className={`relative p-4 rounded-xl min-h-38 border-2 transition-all cursor-pointer flex flex-col justify-between h-full shadow-sm-custom ${
                       examStyleId === style.id
                         ? "border-primary dark:border-blue-400 bg-primary/5"
                         : "border-border bg-surface hover:bg-surfaceHighlight hover:border-primary/30 dark:hover:border-blue-400/50"
@@ -682,7 +682,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     key={type}
                     type="button"
                     onClick={() => toggleType(type)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-sm-custom ${
                       selectedTypes.includes(type)
                         ? "bg-primary/10 dark:bg-blue-400/10 border-primary dark:border-blue-400 text-primary dark:text-blue-400 p-4 rounded"
                         : "bg-surface border-border text-textMuted hover:border-primary/50 dark:hover:border-blue-400/50 hover:bg-surfaceHighlight"
@@ -695,7 +695,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             </div>
           </div>
 
-          <div className="p-4 bg-surfaceHighlight rounded-xl border border-border">
+          <div className="p-4 bg-surfaceHighlight rounded-xl border border-border shadow-md">
             <div className="flex xs:flex-row flex-col xs:items-center xs:justify-between gap-4 items-center">
               <div className="xs:flex xs:items-center xs:gap-3 flex flex-col items-center gap-0">
                 <div

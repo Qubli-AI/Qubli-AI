@@ -32,7 +32,7 @@ const StatCard = ({
   textColorClass,
   diffClass,
 }) => (
-  <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+  <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom flex items-center gap-4 transition-shadow">
     <div className={`p-3 ${bgColorClass} ${textColorClass} rounded-xl`}>
       <Icon className="w-6 h-6" />
     </div>
@@ -128,7 +128,7 @@ const Overview = ({ user }) => {
         <h1 className="text-3xl font-bold text-textMain tracking-tight">
           Performance Overview
         </h1>
-        <div className="text-sm text-textMuted bg-surface px-4 py-2 rounded-full border border-border shadow-sm flex items-center gap-2">
+        <div className="text-sm text-textMuted bg-surface px-4 py-2 rounded-full border border-border shadow-sm-custom flex items-center gap-2">
           <Clock className="w-3.5 h-3.5" />
           Last Updated: {formatUpdateTime()}
         </div>
@@ -161,7 +161,7 @@ const Overview = ({ user }) => {
         />
       </div>
 
-      <div className="p-8 rounded-3xl border border-indigo-100 dark:border-indigo-700/40 shadow-lg relative overflow-hidden group bg-linear-to-r from-[#e6e9f3] to-[#eef2ff] dark:bg-linear-to-r dark:from-[#1e293b] dark:to-[#0f172a]">
+      <div className="p-8 rounded-3xl border border-indigo-100 dark:border-indigo-700/40 shadow-lg-custom relative overflow-hidden group bg-linear-to-r from-[#e6e9f3] to-[#eef2ff] dark:bg-linear-to-r dark:from-[#1e293b] dark:to-[#0f172a]">
         <div className="flex flex-col md:flex-row items-start gap-6 relative z-10">
           <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-200 shrink-0 dark:shadow-indigo-900">
             <Sparkles className="w-8 h-8" />
@@ -201,7 +201,7 @@ const Overview = ({ user }) => {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-border shadow-md-custom overflow-hidden">
         <div className="p-6 border-b border-border flex justify-between items-center">
           <h2 className="font-bold text-lg text-textMain">
             Recent History ({quizzes.length})

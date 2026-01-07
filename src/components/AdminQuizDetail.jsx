@@ -151,10 +151,10 @@ function AdminQuizDetail() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Quiz Info */}
-        <div className="lg:col-span-1 space-y-4">
+        <div className="lg:col-span-1 space-y-5">
           {/* Quiz Overview Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm dark:bg-slate-900/40">
-            <h2 className="text-sm font-bold text-textMuted uppercase tracking-[0.2em] mb-6">
+          <div className="bg-surface border shadow-md-custom border-border rounded-2xl p-6 dark:bg-slate-900/40">
+            <h2 className="text-sm font-bold text-textMuted uppercase tracking-[0.15em] mb-6">
               Quiz Overview
             </h2>
 
@@ -203,7 +203,7 @@ function AdminQuizDetail() {
               </div>
 
               {/* Creator */}
-              <div>
+              <div className="my-5">
                 <label className="text-xs text-textMuted font-semibold uppercase flex items-center gap-2">
                   <User size={14} className="text-primary" />
                   Created By
@@ -245,7 +245,7 @@ function AdminQuizDetail() {
           </div>
 
           {/* Performance Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm dark:bg-slate-900/40">
+          <div className="bg-surface shadow-md-custom border border-border rounded-2xl p-6 dark:bg-slate-900/40">
             <h2 className="text-sm font-bold text-textMuted uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
               <BarChart3 size={16} className="text-primary" />
               Performance
@@ -300,9 +300,9 @@ function AdminQuizDetail() {
 
         {/* Right Column - Questions */}
         <div className="lg:col-span-2">
-          <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/40">
+          <div className="bg-surface border border-border rounded-2xl shadow-md-custom overflow-hidden dark:bg-slate-900/40">
             <div className="px-6 py-4 border-b border-border bg-surfaceHighlight/50 dark:bg-slate-800/50">
-              <h2 className="text-sm font-bold text-textMuted uppercase tracking-[0.2em]">
+              <h2 className="text-sm font-bold text-textMuted uppercase tracking-[0.15em]">
                 Questions ({quiz.questions?.length || 0})
               </h2>
             </div>

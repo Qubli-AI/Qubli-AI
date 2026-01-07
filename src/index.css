@@ -18,8 +18,21 @@
     "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
     "sans-serif";
 
-  /* Custom Breakpoints */
+  /* Custom Breakpoint */
   --breakpoint-xs: 520px;
+}
+
+/* Custom Shadow */
+@utility shadow-sm-custom {
+  @apply shadow-sm shadow-slate-300 dark:shadow-slate-700;
+}
+
+@utility shadow-md-custom {
+  @apply shadow-md shadow-slate-300 dark:shadow-slate-700;
+}
+
+@utility shadow-lg-custom {
+  @apply shadow-lg shadow-slate-300 dark:shadow-slate-700;
 }
 
 /* Dark mode color overrides */

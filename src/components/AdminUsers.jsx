@@ -311,20 +311,20 @@ export default function AdminUsers() {
             Manage permissions and monitor user activity across the platform.
           </p>
         </div>
-        <div className="bg-surface border border-border px-4 py-2 rounded-xl text-sm font-semibold text-textMain shadow-sm">
+        <div className="bg-surface border border-border shadow-sm-custom px-4 py-2 rounded-xl text-sm font-semibold text-textMain">
           {pagination.total} Total Users
         </div>
       </header>
 
       {/* Desktop Filter Bar - Hidden on mobile */}
-      <div className="hidden md:flex flex-wrap items-center gap-4 bg-surface p-4 border border-border rounded-2xl shadow-sm transition-colors">
+      <div className="hidden md:flex flex-wrap items-center gap-4 bg-surface p-4 border border-border rounded-2xl shadow-md-custom transition-colors">
         <div className="relative flex-1 min-w-70">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted"
             size={16}
           />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 shadow-sm-custom bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             placeholder="Search by name or email..."
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -332,7 +332,7 @@ export default function AdminUsers() {
         </div>
         <div className="flex items-center gap-3">
           <select
-            className="px-4 py-2.5 bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none point transition-colors"
+            className="px-4 py-2.5 bg-surfaceHighlight border shadow-sm-custom border-border rounded-xl text-sm text-textMain focus:outline-none point transition-colors"
             value={filters.role}
             onChange={(e) => {
               setFilters({ ...filters, role: e.target.value });
@@ -344,7 +344,7 @@ export default function AdminUsers() {
             <option value="admin">Admins</option>
           </select>
           <select
-            className="px-4 py-2.5 bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none point transition-colors"
+            className="px-4 py-2.5 bg-surfaceHighlight border shadow-sm-custom border-border rounded-xl text-sm text-textMain focus:outline-none point transition-colors"
             value={filters.status}
             onChange={(e) => {
               setFilters({ ...filters, status: e.target.value });
@@ -359,14 +359,14 @@ export default function AdminUsers() {
       </div>
 
       {/* Mobile Filter Bar - Shown only on small screens */}
-      <div className="md:hidden space-y-3 bg-surface p-4 border border-border rounded-2xl shadow-sm transition-colors">
+      <div className="md:hidden space-y-3 bg-surface p-4 border border-border rounded-2xl shadow-sm-custom transition-colors">
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted"
             size={16}
           />
           <input
-            className="w-full pl-10 pr-4 py-2.5 bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 shadow-sm-custom bg-surfaceHighlight border border-border rounded-xl text-sm text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             placeholder="Search by name or email..."
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -374,7 +374,7 @@ export default function AdminUsers() {
         </div>
         <button
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="w-full px-4 py-2.5 bg-surfaceHighlight border border-border rounded-xl text-sm font-medium text-textMain hover:bg-surfaceHighlight/80 transition-colors flex items-center justify-between"
+          className="w-full px-4 py-2.5 bg-surfaceHighlight shadow-sm-custom border border-border rounded-xl text-sm font-medium text-textMain hover:bg-surfaceHighlight/80 transition-colors flex items-center justify-between"
         >
           <span>Filters</span>
           <Filter
@@ -426,7 +426,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden transition-colors">
+      <div className="bg-surface shadow-lg-custom border border-border rounded-2xl overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

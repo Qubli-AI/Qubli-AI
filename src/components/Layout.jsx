@@ -186,7 +186,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   sidebarCollapsed ? "justify-center" : "hover:pl-5 gap-3"
                 } rounded-xl transition-all duration-200 mt-2 group ${
                   isActive
-                    ? `bg-primary/10 text-primary dark:text-blue-400 font-semibold shadow-inner ${
+                    ? `bg-primary/10 text-primary dark:text-blue-400 font-semibold ${
                         !sidebarCollapsed ? "pl-5" : ""
                       }`
                     : "text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
@@ -220,7 +220,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
               className={`p-3 mb-4 ${
                 sidebarCollapsed
                   ? "flex items-center justify-center"
-                  : "bg-surfaceHighlight p-4 rounded-xl border border-border/50 shadow-lg shadow-black/5"
+                  : "bg-surfaceHighlight p-4 rounded-xl border border-border/50 shadow-md-custom"
               }`}
             >
               {!sidebarCollapsed ? (

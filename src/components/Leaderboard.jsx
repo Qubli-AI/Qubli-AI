@@ -181,7 +181,7 @@ const Leaderboard = ({ user }) => {
 
         {/* Your Rank Card */}
         {userRank && (
-          <div className="bg-linear-to-r from-primary/10 to-primary/5 dark:bg-linear-to-r dark:from-blue-800/30 dark:to-blue-800/20 border border-primary/20 rounded-lg p-6 mb-8">
+          <div className="bg-linear-to-r from-primary/10 to-primary/5 dark:bg-linear-to-r dark:from-blue-800/30 dark:to-blue-800/20 border border-primary/20 rounded-lg p-6 mb-8 shadow-md-custom">
             <div className="flex items-center justify-between">
               <div className="text-center xs:text-left">
                 <p className="text-textMuted text-sm mb-1">Your Rank</p>
@@ -206,7 +206,7 @@ const Leaderboard = ({ user }) => {
         )}
 
         {/* Leaderboard Table */}
-        <div className="bg-surface border border-border rounded-lg overflow-x-auto">
+        <div className="bg-surface border border-border rounded-lg overflow-x-auto shadow-md-custom">
           <table className="w-full border-collapse min-w-max md:min-w-full">
             <thead>
               <tr className="bg-surface border-b border-border">

@@ -368,7 +368,7 @@ const Achievements = ({ user }) => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Level Card */}
-            <div className="bg-linear-to-br from-primary to-primary/70 dark:bg-linear-to-br dark:from-bg-blue-700 dark:bg-blue-80 text-white rounded-lg p-6">
+            <div className="bg-linear-to-br from-primary to-primary/70 dark:bg-linear-to-br dark:from-bg-blue-700 dark:bg-blue-80 text-white rounded-lg p-6 shadow-md-custom">
               <p className="text-sm opacity-90 mb-2">Current Level</p>
               <h2 className="text-5xl font-bold mb-2">{stats.level}</h2>
               <div className="w-full bg-white/20 rounded-full h-2">
@@ -386,7 +386,7 @@ const Achievements = ({ user }) => {
             </div>
 
             {/* Total EXP Card */}
-            <div className="bg-surface border border-border rounded-lg p-6">
+            <div className="bg-surface border border-border rounded-lg p-6 shadow-md-custom">
               <p className="text-textMuted text-sm mb-2">Total Experience</p>
               <h2 className="text-4xl font-bold text-primary dark:text-blue-400">
                 {stats.totalExp.toLocaleString()}
@@ -395,7 +395,7 @@ const Achievements = ({ user }) => {
             </div>
 
             {/* Achievements Card */}
-            <div className="bg-surface border border-border rounded-lg p-6">
+            <div className="bg-surface border border-border rounded-lg p-6 shadow-md-custom">
               <p className="text-textMuted text-sm mb-2">
                 Achievements Unlocked
               </p>
@@ -413,14 +413,14 @@ const Achievements = ({ user }) => {
 
           {/* Weekly/Monthly EXP */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-surface border border-border rounded-lg p-6">
+            <div className="bg-surface border border-border rounded-lg p-6 shadow-md-custom">
               <p className="text-textMuted text-sm mb-3">This Week</p>
               <p className="text-3xl font-bold text-primary dark:text-blue-400">
                 {stats.weeklyExp.toLocaleString()}
               </p>
               <p className="text-textMuted text-xs mt-2">Weekly EXP</p>
             </div>
-            <div className="bg-surface border border-border rounded-lg p-6">
+            <div className="bg-surface border border-border rounded-lg p-6 shadow-md-custom">
               <p className="text-textMuted text-sm mb-3">This Month</p>
               <p className="text-3xl font-bold text-primary dark:text-blue-400">
                 {stats.monthlyExp.toLocaleString()}
@@ -527,7 +527,7 @@ const Achievements = ({ user }) => {
               return (
                 <div key={achievement.id} className="relative">
                   <div
-                    className={`rounded-lg p-4 border transition-all ${
+                    className={`rounded-lg p-4 shadow-md-custom border transition-all ${
                       achievement.unlocked
                         ? `${
                             rarityBgColors[achievement.rarity]

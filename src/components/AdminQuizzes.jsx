@@ -144,14 +144,14 @@ export default function AdminQuizzes() {
             <input
               type="text"
               placeholder="Search quizzes..."
-              className="pl-10 pr-4 py-2 bg-surface border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64 transition-all dark:bg-slate-900/50"
+              className="pl-10 pr-4 py-2 bg-surface border shadow-sm-custom border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64 transition-all dark:bg-slate-900/50"
             />
           </div>
           {/* Difficulty Filter Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowDifficultyDropdown(!showDifficultyDropdown)}
-              className="p-2 bg-surface border border-border rounded-xl text-textMuted hover:text-primary transition-all dark:bg-slate-900/50 flex items-center gap-2 point"
+              className="p-2 bg-surface border border-border rounded-xl shadow-sm-custom text-textMuted hover:text-primary transition-all dark:bg-slate-900/50 flex items-center gap-2 point"
             >
               <Filter size={18} />
               {selectedDifficulty ? (
@@ -242,7 +242,7 @@ export default function AdminQuizzes() {
         ].map((stat, i) => (
           <div
             key={i}
-            className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900/40"
+            className="bg-surface border border-border p-5 rounded-2xl shadow-md-custom transition-shadow dark:bg-slate-900/40"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
@@ -264,7 +264,7 @@ export default function AdminQuizzes() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/40">
+      <div className="bg-surface border border-border rounded-2xl shadow-lg-custom overflow-hidden dark:bg-slate-900/40">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>

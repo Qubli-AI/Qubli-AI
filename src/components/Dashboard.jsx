@@ -396,7 +396,7 @@ const Dashboard = ({ user }) => {
         {KPI_STATS.map((stat, idx) => (
           <div
             key={idx}
-            className="bg-surface p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
+            className="bg-surface p-5 rounded-2xl border border-border shadow-md-custom transition-shadow"
           >
             <div className="flex items-center gap-4">
               <div
@@ -432,7 +432,7 @@ const Dashboard = ({ user }) => {
       {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Difficulty Chart */}
-        <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm h-87.5">
+        <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom h-87.5">
           <h2 className="text-lg font-bold text-textMain mb-6 text-center md:text-left">
             Performance by Difficulty
           </h2>
@@ -485,7 +485,7 @@ const Dashboard = ({ user }) => {
         </div>
 
         {/* Question Type Radar */}
-        <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm h-87.5">
+        <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom h-87.5">
           <h2 className="text-lg font-bold text-textMain mb-2">
             Weak Areas by Question Type
           </h2>
@@ -545,7 +545,7 @@ const Dashboard = ({ user }) => {
       </div>
 
       {/* All Quizzes Section */}
-      <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
+      <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div>
             <h2 className="text-lg font-bold text-textMain text-center md:text-left">
@@ -565,7 +565,7 @@ const Dashboard = ({ user }) => {
                 placeholder="Search quizzes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full pl-9 pr-4 py-2 text-sm shadow-sm-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
               />
               {searchTerm && (
                 <XCircle
@@ -578,7 +578,7 @@ const Dashboard = ({ user }) => {
               <select
                 value={filterDifficulty}
                 onChange={(e) => setFilterDifficulty(e.target.value)}
-                className="pl-3 pr-8 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer transition-all"
+                className="pl-3 pr-8 py-2 text-sm shadow-sm-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer transition-all"
               >
                 <option value="All">All</option>
                 <option value="Easy">Easy</option>
@@ -620,7 +620,7 @@ const Dashboard = ({ user }) => {
                   initial={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
-                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
+                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 shadow-sm-custom hover:shadow-md-custom hover:-translate-y-1 overflow-hidden"
                 >
                   <button
                     type="button"
