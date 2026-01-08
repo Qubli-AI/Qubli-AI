@@ -72,7 +72,7 @@ const TypewriterMessage = ({ content, onComplete, speed = 15 }) => {
 
   return (
     <div className="relative">
-      <div className="prose dark:prose-invert prose-sm max-w-none space-y-2 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4">
+      <div className="prose dark:prose-invert prose-sm max-w-none space-y-2 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>p:last-child]:inline [&>p:last-child]:m-0">
         <ReactMarkdown
           components={{
             code({ inline, className, children, ...props }) {
@@ -93,8 +93,9 @@ const TypewriterMessage = ({ content, onComplete, speed = 15 }) => {
         >
           {displayedContent}
         </ReactMarkdown>
+        {/* Blinking cursor */}
         {!isComplete && (
-          <span className="inline-block w-0.5 h-4 bg-indigo-500 dark:bg-indigo-400 animate-pulse ml-0.5 align-middle" />
+          <span className="inline-block w-1.5 h-4 bg-indigo-500 dark:bg-indigo-400 animate-pulse ml-1 align-middle" />
         )}
       </div>
       {!isComplete && (
@@ -126,8 +127,8 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = useCallback((behavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
   }, []);
 
   // Initialize and Load Chats
@@ -217,7 +218,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
 
   useEffect(() => {
     if (typingMessageIndex >= 0) {
-      const scrollInterval = setInterval(scrollToBottom, 50);
+      const scrollInterval = setInterval(() => scrollToBottom("auto"), 80);
       return () => clearInterval(scrollInterval);
     }
   }, [typingMessageIndex, scrollToBottom]);
@@ -296,12 +297,16 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
     }
   };
 
-  const handleTypingComplete = useCallback((index) => {
-    setMessages((prev) =>
-      prev.map((msg, i) => (i === index ? { ...msg, isTyping: false } : msg))
-    );
-    setTypingMessageIndex(-1);
-  }, []);
+  const handleTypingComplete = useCallback(
+    (index) => {
+      setMessages((prev) =>
+        prev.map((msg, i) => (i === index ? { ...msg, isTyping: false } : msg))
+      );
+      setTypingMessageIndex(-1);
+      setTimeout(() => scrollToBottom("smooth"), 100);
+    },
+    [scrollToBottom]
+  );
 
   // Auto-submit initialPrompt
   useEffect(() => {
@@ -493,7 +498,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
         <>
           <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50"
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50 [overflow-anchor:none]"
           >
             {messages.map((msg, idx) => (
               <div
