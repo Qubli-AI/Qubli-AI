@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
   Filter,
   Shield,
-  Mail,
-  Calendar,
   Activity,
   X,
   Users,
@@ -183,11 +181,6 @@ export default function AdminUsers() {
     };
   }, []);
 
-  // Callback to refetch users
-  const refetchUsers = useCallback(() => {
-    setPagination((p) => ({ ...p, page: 1 }));
-  }, []);
-
   const handleReset = () => {
     setLoading(true);
     setFilters({ search: "", role: "", status: "" });
@@ -212,7 +205,7 @@ export default function AdminUsers() {
       toast.success("User promoted to admin successfully");
       setShowPromoteModal(false);
       setSelectedUserForModal(null);
-    } catch (error) {
+    } catch {
       // Rollback on error
       setUsers(previousUsers);
       toast.error("Failed to promote user to admin");
@@ -238,7 +231,7 @@ export default function AdminUsers() {
       toast.success("Admin demoted to user successfully");
       setShowDemoteModal(false);
       setSelectedUserForModal(null);
-    } catch (error) {
+    } catch {
       // Rollback on error
       setUsers(previousUsers);
       toast.error("Failed to demote admin");
@@ -270,7 +263,7 @@ export default function AdminUsers() {
       );
       setShowDisableModal(false);
       setSelectedUserForModal(null);
-    } catch (error) {
+    } catch {
       // Rollback on error
       setUsers(previousUsers);
       toast.error("Failed to update account status");
@@ -302,7 +295,7 @@ export default function AdminUsers() {
       );
       setShowBanModal(false);
       setSelectedUserForModal(null);
-    } catch (error) {
+    } catch {
       // Rollback on error
       setUsers(previousUsers);
       toast.error("Failed to update ban status");

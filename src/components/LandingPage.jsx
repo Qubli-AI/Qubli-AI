@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -7,7 +7,6 @@ import {
   Zap,
   BookOpen,
   BarChart3,
-  Users,
   Star,
   Github,
   Linkedin,
@@ -20,7 +19,7 @@ const LandingPage = () => {
   const [searchParams] = useSearchParams();
 
   // Show error message if redirected due to disabled account
-  React.useEffect(() => {
+  useEffect(() => {
     const message = searchParams.get("message");
     if (message) {
       toast.error(message, { autoClose: 5000 });

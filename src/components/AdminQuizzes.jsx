@@ -102,7 +102,7 @@ export default function AdminQuizzes() {
       setPagination(
         data.pagination || { page: 1, limit: 10, pages: 1, total: 0 }
       );
-    } catch (error) {
+    } catch {
       if (!mounted.current || fetchId !== latestFetchId.current) return;
       toast.error("Failed to load quizzes");
     } finally {
@@ -110,31 +110,6 @@ export default function AdminQuizzes() {
         setLoading(false);
         setStatsLoading(false);
       }
-    }
-  };
-
-  const fetchStats = async () => {
-    setStatsLoading(true);
-    try {
-      const data = await getQuizzes(
-        pagination.page,
-        pagination.limit,
-        selectedDifficulty
-      );
-      // Save previous values before updating
-      setPrevAvgScore(avgScore === "..." ? null : parseFloat(avgScore));
-      setPrevCompletionRate(
-        completionRate === "..." ? null : parseFloat(completionRate)
-      );
-      setPrevTotalQuizzes(pagination.total);
-      // Update current values
-      setAvgScore(data.avgScore || 0);
-      setCompletionRate(data.completionRate || 0);
-      setAvgDifficulty(data.avgDifficulty || "Medium");
-    } catch (error) {
-      console.error("Failed to fetch stats");
-    } finally {
-      setStatsLoading(false);
     }
   };
 

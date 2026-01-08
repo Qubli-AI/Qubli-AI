@@ -1,15 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  MessageSquare,
-  X,
-  Send,
-  Bot,
-  User,
-  Minimize2,
-  Maximize2,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Send, Bot, User, Minimize2, Loader2, Sparkles } from "lucide-react";
 import { chatWithAI } from "../services/geminiService";
 import ReactMarkdown from "react-markdown";
 
@@ -61,7 +51,7 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
       const reply = await chatWithAI(history, context);
 
       setMessages((prev) => [...prev, { role: "model", content: reply }]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -80,17 +70,17 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-primary dark:bg-blue-700 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-700/60 transition-all flex items-center gap-2 animate-fade-in-up point"
+        className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
         title="Open AI Study Buddy"
       >
         <Bot className="w-6 h-6" />
-        <span className="font-bold hidden sm:inline">Study Buddy</span>
+        <span className="font-bold hidden xs:inline">Study Buddy</span>
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-[350px] sm:max-w-[400px] h-[500px] max-h-[80vh] flex flex-col bg-surface border border-border rounded-2xl shadow-lg-custom overflow-hidden animate-fade-in-up">
+    <div className="fixed inset-0 z-300 w-full h-full flex flex-col bg-surface overflow-hidden animate-fade-in-up xs:inset-auto xs:bottom-15 xs:right-6 sm:bottom-20 sm:right-4 md:bottom-4 xs:h-[500px] xs:max-h-[80vh] xs:w-full xs:max-w-[350px] sm:max-w-[400px] xs:rounded-2xl xs:border xs:border-border xs:shadow-lg-custom">
       {/* Header */}
       <div className="p-4 bg-primary dark:bg-blue-800 text-white flex justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
@@ -139,7 +129,7 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
               className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                 msg.role === "user"
                   ? "bg-blue-100 text-primary dark:bg-blue-800/40 dark:text-blue-400"
-                  : "bg-indigo-100 text-indigo-600 dark:bg-indigo-800/40 dark:text-indigo-400"
+                  : "bg-indigo-100 text-indigo-600 dark:bg-indigo-800/35 dark:text-indigo-400"
               }`}
             >
               {msg.role === "user" ? (
@@ -159,7 +149,7 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
                 <div className="prose dark:prose-invert prose-sm max-w-none space-y-2 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4">
                   <ReactMarkdown
                     components={{
-                      code({ node, inline, className, children, ...props }) {
+                      code({ inline, className, children, ...props }) {
                         return (
                           <code
                             className={`${className} ${
@@ -186,13 +176,13 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
         ))}
         {loading && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-800/35 dark:text-indigo-400 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
-            <div className="bg-white dark:bg-surface border border-border p-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+            <div className="bg-white dark:bg-surface border border-border p-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
             </div>
           </div>
         )}
@@ -202,7 +192,7 @@ const StudyBuddy = ({ context, isOpen, onClose }) => {
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className="p-3 bg-white dark:bg-surface border-t border-border flex items-end gap-2 shrink-0"
+        className="p-3 bg-white mb-12 xs:mb-0 dark:bg-surface border-t border-border flex items-end gap-2 shrink-0"
       >
         <textarea
           rows={1}

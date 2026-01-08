@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 import AssignmentIcon from "@mui/icons-material/Assignment";
@@ -22,6 +22,7 @@ import {
   ChevronDown,
   FileText,
   File,
+  Bot,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -131,6 +132,7 @@ const QuizResultsView = ({
   manualCreateFlashcards,
   setActiveTab,
   isCreatingFlashcards,
+  onAskAI,
 }) => (
   <div className="space-y-6">
     {/* Summary Card */}
@@ -217,6 +219,13 @@ const QuizResultsView = ({
                 {q.marks} {q.marks === 1 ? "mark" : "marks"}
               </span>
             )}
+            <button
+              onClick={() => onAskAI(q)}
+              className="p-1.5 bg-primary/10 text-primary dark:bg-blue-400/10 dark:text-blue-400 rounded-lg hover:bg-primary/20 dark:hover:bg-blue-400/20 transition-colors mt-0.5"
+              title="Ask AI about this question"
+            >
+              <Bot className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 text-sm ml-0 md:ml-11">
@@ -462,15 +471,15 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [quiz, setQuiz] = useState(null);
-  const [status, setStatus] = useState("loading");
+  const [status, setStatus] = useState("intro"); // intro, active, completed
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Tab State
-  const [activeTab, setActiveTab] = useState("exam");
   const [quizFlashcards, setQuizFlashcards] = useState([]);
+  const [activeTab, setActiveTab] = useState("quiz"); // quiz, flashcards
+  const [isStudyBuddyOpen, setIsStudyBuddyOpen] = useState(false);
+  const [customStudyContext, setCustomStudyContext] = useState(null);
   const [isCreatingFlashcards, setIsCreatingFlashcards] = useState(false);
   // Increment this key to force remounting the StudyFlashcards component when new cards are created
   const [flashcardsResetKey, setFlashcardsResetKey] = useState(0);
@@ -484,9 +493,6 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   // Achievement celebration state
   const [celebratingAchievement, setCelebratingAchievement] = useState(null);
-
-  // Study Buddy state
-  const [isStudyBuddyOpen, setIsStudyBuddyOpen] = useState(false);
 
   const isLast = quiz && currentIdx === quiz.questions.length - 1;
 
@@ -538,7 +544,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             setStatus("intro");
           }
           setIsFetching(false);
-        } catch (err) {
+        } catch {
           // Hydration from nav state failed - fallback to fetch flow
         }
       })();
@@ -616,7 +622,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           }
           setIsFetching(false);
         }
-      } catch (err) {
+      } catch {
         // Failed to fetch quiz - navigate back to dashboard
         if (isMounted) {
           setIsFetching(false);
@@ -746,13 +752,13 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       try {
         const updatedQuizzes = await StorageService.getQuizzes(user._id);
         await generateAndSaveReview(user, updatedQuizzes);
-      } catch (reviewErr) {
+      } catch (_reviewErr) {
         // Review generation failed but quiz was saved; don't interrupt the user
-        console.error("Review generation failed:", reviewErr);
+        console.error("Review generation failed:", _reviewErr);
       }
 
       if (onComplete) onComplete();
-    } catch (err) {
+    } catch {
       // Failed to submit quiz - notify user
       toast.error("Failed to submit quiz. Please try again.");
     } finally {
@@ -809,7 +815,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         onLimitUpdate();
         await exportToPdf();
         toast.success("Quiz exported as PDF successfully!");
-      } catch (error) {
+      } catch {
         toast.error("Failed to export quiz as PDF");
       } finally {
         setIsExporting(false);
@@ -867,7 +873,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           toast.success("Quiz exported as DOCX successfully!");
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to export quiz");
     } finally {
       setIsExporting(false);
@@ -1364,50 +1370,50 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         <head>
           <meta charset="UTF-8">
           <style>
-            body { 
-              font-family: Calibri, Arial, sans-serif; 
-              line-height: 1.5; 
-              color: #000; 
+            body {
+              font-family: Calibri, Arial, sans-serif;
+              line-height: 1.5;
+              color: #000;
               background: white;
             }
-            
+
             .header {
               background-color: #3b82f6;
               color: white;
               margin: 0 0 30px 0;
               text-align: center;
             }
-            
+
             .header h1 {
               font-size: 48px;
               font-weight: bold;
               margin: 15px 0 10px 0;
             }
-            
+
             .header p {
               font-size: 18px;
               font-weight: 600;
               margin: 5px 0;
             }
-            
+
             .quiz-info {
               margin-bottom: 20px;
               width: 100%;
               border-collapse: collapse;
             }
-            
+
             .quiz-info td {
               width: 25%;
               padding: 10px;
               vertical-align: top;
             }
-            
+
             .info-card {
               background-color: #f3f4f6;
               text-align: center;
               border-left: 6px solid #3b82f6;
             }
-            
+
             .info-card strong {
               display: block;
               color: #000;
@@ -1415,14 +1421,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               font-weight: bold;
               margin-bottom: 5px;
             }
-            
+
             .info-card p {
               color: #000;
               font-size: 17px;
               font-weight: bold;
               margin: 0;
             }
-            
+
             .section-title {
               font-size: 45px;
               font-weight: bold;
@@ -1438,13 +1444,13 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               page-break-inside: avoid;
               display: flex;
             }
-            
+
             .question-number {
               font-weight: bold;
               font-size: 22px;
               white-space: nowrap;
             }
-            
+
             .question-text {
               font-size: 21px;
               font-weight: bold;
@@ -1453,17 +1459,17 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               line-height: 1.5;
               display: block;
             }
-            
+
             .question-meta {
               display: inline;
               margin-left: 12px;
             }
-            
+
             .options {
               margin-left: 20px;
               margin-top: 5px;
             }
-            
+
             .option {
               margin: 4px 0 7px 0;
               background-color: #f9fafb;
@@ -1472,12 +1478,12 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               padding-left: 12px;
               border-left: 4px solid #3b82f6;
             }
-            
+
             .true-false-options {
               margin-left: 20px;
               margin-top: 5px;
             }
-            
+
             .true-false-option {
               margin: 4px 0 7px 0;
               background-color: #f9fafb;
@@ -1486,14 +1492,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               padding-left: 12px;
               border-left: 4px solid #3b82f6;
             }
-            
+
             .short-answer-space {
               margin-left: 20px;
               margin-top: 5px;
               color: #666;
               font-size: 13px;
             }
-            
+
             footer {
               margin-top: 50px;
               padding-top: 10px;
@@ -1522,7 +1528,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             <br>
             <br>
           </div>
-          
+
           <table class="quiz-info">
             <tr>
               <td><div class="info-card"><i><br><strong>Difficulty Level</strong><p>${
@@ -1609,7 +1615,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
     htmlContent += `
           </div>
-          
+
           <footer>
             <p>© Qubli AI | All rights reserved</p>
             <p>This document is confidential</p>
@@ -1641,56 +1647,56 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         <head>
           <meta charset="UTF-8">
           <style>
-            body { 
-              font-family: Calibri, Arial, sans-serif; 
-              line-height: 1.5; 
-              color: #000; 
+            body {
+              font-family: Calibri, Arial, sans-serif;
+              line-height: 1.5;
+              color: #000;
               background: white;
             }
-            
+
             .header {
               background-color: #10b981;
               color: white;
               margin: 0 0 30px 0;
               text-align: center;
             }
-            
+
             .header h1 {
               font-size: 48px;
               font-weight: bold;
               margin: 25px 0 15px 0;
             }
-            
+
             .header .subtitle {
               font-size: 18px;
               font-weight: bold;
               margin: 12px 0;
             }
-            
+
             .header p {
               font-size: 18px;
               font-weight: 600;
               margin: 10px 0;
             }
-            
+
             .quiz-info {
               margin-bottom: 20px;
               width: 100%;
               border-collapse: collapse;
             }
-            
+
             .quiz-info td {
               width: 50%;
               padding: 10px;
               vertical-align: top;
             }
-            
+
             .info-card {
               background-color: #f0fdf4;
               margin: 8px 0;
               flex: 1;
             }
-            
+
             .info-card strong {
               display: block;
               color: #000;
@@ -1698,14 +1704,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               font-weight: bold;
               margin-bottom: 5px;
             }
-            
+
             .info-card p {
               color: #000;
               font-size: 15px;
               font-weight: bold;
               margin: 0;
             }
-            
+
             .section-title {
               font-size: 16px;
               font-weight: bold;
@@ -1713,18 +1719,18 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               margin: 20px 0 10px 0;
               border-bottom: 3px solid #10b981;
             }
-            
+
             .answer-item {
               margin-bottom: 15px;
               page-break-inside: avoid;
             }
-            
+
             .answer-number {
               color: #10b981;
               font-weight: bold;
               display: inline;
             }
-            
+
             .question-text {
               font-size: 14px;
               font-weight: bold;
@@ -1732,19 +1738,19 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               margin-bottom: 8px;
               line-height: 1.5;
             }
-            
+
             .answer-section {
               margin-bottom: 10px;
               margin-left: 20px;
             }
-            
+
             .answer-label {
               font-size: 12px;
               font-weight: bold;
               color: #10b981;
               margin-bottom: 4px;
             }
-            
+
             .answer-text {
               font-size: 13px;
               color: #000;
@@ -1752,7 +1758,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               margin-bottom: 8px;
               line-height: 1.5;
             }
-            
+
             .explanation {
               margin-left: 20px;
               font-size: 12px;
@@ -1762,7 +1768,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               padding-top: 6px;
               border-top: 1px solid #ddd;
             }
-            
+
             footer {
               margin-top: 30px;
               padding-top: 10px;
@@ -1783,7 +1789,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             <br>
             <br>
           </div>
-          
+
           <table class="quiz-info">
             <tr>
               <td><div class="info-card"><br><strong>Total Questions</strong><p>${
@@ -1794,7 +1800,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               }</p><br></div></td>
             </tr>
           </table>
-          
+
           <div class="answers-container">
             <div class="section-title">Answers & Explanations</div>
     `;
@@ -1831,7 +1837,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
     htmlContent += `
           </div>
-          
+
           <footer>
             <p>© Qubli AI - Answer Sheet</p>
             <p>All rights reserved. This document is confidential.</p>
@@ -1940,8 +1946,8 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             );
           }
         }
-      } catch (expErr) {
-        console.error("Error awarding EXP for flashcards:", expErr);
+      } catch (_expErr) {
+        console.error("Error awarding EXP for flashcards:", _expErr);
       }
 
       setQuiz(finalQuiz);
@@ -1952,8 +1958,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
       // Let parent know limits changed so UI updates
       if (onLimitUpdate) onLimitUpdate();
-    } catch (err) {
-      // Failed to create flashcards; inform user
+    } catch {
       toast.error("Failed to create flashcards. Please try again.");
     } finally {
       setIsCreatingFlashcards(false);
@@ -2151,6 +2156,18 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 manualCreateFlashcards={manualCreateFlashcards}
                 setActiveTab={setActiveTab}
                 isCreatingFlashcards={isCreatingFlashcards}
+                onAskAI={(question) => {
+                  setCustomStudyContext({
+                    type: "quiz_review",
+                    quizId: quiz._id || quiz.id,
+                    topic: quiz.topic,
+                    questionText: question.text,
+                    correctAnswer: question.correctAnswer,
+                    explanation: question.explanation,
+                    userAnswer: question.userAnswer,
+                  });
+                  setIsStudyBuddyOpen(true);
+                }}
               />
             )}
 
@@ -2364,31 +2381,36 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         )}
 
         {/* AI Study Buddy */}
-        {quiz && (
+        {status === "completed" && (
           <>
             {!isStudyBuddyOpen && (
               <button
                 onClick={() => setIsStudyBuddyOpen(true)}
-                className="fixed bottom-6 right-6 z-40 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up md:bottom-8 md:right-8"
+                className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
                 title="Open AI Study Buddy"
               >
                 <div className="bg-white/20 p-1 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <span className="font-bold hidden sm:inline">Ask AI</span>
+                <span className="font-bold hidden xs:inline">Ask AI</span>
               </button>
             )}
             <StudyBuddy
               isOpen={isStudyBuddyOpen}
-              onClose={() => setIsStudyBuddyOpen(false)}
-              context={{
-                type: status === "completed" ? "quiz_review" : "quiz_active",
-                quizId: quiz._id || quiz.id,
-                topic: quiz.topic,
-                questionText: quiz.questions[currentIdx]?.text,
-                correctAnswer: quiz.questions[currentIdx]?.correctAnswer,
-                explanation: quiz.questions[currentIdx]?.explanation,
+              onClose={() => {
+                setIsStudyBuddyOpen(false);
+                setCustomStudyContext(null);
               }}
+              context={
+                customStudyContext || {
+                  type: status === "completed" ? "quiz_review" : "quiz_active",
+                  quizId: quiz._id || quiz.id,
+                  topic: quiz.topic,
+                  questionText: quiz.questions[currentIdx]?.text,
+                  correctAnswer: quiz.questions[currentIdx]?.correctAnswer,
+                  explanation: quiz.questions[currentIdx]?.explanation,
+                }
+              }
             />
           </>
         )}

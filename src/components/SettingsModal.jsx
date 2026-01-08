@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -53,7 +53,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   const [isUpdatingFullName, setIsUpdatingFullName] = useState(false);
   const [fullNameError, setFullNameError] = useState("");
   // Generate multiple sanitized username suggestions (dots, underscores, numeric suffixes)
-  const suggestedVariants = React.useMemo(() => {
+  const suggestedVariants = useMemo(() => {
     const baseRaw = (user?.username || user?.name || "").toString();
     let base = baseRaw.toLowerCase().replace(/\s+/g, "");
     base = base.replace(/[^a-z0-9]/g, "");
@@ -73,7 +73,6 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     return Array.from(variants).slice(0, 6);
   }, [user]);
 
-  const [variantAvailability, setVariantAvailability] = useState({});
   const [checkingVariants, setCheckingVariants] = useState(false);
   // Check availability for suggestion variants when editor opens or variants change
   useEffect(() => {
@@ -100,10 +99,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         checks.forEach((c) => {
           map[c.v] = c.available;
         });
-        setVariantAvailability(map);
-      } catch (err) {
+      } catch {
         if (!mounted) return;
-        setVariantAvailability({});
       } finally {
         if (mounted) setCheckingVariants(false);
       }
@@ -262,7 +259,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           "Failed to change password. Please check your current password."
         );
       }
-    } catch (error) {
+    } catch {
       toast.error("Error changing password");
       // Error reported to user via toast; no debug log kept here
     } finally {
@@ -332,7 +329,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         const data = await response.json().catch(() => ({}));
         setUsernameError(data.message || "Failed to change username");
       }
-    } catch (error) {
+    } catch {
       setUsernameError("Error changing username");
     } finally {
       setIsUpdatingUsername(false);
@@ -385,7 +382,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         const data = await response.json().catch(() => ({}));
         setFullNameError(data.message || "Failed to update full name");
       }
-    } catch (error) {
+    } catch {
       setFullNameError("Error updating full name");
     } finally {
       setIsUpdatingFullName(false);
@@ -430,7 +427,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         setDeleteChecksDone(false);
         setLastCheckedDeletePassword("");
       }
-    } catch (err) {
+    } catch {
       setDeletePasswordError("Error validating password");
       setDeleteChecksDone(false);
     } finally {
@@ -529,7 +526,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         toast.error("Failed to delete account");
         setShowDeleteModal(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting account");
       // No debug log — user is notified and modal closed
       setShowDeleteModal(false);
@@ -587,7 +584,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       } else {
         toast.error("Failed to send feedback");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error sending feedback");
     } finally {
       setIsSendingFeedback(false);
@@ -617,7 +614,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         const data = await response.json();
         toast.error(data.message || "Failed to initiate 2FA");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error initiating 2FA");
       // Error forwarded to user via toast; debug log removed
     }
@@ -655,7 +652,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         const data = await response.json();
         toast.error(data.message || "Failed to enable 2FA");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error enabling 2FA");
       // Debug log removed; user notified via toast
     } finally {
@@ -694,7 +691,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         const data = await response.json();
         toast.error(data.message || "Failed to disable 2FA");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error disabling 2FA");
       // Debug log removed; user notified via toast
     }
@@ -750,7 +747,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             backupCodesCount: 0,
           });
         }
-      } catch (error) {
+      } catch {
         // Could not fetch 2FA status - set default to disabled
         setTwoFAStatus({
           twoFAEnabled: false,
@@ -762,49 +759,6 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
     fetch2FAStatus();
   }, []);
-
-  // Handle logout from session
-  const handleLogoutSession = async (sessionId) => {
-    // Prevent concurrent session operations
-    if (isSessionProcessing) return;
-    setProcessingSessionId(sessionId);
-    setIsSessionProcessing(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/sessions/${sessionId}/logout`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${StorageService.getToken()}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success("Session ended");
-        // If the deleted session is the current session, clear local auth and redirect
-        if (data && data.currentSessionDeleted) {
-          StorageService.logout();
-          // Emit event to trigger App.jsx logout without reload
-          window.dispatchEvent(new CustomEvent("sessionLogout"));
-        } else {
-          fetchSessions();
-        }
-      } else if (response.status === 401) {
-        // If token/session is invalid, clear local state
-        StorageService.logout();
-        window.dispatchEvent(new CustomEvent("sessionLogout"));
-      } else {
-        toast.error("Failed to end session");
-      }
-    } catch (error) {
-      toast.error("Failed to end session");
-    } finally {
-      setIsSessionProcessing(false);
-      setProcessingSessionId(null);
-    }
-  };
 
   const fetchSessions = async () => {
     try {
@@ -824,7 +778,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       } else {
         setSessions([]);
       }
-    } catch (error) {
+    } catch {
       // Failed to fetch sessions — show no sessions
       setSessions([]);
     }
@@ -856,7 +810,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         toast.error("Failed to logout from all devices");
         setShowLogoutAllModal(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("Error logging out from all devices");
       // Debug logging removed; user notified via toast
       setShowLogoutAllModal(false);
@@ -902,7 +856,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       } else {
         toast.error("Failed to end session");
       }
-    } catch (err) {
+    } catch {
       // Failed to end session — notify user
       toast.error("Failed to end session");
     } finally {
@@ -974,7 +928,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         setNewFullName(user?.name || "");
                         setFullNameError("");
                       }}
-                      className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer flex-shrink-0"
+                      className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer shrink-0"
                       title={showFullNameEdit ? "Close form" : "Edit full name"}
                     >
                       {showFullNameEdit ? (
@@ -1092,7 +1046,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         setNewUsername(pref);
                         setUsernameError("");
                       }}
-                      className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer flex-shrink-0"
+                      className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer shrink-0"
                       title={showUsernameEdit ? "Close form" : "Edit username"}
                     >
                       {showUsernameEdit ? (

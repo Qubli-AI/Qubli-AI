@@ -10,7 +10,9 @@
     "server:dev": "nodemon server/index.js",
     "server:start": "node server/index.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\"",
-    "seed:admin": "node server/scripts/seedAdmin.js"
+    "seed:admin": "node server/scripts/seedAdmin.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -60,8 +62,12 @@
     "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@tailwindcss/cli": "^4.1.17",
     "@types/node": "^22.14.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.0.0",
     "typescript": "~5.8.2"
   },
   "description": "Qubli AI is an AI-powered learning platform that transforms the way you study by generating personalized quizzes, flashcards, and study materials. It adapts to your progress, focusing on areas that need improvement, and helps maximize learning efficiency and knowledge retention for students, professionals, and lifelong learners.",

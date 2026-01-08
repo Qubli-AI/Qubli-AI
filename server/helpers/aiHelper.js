@@ -8,9 +8,9 @@ import { SubscriptionTier, QuestionType } from "../config/types.js";
 // --- Gemini Configuration ---
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
-const PRO_MODEL = "gemini-2.0-flash"; // Upgraded for better reasoning
-const BASIC_MODEL = "gemini-2.0-flash";
-const FREE_MODEL = "gemini-2.0-flash";
+const PRO_MODEL = "gemini-3-flash";
+const BASIC_MODEL = "gemini-2.5-flash";
+const FREE_MODEL = "gemini-2.5-flash-lite";
 
 // Select API key based on user tier
 const selectApiKey = (user) => {

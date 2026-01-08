@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import { AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import SettingsModal from "./SettingsModal.jsx";
 import ConfirmLogoutModal from "./ConfirmLogoutModal.jsx";
+import SidebarContext from "../context/SidebarContext.js";
 
 const getProgressWidth = (remaining, max) => {
   if (max === Infinity) return "0%";
@@ -412,7 +413,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         className="md:hidden fixed flex bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-border z-40 overflow-x-auto overflow-y-hidden pb-safe-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
         style={{ scrollBehavior: "smooth" }}
       >
-        <div className="flex w-full justify-around gap-1 p-1 sm:p-2 px-2 sm:px-3 shrink-0">
+        <div className="flex relative z-100 w-full justify-around gap-1 p-1 sm:p-2 px-2 sm:px-3 shrink-0">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -470,7 +471,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         } p-4 md:p-8 overflow-y-auto min-h-screen bg-background pb-24 md:pb-8 transition-all`}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="md:hidden flex justify-between items-center mb-6 sticky top-0 bg-background/95 backdrop-blur z-30 py-4 border-b border-border/50">
+          <div className="md:hidden flex justify-between items-center mb-6 sticky top-0 bg-background/95 backdrop-blur z-10 py-4 border-b border-border/50">
             <button
               onClick={() => navigate("/dashboard")}
               className="flex items-center gap-2 text-primary font-bold text-xl hover:opacity-80 transition-opacity cursor-pointer bg-none border-none p-0"
@@ -499,7 +500,11 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
             </button>
           </div>
 
-          {children}
+          <SidebarContext.Provider
+            value={{ sidebarCollapsed, setSidebarCollapsed }}
+          >
+            {children}
+          </SidebarContext.Provider>
         </div>
       </main>
 

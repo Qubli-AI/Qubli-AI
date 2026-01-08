@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Sparkles,
   Trophy,
@@ -80,7 +80,7 @@ const Overview = ({ user }) => {
         try {
           const reviewText = await generateAndSaveReview(user, userQuizzes);
           setAiReview(reviewText ?? "");
-        } catch (e) {
+        } catch {
           // AI review generation failed; set fallback text
           setAiReview("Could not generate initial review at this time.");
         } finally {

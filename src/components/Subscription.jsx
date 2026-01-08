@@ -1,4 +1,3 @@
-import React from "react";
 import { Crown, Check, Zap, Star } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -205,7 +204,7 @@ const Subscription = ({ user, onUpgrade }) => {
       );
       toast.success(`Plan updated to ${updatedUser.tier}`);
       if (onUpgrade) onUpgrade();
-    } catch (err) {
+    } catch {
       toast.error("Failed to update plan");
     }
   };
@@ -220,7 +219,7 @@ const Subscription = ({ user, onUpgrade }) => {
       await StorageService.requestRefund();
       toast.success("Refund request submitted. Check your email for details.");
       if (onUpgrade) onUpgrade();
-    } catch (err) {
+    } catch {
       toast.error("Failed to request refund. Please contact support.");
     }
   };

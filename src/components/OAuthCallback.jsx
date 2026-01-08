@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import StorageService from "../services/storageService.js";
 
 const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +13,6 @@ const OAuthCallback = () => {
     const handleOAuthCallback = async () => {
       try {
         const code = searchParams.get("code");
-        const state = searchParams.get("state");
         const provider = localStorage.getItem("oauthProvider");
         const authMode = localStorage.getItem("authMode");
 
@@ -64,7 +62,7 @@ const OAuthCallback = () => {
           toast.error(error.message || "OAuth authentication failed");
           navigate("/auth");
         }
-      } catch (error) {
+      } catch {
         // OAuth callback processing failed; notify user and redirect
         toast.error("Error processing OAuth callback");
         navigate("/auth");

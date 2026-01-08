@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
 
@@ -24,7 +24,7 @@ const Contact = () => {
       setMessage("");
       setEmail("");
       toast.success("Thanks for the feedback! We appreciate it.");
-    } catch (err) {
+    } catch {
       toast.error("Could not send message. Please try again later.");
     } finally {
       setSending(false);

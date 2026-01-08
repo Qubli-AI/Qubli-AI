@@ -1,4 +1,3 @@
-import React from "react";
 import { QuestionType } from "../../server/config/types.js";
 
 const AnswerLines = ({ marks, type }) => {

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  BookOpen,
   Calendar,
   Clock,
   BarChart3,
@@ -403,16 +402,16 @@ function AdminQuizDetail() {
                                       {isCorrect && (
                                         <CheckCircle2
                                           size={16}
-                                          className="text-emerald-600 dark:text-emerald-400 flex-shrink-0"
+                                          className="text-emerald-600 dark:text-emerald-400 shrink-0"
                                         />
                                       )}
                                       {isUserAnswer && !isCorrect && (
                                         <XCircle
                                           size={16}
-                                          className="text-red-600 dark:text-red-400 flex-shrink-0"
+                                          className="text-red-600 dark:text-red-400 shrink-0"
                                         />
                                       )}
-                                      <span className="text-sm text-textMain break-words">
+                                      <span className="text-sm text-textMain wrap-break-word">
                                         {option}
                                       </span>
                                       {isCorrect && (
@@ -442,9 +441,9 @@ function AdminQuizDetail() {
                             <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 border border-emerald-300 rounded-lg dark:bg-emerald-900/20 dark:border-emerald-700">
                               <CheckCircle2
                                 size={16}
-                                className="text-emerald-600 dark:text-emerald-400 flex-shrink-0"
+                                className="text-emerald-600 dark:text-emerald-400 shrink-0"
                               />
-                              <p className="text-sm font-medium text-emerald-900 dark:text-emerald-200 break-words">
+                              <p className="text-sm font-medium text-emerald-900 dark:text-emerald-200 wrap-break-word">
                                 {question.correctAnswer}
                               </p>
                               <button
@@ -466,7 +465,7 @@ function AdminQuizDetail() {
                             <h4 className="text-xs font-bold text-textMuted uppercase tracking-wider mb-2">
                               Explanation
                             </h4>
-                            <p className="text-sm text-textMain bg-surfaceHighlight/50 border border-border rounded-lg p-3 break-words dark:bg-slate-800/50">
+                            <p className="text-sm text-textMain bg-surfaceHighlight/50 border border-border rounded-lg p-3 wrap-break-word dark:bg-slate-800/50">
                               {question.explanation}
                             </p>
                           </div>

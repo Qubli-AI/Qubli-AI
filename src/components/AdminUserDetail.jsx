@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  Mail,
   Calendar,
   Activity,
   Shield,
@@ -15,8 +14,6 @@ import {
   Clock,
   LogOut,
   Zap,
-  AlertTriangle,
-  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import CustomTooltip from "./CustomTooltip";

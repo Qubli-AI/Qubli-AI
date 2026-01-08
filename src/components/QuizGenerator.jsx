@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
   Type,
@@ -16,6 +16,7 @@ import {
   Youtube,
   Image as ImageIcon,
 } from "lucide-react";
+import { useSidebar } from "../context/SidebarContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { generateQuiz } from "../services/geminiService.js";
@@ -34,6 +35,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState("text"); // text, pdf, youtube, image
   const [topic, setTopic] = useState("");
+  const { sidebarCollapsed } = useSidebar();
 
   useEffect(() => {
     if (location.state?.topic) {
@@ -97,6 +99,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       u++;
     }
     return `${Math.round(val * 10) / 10} ${units[u]}`;
+  };
+
+  const changeMode = (newMode) => {
+    if (newMode !== mode) {
+      setFiles([]);
+      setMode(newMode);
+    }
   };
 
   const processSelectedFiles = async (incomingFileList) => {
@@ -272,7 +281,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     setProgress(0);
 
     // Progress callback from backend
-    const handleProgress = (percentage, stage, questionsGenerated) => {
+    const handleProgress = (percentage, _stage, _questionsGenerated) => {
       setProgress(percentage);
     };
 
@@ -309,66 +318,38 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         userId: user?._id || user?.id,
       };
 
-      try {
-        const savedQuiz = await StorageService.saveQuiz(payload);
+      const savedQuiz = await StorageService.saveQuiz(payload);
 
-        // Validate response contains saved quiz ID
-        const quizId = savedQuiz._id || savedQuiz.id;
-        if (!quizId) {
-          // Server returned an unexpected response when saving the quiz
-          throw new Error(
-            "Quiz was created but server response was invalid. Please refresh."
-          );
-        }
+      // Validate response contains saved quiz ID
+      const quizId = savedQuiz._id || savedQuiz.id;
+      if (!quizId) {
+        // Server returned an unexpected response when saving the quiz
+        throw new Error(
+          "Quiz was created but server response was invalid. Please refresh."
+        );
+      }
 
-        if (generateFlashcards) {
-          const cards = quiz.questions.map((q) => ({
-            id: `fc_${q._id || q.id}`,
-            userId: user?._id || user?.id,
-            quizId: savedQuiz._id || savedQuiz.id,
-            front: cleanQuestionText(q.text),
-            back: `${q.correctAnswer}\n\n${q.explanation}`,
-            nextReview: Date.now(),
-            interval: 0,
-            repetition: 0,
-            easeFactor: 2.5,
-          }));
-          await StorageService.saveFlashcards(cards);
-          await StorageService.decrementFlashcardGeneration();
+      if (generateFlashcards) {
+        const cards = quiz.questions.map((q) => ({
+          id: `fc_${q._id || q.id}`,
+          userId: user?._id || user?.id,
+          quizId: savedQuiz._id || savedQuiz.id,
+          front: cleanQuestionText(q.text),
+          back: `${q.correctAnswer}\n\n${q.explanation}`,
+          nextReview: Date.now(),
+          interval: 0,
+          repetition: 0,
+          easeFactor: 2.5,
+        }));
+        await StorageService.saveFlashcards(cards);
+        await StorageService.decrementFlashcardGeneration();
 
-          // Award EXP for flashcard creation
-          try {
-            const expResult = await StorageService.awardFlashcardCreationExp(
-              cards.length
-            );
-
-            if (
-              expResult &&
-              expResult.achievements &&
-              expResult.achievements.length > 0
-            ) {
-              const updatedUser = await StorageService.getCurrentUser();
-              if (updatedUser) {
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-                window.dispatchEvent(
-                  new CustomEvent("userUpdated", { detail: updatedUser })
-                );
-              }
-            }
-          } catch (expErr) {
-            console.error("Error awarding EXP for flashcards:", expErr);
-          }
-        }
-
-        if (mode === "pdf") await StorageService.decrementPdfUpload();
-
-        // Award EXP for quiz creation
+        // Award EXP for flashcard creation
         try {
-          const expResult = await StorageService.awardQuizCreationExp(
-            quiz.questions.length
+          const expResult = await StorageService.awardFlashcardCreationExp(
+            cards.length
           );
 
-          // If achievements were unlocked, dispatch event to update navbar
           if (
             expResult &&
             expResult.achievements &&
@@ -383,18 +364,42 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             }
           }
         } catch (expErr) {
-          console.error("Error awarding EXP:", expErr);
+          console.error("Error awarding EXP for flashcards:", expErr);
         }
-
-        // Notify app that a quiz was generated so lists can refresh
-        window.dispatchEvent(new Event("quizGenerated"));
-
-        onGenerateSuccess();
-        // Navigate and provide the saved quiz in state to avoid an extra fetch
-        navigate(`/quiz/${quizId}`, { state: { quiz: savedQuiz } });
-      } catch (err) {
-        throw err;
       }
+
+      if (mode === "pdf") await StorageService.decrementPdfUpload();
+
+      // Award EXP for quiz creation
+      try {
+        const expResult = await StorageService.awardQuizCreationExp(
+          quiz.questions.length
+        );
+
+        // If achievements were unlocked, dispatch event to update navbar
+        if (
+          expResult &&
+          expResult.achievements &&
+          expResult.achievements.length > 0
+        ) {
+          const updatedUser = await StorageService.getCurrentUser();
+          if (updatedUser) {
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            window.dispatchEvent(
+              new CustomEvent("userUpdated", { detail: updatedUser })
+            );
+          }
+        }
+      } catch (expErr) {
+        console.error("Error awarding EXP:", expErr);
+      }
+
+      // Notify app that a quiz was generated so lists can refresh
+      window.dispatchEvent(new Event("quizGenerated"));
+
+      onGenerateSuccess();
+      // Navigate and provide the saved quiz in state to avoid an extra fetch
+      navigate(`/quiz/${quizId}`, { state: { quiz: savedQuiz } });
     } catch (error) {
       // Quiz generation failed; notify user
       toast.error(error.message || "Failed to generate quiz, try later.");
@@ -432,7 +437,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         {`@keyframes gentle-bounce {0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); }}`}
       </style>
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col gap-4 xs:flex-row xs:gap-0 justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-textMain">Create New Quiz</h1>
         <div className="text-sm text-textMuted bg-surfaceHighlight shadow-sm-custom px-4 py-1.5 rounded-full">
           {getGenerationMessage(user)}
@@ -440,11 +445,15 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       </div>
 
       <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-lg-custom">
-        <div className="flex p-1 bg-surfaceHighlight rounded-xl mb-8 w-full max-w-md mx-auto">
+        <div
+          className={`grid xs:grid-cols-2 sm:grid-cols-4 gap-1 xs:gap-3 md:gap-0 ${
+            sidebarCollapsed ? "grid-cols-2" : "grid-cols-4"
+          } p-1 bg-surfaceHighlight rounded-xl mb-10 w-full max-w-3xl mx-auto`}
+        >
           <button
             type="button"
-            onClick={() => setMode("text")}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            onClick={() => changeMode("text")}
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
               mode === "text"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
@@ -454,8 +463,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           </button>
           <button
             type="button"
-            onClick={() => setMode("pdf")}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            onClick={() => changeMode("pdf")}
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
               mode === "pdf"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"
@@ -465,8 +474,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           </button>
           <button
             type="button"
-            onClick={() => setMode("image")}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            onClick={() => changeMode("image")}
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
               mode === "image"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"
@@ -476,8 +485,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           </button>
           <button
             type="button"
-            onClick={() => setMode("youtube")}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            onClick={() => changeMode("youtube")}
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
               mode === "youtube"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"

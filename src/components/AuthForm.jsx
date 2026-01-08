@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 import {
@@ -89,7 +89,7 @@ const AuthForm = ({ onLogin }) => {
         onLogin(user); // Update auth state in App
         navigate("/dashboard", { replace: true });
       } else {
-        const response = await StorageService.register(
+        await StorageService.register(
           formData.name,
           formData.email,
           formData.password
@@ -151,7 +151,7 @@ const AuthForm = ({ onLogin }) => {
 
       // Redirect to OAuth provider
       window.location.href = `${config.authUrl}?${params.toString()}`;
-    } catch (error) {
+    } catch {
       // Failed to initiate OAuth flow; notify user
       toast.error(`Failed to connect ${provider}`);
     }

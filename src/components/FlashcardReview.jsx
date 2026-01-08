@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { CheckCircle, Clock, RotateCcw } from "lucide-react";
 
@@ -44,7 +44,7 @@ export const FlashcardReview = () => {
         setCurrentCard(null);
       }
       setIsFlipped(false);
-    } catch (e) {
+    } catch {
       // Could not load flashcards - user is notified
       toast.error("Could not load flashcards.");
     } finally {

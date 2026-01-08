@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -176,7 +176,7 @@ const Dashboard = ({ user }) => {
       const userQuizzes = await StorageService.getQuizzes(user._id);
       setQuizzes(userQuizzes?.quizzes || userQuizzes); // Handle paginated response
       calculateAdvancedStats(userQuizzes?.quizzes || userQuizzes);
-    } catch (err) {
+    } catch {
       // Failed to refresh quizzes - notify user
       toast.error("Failed to load quizzes. Please try again.");
     } finally {
@@ -285,7 +285,7 @@ const Dashboard = ({ user }) => {
         quizTitle: "",
         isDeleting: false,
       });
-    } catch (error) {
+    } catch {
       // Delete failed - notify user
       toast.error("Failed to delete quiz.");
       setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
@@ -434,7 +434,7 @@ const Dashboard = ({ user }) => {
 
       {/* Smart Actions */}
       {stats.weakestTopic !== "N/A" && (
-        <div className="bg-linear-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg-custom animate-fade-in relative overflow-hidden">
+        <div className="bg-blue-600 dark:bg-blue-800/60 rounded-2xl p-6 text-white shadow-lg-custom animate-fade-in relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
@@ -454,7 +454,7 @@ const Dashboard = ({ user }) => {
                   state: { topic: `Review: ${stats.weakestTopic}` },
                 })
               }
-              className="whitespace-nowrap px-6 py-3 bg-white text-indigo-600 font-bold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              className="whitespace-nowrap px-6 py-3 bg-white dark:bg-white/95 hover:shadow-md-custom text-primary dark:text-blue-500 font-bold rounded-xl transition-colors flex items-center gap-2 point"
             >
               <Target className="w-5 h-5" />
               Target Weak Points
@@ -815,11 +815,11 @@ const Dashboard = ({ user }) => {
       {!isStudyBuddyOpen && (
         <button
           onClick={() => setIsStudyBuddyOpen(true)}
-          className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
+          className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
           title="Open AI Study Buddy"
         >
           <Bot className="w-6 h-6" />
-          <span className="font-bold hidden sm:inline">Study Buddy</span>
+          <span className="font-bold hidden xs:inline">Study Buddy</span>
         </button>
       )}
       <StudyBuddy
