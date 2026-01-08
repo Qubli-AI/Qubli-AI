@@ -45,11 +45,7 @@ app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.set("trust proxy", 1);
 
 // CORS Configuration
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://qubli-ai.vercel.app",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+const allowedOrigins = [process.env.FRONTEND_URL].filter(Boolean);
 
 app.use(
   cors({
