@@ -112,7 +112,7 @@ const TierCard = ({ tier, currentTier, handleUpgrade }) => {
     tier === SubscriptionTier.Basic
       ? "shadow-md shadow-blue-500 dark:shadow-blue-600/40"
       : tier === SubscriptionTier.Pro &&
-        "shadow-md shadow-amber-300 dark:shadow-amber-600/40";
+        "shadow-lg shadow-amber-300 dark:shadow-amber-600/40";
 
   return (
     <div
