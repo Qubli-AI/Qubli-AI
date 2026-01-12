@@ -498,7 +498,7 @@ const Dashboard = ({ user }) => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl text-textMain dark:text-textMain/95 font-bold mb-2 flex items-center gap-2">
+              <h3 className="text-xl text-white dark:text-white/95 font-bold mb-2 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-yellow-300" />
                 Boost Your Scores!
               </h3>
