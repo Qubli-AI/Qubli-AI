@@ -2,7 +2,7 @@
 node_modules/
 
 # Admin Seeder
-server/scripts/seedAdmin.js
+server/scripts
 
 # Environment files
 .env

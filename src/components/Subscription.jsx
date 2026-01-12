@@ -13,7 +13,7 @@ const TIER_DATA = {
     colorClasses: {
       iconBg: "bg-gray-100 dark:bg-gray-300",
       iconText: "text-gray-500 dark:text-gray-600",
-      check: "text-green-500 dark:text-green-400",x
+      check: "text-green-500 dark:text-green-400",
       border: "border-border",
       buttonBg:
         "bg-surfaceHighlight hover:bg-gray-400/20 dark:hover:bg-gray-600/40",

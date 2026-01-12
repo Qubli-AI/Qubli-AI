@@ -21,7 +21,7 @@ const menuItems = [
 ];
 
 export default function AdminLayout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [admin, setAdmin] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
@@ -164,17 +164,17 @@ export default function AdminLayout() {
               {!sidebarCollapsed && (
                 <Link
                   to="/admin/dashboard"
-                  className={`flex items-center gap-2 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity duration-300 hover:opacity-90 overflow-x-none min-w-fit ${
+                  className={`flex items-center gap-2.5 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity text-[1.4rem] duration-300 hover:opacity-90 overflow-x-none min-w-fit ${
                     sidebarCollapsed
                       ? "justify-center opacity-0"
-                      : "text-xl opacity-100"
+                      : "opacity-100"
                   }`}
                   aria-label="Go to Qubli AI Dashboard"
                   title="Qubli AI"
                 >
                   <img
                     src="/icons/favicon-main.png"
-                    className="w-10 h-10"
+                    className="w-11 h-11"
                     alt="Brand Icon"
                     loading="lazy"
                   />
@@ -227,13 +227,13 @@ export default function AdminLayout() {
                   sidebarCollapsed ? "col" : "row"
                 } items-center gap-3 px-3 py-3 hover:pl-4 rounded-xl transition-all group ${
                   isActive
-                    ? "bg-indigo-50 dark:bg-primary/20 text-primary dark:text-blue-400 shadow-sm pl-4"
+                    ? "bg-indigo-100/70 dark:bg-blue-800/20 text-primary dark:text-blue-400 shadow-sm pl-4"
                     : "text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
                 }`}
               >
                 <Icon
                   size={20}
-                  strokeWidth={isActive ? 2.5 : 2}
+                  strokeWidth={isActive ? 2.15 : 2}
                   className={
                     isActive
                       ? "text-primary dark:text-blue-400"
@@ -261,7 +261,7 @@ export default function AdminLayout() {
         <div className="p-4 pt-6 border-t border-border">
           <button
             onClick={handleLogoutClick}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-textMuted hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-red-800/30 dark:hover:text-red-400 rounded-xl transition-all point ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 text-[15px] font-medium text-textMuted hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-red-800/30 dark:hover:text-red-400 rounded-xl transition-all point ${
               !sidebarCollapsed ? "justify-start" : "justify-center"
             }`}
           >

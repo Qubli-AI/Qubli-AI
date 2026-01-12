@@ -18,11 +18,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <button
           onClick={handleLogoClick}
-          className="flex items-center gap-2 font-bold text-xl text-primary dark:text-blue-400 hover:opacity-80 transition-opacity point"
+          className="flex items-center gap-3 font-bold text-[1.4rem] text-primary dark:text-blue-400 hover:opacity-90 transition-opacity point"
         >
           <img
             src="/icons/favicon-main.png"
-            className="w-10 h-10"
+            className="w-11 h-11"
             alt="Brand Icon"
             loading="lazy"
           />

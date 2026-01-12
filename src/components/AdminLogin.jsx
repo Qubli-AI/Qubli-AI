@@ -123,9 +123,12 @@ export default function AdminLogin() {
           {/* Footer */}
           <p className="text-center mt-8 text-sm text-slate-500 dark:text-slate-400">
             Not an admin?{" "}
-            <button className="font-semibold text-primary dark:text-blue-500 hover:underline point">
+            <a
+              href="https://qubli-ai.vercel.app"
+              className="font-semibold text-primary dark:text-blue-500 hover:underline point"
+            >
               Back to Main Site
-            </button>
+            </a>
           </p>
         </div>
       </div>

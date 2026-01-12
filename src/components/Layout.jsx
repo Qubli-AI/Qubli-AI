@@ -127,15 +127,15 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
               {!sidebarCollapsed && (
                 <Link
                   to="/dashboard"
-                  className={`flex items-center gap-2 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity hover:opacity-90 min-w-fit ${
-                    sidebarCollapsed ? "justify-center" : "text-xl"
+                  className={`flex items-center gap-2.5 text-primary dark:text-blue-400 font-bold tracking-tight transition-opacity hover:opacity-90 min-w-fit ${
+                    sidebarCollapsed ? "justify-center" : "text-[1.4rem]"
                   }`}
                   aria-label="Go to Qubli AI Dashboard"
                   title="Qubli AI"
                 >
                   <img
                     src="/icons/favicon-main.png"
-                    className="w-10 h-10 mx-auto"
+                    className="w-11 h-11 mx-auto"
                     alt="Brand Icon"
                     loading="lazy"
                   />
@@ -175,7 +175,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
           </div>
         </div>
 
-        <nav className="flex-1 px-2 py-4 pb-5 min-w-fit">
+        <nav className="flex flex-col px-3 space-y-2 my-4 py-3">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -183,32 +183,35 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                 key={item.path}
                 to={item.path}
                 title={item.label}
-                className={`flex items-center py-3 px-4 ${
-                  sidebarCollapsed ? "justify-center" : "hover:pl-5 gap-3"
-                } rounded-xl transition-all duration-200 mt-2 group ${
+                className={`flex flex-${
+                  sidebarCollapsed ? "col" : "row"
+                } items-center gap-3 px-3 py-3 hover:pl-4 rounded-xl transition-all group ${
                   isActive
-                    ? `bg-primary/10 text-primary dark:text-blue-400 font-semibold ${
-                        !sidebarCollapsed ? "pl-5" : ""
-                      }`
+                    ? "bg-indigo-100/70 dark:bg-blue-800/20 text-primary dark:text-blue-400 shadow-sm pl-4"
                     : "text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
                 }`}
                 aria-current={isActive ? "page" : undefined}
               >
                 <item.icon
-                  className={`w-5 h-5 transition-transform ${
-                    isActive ? "scale-110" : ""
-                  }`}
+                  size={20}
+                  strokeWidth={isActive ? 2.15 : 2}
+                  className={
+                    isActive
+                      ? "text-primary dark:text-blue-400"
+                      : "group-hover:text-textMain"
+                  }
                 />
                 {!sidebarCollapsed && (
                   <span
-                    className={`whitespace-nowrap transition-opacity duration-300 ease-in-out ${
-                      sidebarCollapsed
-                        ? "opacity-0 pointer-events-none"
-                        : "opacity-100"
+                    className={`text-[15px] font-medium transition-all ${
+                      isActive ? "opacity-100" : "opacity-80"
                     }`}
                   >
                     {item.label}
                   </span>
+                )}
+                {isActive && (
+                  <div className="absolute left-0 w-1 h-6 bg-secondary rounded-r-full" />
                 )}
               </Link>
             );
@@ -381,7 +384,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
             onClick={() => setShowSettings(true)}
             className={`flex items-center gap-3 ${
               sidebarCollapsed ? "px-3.25 justify-center" : "px-4"
-            } py-2 text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors w-full rounded-xl hover:bg-primary/5 dark:hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:ring-offset-2 mt-5 cursor-pointer`}
+            } py-2 text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors w-full rounded-xl hover:bg-indigo-100/70 dark:hover:bg-blue-800/20 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:ring-offset-2 mt-5 cursor-pointer`}
           >
             <Settings className="w-5 h-5 shrink-0" />
             {!sidebarCollapsed && <span>Settings</span>}
@@ -474,12 +477,12 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
           <div className="md:hidden flex justify-between items-center mb-6 sticky top-0 bg-background/95 backdrop-blur z-10 py-4 border-b border-border/50">
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-2 text-primary font-bold text-xl hover:opacity-80 transition-opacity cursor-pointer bg-none border-none p-0"
+              className="flex items-center gap-2.5 text-primary font-bold text-[1.4rem] hover:opacity-80 transition-opacity cursor-pointer bg-none border-none p-0"
               aria-label="Go to Qubli AI Dashboard"
             >
               <img
                 src="/icons/favicon-main.png"
-                className="w-10 h-10"
+                className="w-11 h-11"
                 alt="Brand Icon"
                 loading="lazy"
               />
