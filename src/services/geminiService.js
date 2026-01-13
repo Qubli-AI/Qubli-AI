@@ -42,7 +42,7 @@ export const generateQuiz = async (
 
   return new Promise((resolve, reject) => {
     // Use fetch with streaming response
-    fetch("/api/ai/generate", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/ai/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
