@@ -10,14 +10,13 @@ import {
   Layers,
   Eye,
   ChevronDown,
-  Loader2,
   Sparkles,
   X,
-  Youtube,
   Image as ImageIcon,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useNavigate, useLocation } from "react-router-dom";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 
 import { generateQuiz } from "../services/geminiService.js";
 import StorageService from "../services/storageService.js";
@@ -440,7 +439,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <button
             type="button"
             onClick={() => changeMode("text")}
-            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "text"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
@@ -451,7 +450,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <button
             type="button"
             onClick={() => changeMode("pdf")}
-            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "pdf"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"
@@ -462,7 +461,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <button
             type="button"
             onClick={() => changeMode("image")}
-            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "image"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"
@@ -473,13 +472,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <button
             type="button"
             onClick={() => changeMode("youtube")}
-            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "youtube"
                 ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
-            <Youtube className="w-4 h-4" /> YouTube
+            <YouTubeIcon className="w-3 h-3" /> YouTube
           </button>
         </div>
 
@@ -505,13 +504,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <Youtube className="absolute left-3 top-3.5 w-5 h-5 text-red-600" />
+                    <YouTubeIcon className="absolute left-3 top-3.25 w-5 h-5 text-red-600" />
                     <input
                       type="url"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full pl-10 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
+                      className="w-full pl-11 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
                     />
                   </div>
                 </div>
