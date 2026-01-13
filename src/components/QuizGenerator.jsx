@@ -426,7 +426,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
       <div className="flex flex-col gap-4 xs:flex-row xs:gap-0 justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-textMain">Create New Quiz</h1>
-        <div className="text-sm text-textMuted bg-surfaceHighlight shadow-sm-custom px-4 py-1.5 rounded-full">
+        <div className="text-sm text-textMuted bg-surface shadow-sm-custom px-4 py-1.5 rounded-full">
           {getGenerationMessage(user)}
         </div>
       </div>
@@ -453,7 +453,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             onClick={() => changeMode("pdf")}
             className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "pdf"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -464,7 +464,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             onClick={() => changeMode("image")}
             className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "image"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -475,7 +475,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             onClick={() => changeMode("youtube")}
             className={`flex-1 py-3 md:py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all point ${
               mode === "youtube"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-400 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -505,13 +505,13 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <YouTubeIcon className="absolute left-3 top-3.25 w-5 h-5 text-red-600" />
+                    <YouTubeIcon className="absolute left-3 top-3.25 w-5 h-5 text-red-600 dark:text-red-500" />
                     <input
                       type="url"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full pl-11 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
+                      className="w-full pl-11 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
                     />
                   </div>
                 </div>
