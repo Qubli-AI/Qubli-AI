@@ -54,7 +54,6 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     user?.tier !== "Free"
   );
   const [isDragging, setIsDragging] = useState(false);
-  const [reading, setReading] = useState(false);
 
   const userMaxQuestions = TIER_LIMITS[user?.tier]?.maxQuestions ?? 10;
   const userMaxMarks = TIER_LIMITS[user?.tier]?.maxMarks ?? 10;
@@ -603,34 +602,24 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 gap-2 pointer-events-none">
-                      {reading ? (
-                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                      ) : (
-                        <Upload
-                          className={`w-12 h-12 transition-all duration-300 ${
-                            isDragging ? "text-primary" : "text-textMuted"
-                          }`}
-                          style={{
-                            animation: isDragging
-                              ? "gentle-bounce 1s infinite ease-in-out"
-                              : "none",
-                          }}
-                        />
-                      )}
+                      <Upload
+                        className={`w-12 h-12 transition-all duration-300 ${
+                          isDragging ? "text-primary" : "text-textMuted"
+                        }`}
+                        style={{
+                          animation: isDragging
+                            ? "gentle-bounce 1s infinite ease-in-out"
+                            : "none",
+                        }}
+                      />
                       <div className="text-sm font-semibold text-textMain">
-                        {reading
-                          ? "Processing files..."
-                          : `Drag & drop ${
-                              mode === "pdf" ? "PDF" : "Images"
-                            } here`}
+                        Drag & drop {mode === "pdf" ? "PDF" : "Images"} here
                       </div>
-                      {!reading && (
-                        <div className="text-xs text-textMuted">
-                          {user?.tier === "Pro"
-                            ? "Upload multiple files • Max 10MB each"
-                            : "Single file limit • Max 10MB"}
-                        </div>
-                      )}
+                      <div className="text-xs text-textMuted">
+                        {user?.tier === "Pro"
+                          ? "Upload multiple files • Max 10MB each"
+                          : "Single file limit • Max 10MB"}
+                      </div>
                     </div>
                   )}
                 </div>

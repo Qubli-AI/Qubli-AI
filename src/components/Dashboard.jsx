@@ -530,7 +530,9 @@ const Dashboard = ({ user }) => {
                 `}
                 >
                   {/* Calculate value using the dataKey function from the constant */}
-                  {stat.dataKey(quizzes, totalAvgScore, stats, user)}
+                  {isLoading
+                    ? "..."
+                    : stat.dataKey(quizzes, totalAvgScore, stats, user)}
                 </h3>
               </div>
             </div>
@@ -771,8 +773,8 @@ const Dashboard = ({ user }) => {
       {/* All Quizzes Section */}
       <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom">
         <div
-          className={`flex flex-col min-[950px]:${
-            sidebarCollapsed ? "flex-row" : "flex-col"
+          className={`flex flex-col ${
+            sidebarCollapsed ? "min-[950px]:flex-row" : "min-[950px]:flex-col"
           } min-[1130px]:flex-row justify-between items-center mb-6 gap-4`}
         >
           <div>
@@ -862,7 +864,7 @@ const Dashboard = ({ user }) => {
 
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               className="flex items-center gap-1 px-3.5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
             >
               Next
