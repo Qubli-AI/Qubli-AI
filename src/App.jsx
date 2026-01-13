@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ToastContainer, Zoom } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
@@ -12,37 +12,42 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import Layout from "./components/Layout.jsx";
-import Dashboard from "./components/Dashboard.jsx";
-import QuizGenerator from "./components/QuizGenerator.jsx";
-import QuizTaker from "./components/QuizTaker.jsx";
-import Overview from "./components/Overview.jsx";
-import Subscription from "./components/Subscription.jsx";
-import AuthForm from "./components/AuthForm.jsx";
-import VerifyEmail from "./components/VerifyEmail.jsx";
-import OAuthCallback from "./components/OAuthCallback.jsx";
-import LandingPage from "./components/LandingPage.jsx";
-import FeaturesPage from "./components/FeaturesPage.jsx";
-import TestimonialsPage from "./components/TestimonialsPage.jsx";
-import Achievements from "./components/Achievements.jsx";
-import Leaderboard from "./components/Leaderboard.jsx";
+// Lazy-loaded components for code splitting
+const Layout = lazy(() => import("./components/Layout.jsx"));
+const Dashboard = lazy(() => import("./components/Dashboard.jsx"));
+const QuizGenerator = lazy(() => import("./components/QuizGenerator.jsx"));
+const QuizTaker = lazy(() => import("./components/QuizTaker.jsx"));
+const Overview = lazy(() => import("./components/Overview.jsx"));
+const Subscription = lazy(() => import("./components/Subscription.jsx"));
+const AuthForm = lazy(() => import("./components/AuthForm.jsx"));
+const VerifyEmail = lazy(() => import("./components/VerifyEmail.jsx"));
+const OAuthCallback = lazy(() => import("./components/OAuthCallback.jsx"));
+const LandingPage = lazy(() => import("./components/LandingPage.jsx"));
+const FeaturesPage = lazy(() => import("./components/FeaturesPage.jsx"));
+const TestimonialsPage = lazy(() =>
+  import("./components/TestimonialsPage.jsx")
+);
+const Achievements = lazy(() => import("./components/Achievements.jsx"));
+const Leaderboard = lazy(() => import("./components/Leaderboard.jsx"));
+
 // Admin components
-import AdminLogin from "./components/AdminLogin.jsx";
-import AdminLayout from "./components/AdminLayout.jsx";
-import AdminDashboard from "./components/AdminDashboard.jsx";
-import AdminUsers from "./components/AdminUsers.jsx";
-import AdminUserDetail from "./components/AdminUserDetail.jsx";
-import AdminQuizzes from "./components/AdminQuizzes.jsx";
-import AdminQuizDetail from "./components/AdminQuizDetail.jsx";
-import AdminActivity from "./components/AdminActivity.jsx";
+const AdminLogin = lazy(() => import("./components/AdminLogin.jsx"));
+const AdminLayout = lazy(() => import("./components/AdminLayout.jsx"));
+const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
+const AdminUsers = lazy(() => import("./components/AdminUsers.jsx"));
+const AdminUserDetail = lazy(() => import("./components/AdminUserDetail.jsx"));
+const AdminQuizzes = lazy(() => import("./components/AdminQuizzes.jsx"));
+const AdminQuizDetail = lazy(() => import("./components/AdminQuizDetail.jsx"));
+const AdminActivity = lazy(() => import("./components/AdminActivity.jsx"));
+
 // Static pages
-import Pricing from "./components/Pricing.jsx";
-import About from "./components/About.jsx";
-import Contact from "./components/Contact.jsx";
-import Policies from "./components/Policies.jsx";
-import Terms from "./components/Terms.jsx";
-import PublicLayout from "./components/PublicLayout.jsx";
-import NotFound from "./components/NotFound.jsx";
+const Pricing = lazy(() => import("./components/Pricing.jsx"));
+const About = lazy(() => import("./components/About.jsx"));
+const Contact = lazy(() => import("./components/Contact.jsx"));
+const Policies = lazy(() => import("./components/Policies.jsx"));
+const Terms = lazy(() => import("./components/Terms.jsx"));
+const PublicLayout = lazy(() => import("./components/PublicLayout.jsx"));
+const NotFound = lazy(() => import("./components/NotFound.jsx"));
 import StorageService from "./services/storageService.js";
 import { useTheme } from "./hooks/useTheme.js";
 
@@ -205,240 +210,248 @@ const App = () => {
       <Analytics />
       <SpeedInsights />
       <Router>
-        <Routes>
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-screen bg-gray-50">
+              <CircularProgress sx={{ color: "#2563eb" }} size={40} />
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={<Navigate to="/admin/dashboard" replace />}
-          />
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedAdminRoute>
-                <AdminLayout />
-              </ProtectedAdminRoute>
-            }
-          >
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="users/:userId" element={<AdminUserDetail />} />
-            <Route path="quizzes" element={<AdminQuizzes />} />
-            <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
-            <Route path="activity" element={<AdminActivity />} />
-          </Route>
-
-          <Route
-            path="/auth"
-            element={
-              auth.isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <AuthForm onLogin={handleLoginSuccess} />
-              )
-            }
-          />
-
-          <Route path="/auth/verify-email" element={<VerifyEmail />} />
-
-          <Route element={<PublicLayout />}>
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route
-              path="/features"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <FeaturesPage />
-                </PublicOnlyRoute>
-              }
-            />
-
-            <Route
-              path="/testimonials"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <TestimonialsPage />
-                </PublicOnlyRoute>
-              }
-            />
-
-            {/* Static pages */}
-            <Route
-              path="/pricing"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <Pricing />
-                </PublicOnlyRoute>
-              }
+              path="/admin"
+              element={<Navigate to="/admin/dashboard" replace />}
             />
             <Route
-              path="/about"
+              path="/admin/*"
               element={
-                <PublicOnlyRoute auth={auth}>
-                  <About />
-                </PublicOnlyRoute>
+                <ProtectedAdminRoute>
+                  <AdminLayout />
+                </ProtectedAdminRoute>
               }
-            />
-            <Route path="/contact" element={<Contact />} />
-            <Route
-              path="/policies"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <Policies />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/privacy"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <Policies />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <PublicOnlyRoute auth={auth}>
-                  <Terms />
-                </PublicOnlyRoute>
-              }
-            />
+            >
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="users/:userId" element={<AdminUserDetail />} />
+              <Route path="quizzes" element={<AdminQuizzes />} />
+              <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
+              <Route path="activity" element={<AdminActivity />} />
+            </Route>
 
             <Route
-              path="/"
+              path="/auth"
               element={
                 auth.isAuthenticated ? (
                   <Navigate to="/dashboard" replace />
                 ) : (
-                  <PublicOnlyRoute auth={auth}>
-                    <LandingPage onLogin={handleLoginSuccess} />
-                  </PublicOnlyRoute>
+                  <AuthForm onLogin={handleLoginSuccess} />
                 )
               }
             />
-          </Route>
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <Dashboard user={auth.user} />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route path="/auth/verify-email" element={<VerifyEmail />} />
 
-          <Route
-            path="/generate"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <QuizGenerator
+            <Route element={<PublicLayout />}>
+              <Route
+                path="/features"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <FeaturesPage />
+                  </PublicOnlyRoute>
+                }
+              />
+
+              <Route
+                path="/testimonials"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <TestimonialsPage />
+                  </PublicOnlyRoute>
+                }
+              />
+
+              {/* Static pages */}
+              <Route
+                path="/pricing"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <Pricing />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <About />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route path="/contact" element={<Contact />} />
+              <Route
+                path="/policies"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <Policies />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/privacy"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <Policies />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <PublicOnlyRoute auth={auth}>
+                    <Terms />
+                  </PublicOnlyRoute>
+                }
+              />
+
+              <Route
+                path="/"
+                element={
+                  auth.isAuthenticated ? (
+                    <Navigate to="/dashboard" replace />
+                  ) : (
+                    <PublicOnlyRoute auth={auth}>
+                      <LandingPage onLogin={handleLoginSuccess} />
+                    </PublicOnlyRoute>
+                  )
+                }
+              />
+            </Route>
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
                     user={auth.user}
-                    onGenerateSuccess={refreshUser}
-                  />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <Dashboard user={auth.user} />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/quiz/:id"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <QuizTaker
+            <Route
+              path="/generate"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
                     user={auth.user}
-                    onComplete={refreshUser}
-                    onLimitUpdate={refreshUser}
-                  />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <QuizGenerator
+                      user={auth.user}
+                      onGenerateSuccess={refreshUser}
+                    />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/overview"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <Overview user={auth.user} />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/quiz/:id"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
+                    user={auth.user}
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <QuizTaker
+                      user={auth.user}
+                      onComplete={refreshUser}
+                      onLimitUpdate={refreshUser}
+                    />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/subscription"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <Subscription user={auth.user} onUpgrade={refreshUser} />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/overview"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
+                    user={auth.user}
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <Overview user={auth.user} />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/achievements"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <Achievements user={auth.user} />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/subscription"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
+                    user={auth.user}
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <Subscription user={auth.user} onUpgrade={refreshUser} />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute auth={auth}>
-                <Layout
-                  user={auth.user}
-                  onLogout={handleLogout}
-                  refreshUser={refreshUser}
-                >
-                  <Leaderboard user={auth.user} />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/achievements"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
+                    user={auth.user}
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <Achievements user={auth.user} />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/flashcards"
-            element={<Navigate to="/overview" replace />}
-          />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute auth={auth}>
+                  <Layout
+                    user={auth.user}
+                    onLogout={handleLogout}
+                    refreshUser={refreshUser}
+                  >
+                    <Leaderboard user={auth.user} />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all 404 route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route
+              path="/flashcards"
+              element={<Navigate to="/overview" replace />}
+            />
+
+            {/* Catch-all 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </Router>
     </>
   );

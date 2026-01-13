@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import html2pdf from "html2pdf.js";
 
 import {
   Check,
@@ -35,6 +34,7 @@ import { QuestionType } from "../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 import AchievementCelebration from "./AchievementCelebration.jsx";
 import StudyBuddy from "./StudyBuddy.jsx";
+import html2pdf from "html2pdf.js";
 
 const parseBoldText = (text) => {
   if (!text) return null;
@@ -1194,6 +1194,8 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
+      // Generate PDF from the created DOM
+      const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf().set(opt).from(container).save();
     } finally {
       document.body.removeChild(container);
