@@ -79,7 +79,7 @@ const LandingPage = () => {
 
           {/* Stats */}
           <div
-            className="grid grid-cols-3 gap-4 sm:gap-8 animate-fade-in-up"
+            className="grid min-[450px]:grid-cols-3 gap-4 sm:gap-8 animate-fade-in-up"
             style={{ animationDelay: "500ms" }}
           >
             <div className="p-4 rounded-lg bg-surface border border-border hover:border-primary/50 hover:shadow-md hover:scale-102 transition-all">
