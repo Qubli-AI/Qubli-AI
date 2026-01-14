@@ -260,7 +260,11 @@ const Overview = ({ user }) => {
             </p>
           </div>
 
-          <div className="flex flex-col min-[450px]:flex-row items-center gap-4 mb-2 min-[450px]:gap-3">
+          <div
+            className={`${
+              totalPages === 0 ? "hidden" : "flex"
+            } flex-col min-[450px]:flex-row items-center gap-4 mb-2 min-[450px]:gap-3`}
+          >
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}

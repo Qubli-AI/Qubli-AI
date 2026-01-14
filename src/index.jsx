@@ -3,29 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 
-// Initialize theme immediately before rendering
-const initializeTheme = () => {
-  const savedTheme = localStorage.getItem("theme") || "system";
-  const htmlElement = document.documentElement;
-
-  if (savedTheme === "dark") {
-    htmlElement.classList.add("dark");
-  } else if (savedTheme === "light") {
-    htmlElement.classList.remove("dark");
-  } else {
-    // System preference
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    if (prefersDark) {
-      htmlElement.classList.add("dark");
-    } else {
-      htmlElement.classList.remove("dark");
-    }
-  }
-};
-
-initializeTheme();
+// Theme initialization is now handled in index.html to prevent FOUC
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
