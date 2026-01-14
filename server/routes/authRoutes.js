@@ -15,6 +15,7 @@ import {
   getOAuthUserInfo,
   findOrCreateOAuthUser,
 } from "../helpers/oauthHelper.js";
+import { generateUniqueUsername } from "../helpers/usernameHelper.js";
 import protect from "../middleware/auth.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -36,9 +37,14 @@ router.post("/register", async (req, res) => {
     const verificationCode = generateVerificationCode();
     const codeExpires = Date.now() + 30 * 60 * 1000; // 30 minutes from now
 
+    // Generate random unique username
+    const username = await generateUniqueUsername(name);
+
     const user = await User.create({
       name,
+      username,
       email,
+      picture: null, // Explicitly null to trigger auto-generated avatar
       password: hashedPassword,
       passwordIsUserSet: true, // User set their own password during signup
       tier: defaultTier,

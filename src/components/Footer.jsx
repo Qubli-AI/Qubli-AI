@@ -100,28 +100,28 @@ const Footer = () => {
             </p>
             <div className="flex gap-6">
               <a
-                href="#"
+                href="https://x.com/Qubli_AI"
                 className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                 aria-label="Twitter"
               >
                 <Twitter className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://github.com/Qubli-AI"
                 className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                 aria-label="Github"
               >
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://linkedin.com/in/qubli-ai"
                 className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="mailto:qubli.ai.app@gmail.com"
                 className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
                 aria-label="Email"
               >

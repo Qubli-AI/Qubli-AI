@@ -266,13 +266,13 @@ const BlogPost = () => {
             >
               <ReactMarkdown
                 components={{
-                  h1: ({ node, ...props }) => (
+                  h1: ({ _, ...props }) => (
                     <MarkdownHeading level={1} {...props} />
                   ),
-                  h2: ({ node, ...props }) => (
+                  h2: ({ _, ...props }) => (
                     <MarkdownHeading level={2} {...props} />
                   ),
-                  h3: ({ node, ...props }) => (
+                  h3: ({ _, ...props }) => (
                     <MarkdownHeading level={3} {...props} />
                   ),
                 }}

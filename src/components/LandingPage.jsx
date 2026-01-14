@@ -8,10 +8,6 @@ import {
   BookOpen,
   BarChart3,
   Star,
-  Github,
-  Linkedin,
-  Twitter,
-  Mail,
 } from "lucide-react";
 
 const LandingPage = ({ auth }) => {

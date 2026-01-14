@@ -2,7 +2,7 @@
 
 Qubli AI helps students pass exams by turning their notes, PDFs, and topics into instant quizzes, flashcards, and practice tests. Instead of rereading notes for hours, Qubli forces active recall — the same technique used by top students — so you learn faster, remember longer, and walk into the exam hall confident.
 
-What are **you** waiting for? [Start Now](https://qubli-ai.vercel.app)
+What are you waiting for? [Start Now](https://qubli-ai.vercel.app)
 
 ---
 

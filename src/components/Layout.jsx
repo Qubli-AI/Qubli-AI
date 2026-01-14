@@ -240,8 +240,19 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-1 overflow-hidden">
-                      <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">
-                        {user.name.charAt(0)}
+                      <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
+                        {user.picture ? (
+                          <img
+                            src={user.picture}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                            {user.name.charAt(0)}
+                          </div>
+                        )}
                       </div>
                       <div
                         className={`overflow-hidden min-w-0 transition-opacity duration-300 ease-in-out whitespace-nowrap ${
@@ -368,8 +379,19 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                 </>
               ) : (
                 <div className="flex flex-col items-center gap-5">
-                  <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
-                    {user.name.charAt(0)}
+                  <div className="w-9 h-9 rounded-full overflow-hidden">
+                    {user.picture ? (
+                      <img
+                        src={user.picture}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                        {user.name.charAt(0)}
+                      </div>
+                    )}
                   </div>
                   <Link
                     to="/subscription"

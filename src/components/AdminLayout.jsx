@@ -353,8 +353,19 @@ export default function AdminLayout() {
                               }}
                               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 dark:hover:bg-blue-900/20 text-left transition-colors group point"
                             >
-                              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800/40 text-primary dark:text-blue-400 flex items-center justify-center text-xs font-bold">
-                                {u.name.charAt(0)}
+                              <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-100 dark:bg-blue-800/40 shrink-0">
+                                {u.picture ? (
+                                  <img
+                                    src={u.picture}
+                                    alt={u.name}
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-xs font-bold text-primary dark:text-blue-400">
+                                    {u.name.charAt(0)}
+                                  </div>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold text-textMain truncate">
@@ -415,8 +426,19 @@ export default function AdminLayout() {
                   Online
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800/40 text-primary dark:text-blue-400 flex items-center justify-center font-bold border-2 border-none">
-                {admin?.name?.charAt(0).toUpperCase()}
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 dark:bg-blue-800/40 shrink-0">
+                {admin?.picture ? (
+                  <img
+                    src={admin.picture}
+                    alt={admin.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-bold text-primary dark:text-blue-400">
+                    {admin?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             </div>
           </div>

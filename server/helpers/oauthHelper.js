@@ -1,5 +1,6 @@
 import axios from "axios";
 import bcrypt from "bcryptjs";
+import { generateUniqueUsername } from "./usernameHelper.js";
 
 /**
  * Exchange OAuth authorization code for access token
@@ -153,9 +154,13 @@ export const findOrCreateOAuthUser = async (User, oauthData) => {
   const randomPassword = Math.random().toString(36).slice(-12) + "Aa1";
   const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
+  // Generate random unique username
+  const username = await generateUniqueUsername(oauthData.name);
+
   // Create new user from OAuth data
   user = new User({
     name: oauthData.name,
+    username, // Set generated username
     email: oauthData.email,
     picture: oauthData.picture,
     password: hashedPassword,
