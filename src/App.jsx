@@ -1,5 +1,4 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import CircularProgress from "@mui/material/CircularProgress";
 import { ToastContainer, Zoom } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -172,8 +171,11 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <CircularProgress sx={{ color: "#2563eb" }} size={50} />
+      <div className="flex justify-center items-center h-screen bg-background">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+        </div>
       </div>
     );
   }
@@ -206,8 +208,11 @@ const App = () => {
       <Router>
         <Suspense
           fallback={
-            <div className="flex justify-center items-center h-screen bg-gray-50">
-              <CircularProgress sx={{ color: "#2563eb" }} size={40} />
+            <div className="flex justify-center items-center h-screen bg-background">
+              <div className="relative w-10 h-10">
+                <div className="absolute inset-0 border-3 border-primary/20 rounded-full"></div>
+                <div className="absolute inset-0 border-3 border-primary rounded-full border-t-transparent animate-spin"></div>
+              </div>
             </div>
           }
         >
