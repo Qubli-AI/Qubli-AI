@@ -71,12 +71,12 @@ async function request(endpoint, method = "GET", body) {
             new CustomEvent("accountDisabled", {
               detail: {
                 message:
-                  "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at rahimsiddiqui122@gmail.com",
+                  "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at qubli.ai.app@gmail.com",
               },
             })
           );
           throw new Error(
-            "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at rahimsiddiqui122@gmail.com"
+            "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at qubli.ai.app@gmail.com"
           );
         }
         if (errorData.banned) {
@@ -85,12 +85,12 @@ async function request(endpoint, method = "GET", body) {
             new CustomEvent("accountBanned", {
               detail: {
                 message:
-                  "Your account has been banned. If you believe this is a mistake, please contact support at rahimsiddiqui122@gmail.com",
+                  "Your account has been banned. If you believe this is a mistake, please contact support at qubli.ai.app@gmail.com",
               },
             })
           );
           throw new Error(
-            "Your account has been banned. If you believe this is a mistake, please contact support at rahimsiddiqui122@gmail.com"
+            "Your account has been banned. If you believe this is a mistake, please contact support at qubli.ai.app@gmail.com"
           );
         }
       }

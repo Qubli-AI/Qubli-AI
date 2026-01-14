@@ -533,7 +533,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           // Check if quiz is disabled
           if (q.isActive === false) {
             toast.error(
-              "The quiz you selected is disabled. Please Contact support at rahimsiddiqui122@gmail.com to enable your quiz"
+              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz"
             );
             navigate("/dashboard");
             return;
@@ -606,7 +606,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         if (q.isActive === false) {
           if (isMounted) {
             toast.error(
-              "The quiz you selected is disabled. Please Contact support at rahimsiddiqui122@gmail.com to enable your quiz"
+              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz"
             );
             navigate("/dashboard");
           }

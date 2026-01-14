@@ -16,7 +16,7 @@ const Policies = () => {
           content: null,
           list: [
             "Log in to your account and navigate to the subscription page",
-            'Click "Request Refund" or contact support at rahimsiddiqui122@gmail.com',
+            'Click "Request Refund" or contact support at qubli.ai.app@gmail.com',
             "Provide your reason for the refund request",
             "We will process your request within 5 business days",
             "Refunds are issued to the original payment method",

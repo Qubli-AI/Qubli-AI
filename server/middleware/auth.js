@@ -63,7 +63,7 @@ const protect = asyncHandler(async (req, res, next) => {
       if (!user.active) {
         return res.status(403).json({
           message:
-            "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at rahimsiddiqui122@gmail.com",
+            "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at qubli.ai.app@gmail.com",
           disabled: true,
         });
       }
