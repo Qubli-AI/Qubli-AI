@@ -63,6 +63,7 @@ import flashcardRoutes from "./routes/flashcardRoutes.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import twoFARoutes from "./routes/twoFARoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
 
 app.get("/api/users/me", protect, async (req, res) => {
   try {
@@ -517,6 +518,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/flashcards", flashcardRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/blogs", blogRoutes);
 
 async function startServer() {
   try {

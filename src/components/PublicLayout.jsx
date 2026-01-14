@@ -1,14 +1,16 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
+import Footer from "./Footer.jsx";
 
-const PublicLayout = () => {
+const PublicLayout = ({ auth }) => {
   return (
-    <>
-      <Navbar />
-      <main>
+    <div className="flex flex-col min-h-screen">
+      <Navbar auth={auth} />
+      <main className="flex-grow">
         <Outlet />
       </main>
-    </>
+      <Footer />
+    </div>
   );
 };
 

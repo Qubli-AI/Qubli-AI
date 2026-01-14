@@ -46,6 +46,8 @@ const About = lazy(() => import("./components/About.jsx"));
 const Contact = lazy(() => import("./components/Contact.jsx"));
 const Policies = lazy(() => import("./components/Policies.jsx"));
 const Terms = lazy(() => import("./components/Terms.jsx"));
+const BlogList = lazy(() => import("./components/BlogList.jsx"));
+const BlogPost = lazy(() => import("./components/BlogPost.jsx"));
 const PublicLayout = lazy(() => import("./components/PublicLayout.jsx"));
 const NotFound = lazy(() => import("./components/NotFound.jsx"));
 import StorageService from "./services/storageService.js";
@@ -68,15 +70,6 @@ const ProtectedRoute = ({ children, auth }) => {
 
   if (!auth.user) {
     return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Public Only Route Wrapper - prevents authenticated users from accessing
-const PublicOnlyRoute = ({ children, auth }) => {
-  if (auth.isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -255,78 +248,24 @@ const App = () => {
 
             <Route path="/auth/verify-email" element={<VerifyEmail />} />
 
-            <Route element={<PublicLayout />}>
-              <Route
-                path="/features"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <FeaturesPage />
-                  </PublicOnlyRoute>
-                }
-              />
-
-              <Route
-                path="/testimonials"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <TestimonialsPage />
-                  </PublicOnlyRoute>
-                }
-              />
-
-              {/* Static pages */}
-              <Route
-                path="/pricing"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <Pricing />
-                  </PublicOnlyRoute>
-                }
-              />
-              <Route
-                path="/about"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <About />
-                  </PublicOnlyRoute>
-                }
-              />
+            <Route element={<PublicLayout auth={auth} />}>
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/testimonials" element={<TestimonialsPage />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route
-                path="/policies"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <Policies />
-                  </PublicOnlyRoute>
-                }
-              />
-              <Route
-                path="/privacy"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <Policies />
-                  </PublicOnlyRoute>
-                }
-              />
-              <Route
-                path="/terms"
-                element={
-                  <PublicOnlyRoute auth={auth}>
-                    <Terms />
-                  </PublicOnlyRoute>
-                }
-              />
+              <Route path="/policies" element={<Policies />} />
+              <Route path="/privacy" element={<Policies />} />
+              <Route path="/terms" element={<Terms />} />
+
+              {/* Blog Routes */}
+              <Route path="/blogs" element={<BlogList />} />
+              <Route path="/blogs/:id" element={<BlogPost />} />
 
               <Route
                 path="/"
                 element={
-                  auth.isAuthenticated ? (
-                    <Navigate to="/dashboard" replace />
-                  ) : (
-                    <PublicOnlyRoute auth={auth}>
-                      <LandingPage onLogin={handleLoginSuccess} />
-                    </PublicOnlyRoute>
-                  )
+                  <LandingPage auth={auth} onLogin={handleLoginSuccess} />
                 }
               />
             </Route>

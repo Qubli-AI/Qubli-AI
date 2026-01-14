@@ -14,7 +14,7 @@ import {
   Mail,
 } from "lucide-react";
 
-const LandingPage = () => {
+const LandingPage = ({ auth }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -63,18 +63,29 @@ const LandingPage = () => {
             className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-12 animate-fade-in-up"
             style={{ animationDelay: "400ms" }}
           >
-            <button
-              onClick={() => navigate("/auth")}
-              className="px-8 py-4 w-[90%] md:w-[45%] mx-auto rounded-xl bg-primary text-white font-bold text-md xl:text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 point"
-            >
-              Start Learning Free <ArrowRight className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate("/auth")}
-              className="px-8 py-4 w-[90%] md:w-[45%] mx-auto rounded-xl border border-border text-textMain font-bold text-md xl:text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50 hover:scale-102 point"
-            >
-              View Demo
-            </button>
+            {auth?.isAuthenticated ? (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="px-8 py-4 w-[90%] md:w-[45%] mx-auto rounded-xl bg-primary text-white font-bold text-md xl:text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 point"
+              >
+                Go to Dashboard <ArrowRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="px-8 py-4 w-[90%] md:w-[45%] mx-auto rounded-xl bg-primary text-white font-bold text-md xl:text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 point"
+                >
+                  Start Learning Free <ArrowRight className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="px-8 py-4 w-[90%] md:w-[45%] mx-auto rounded-xl border border-border text-textMain font-bold text-md xl:text-lg hover:bg-surfaceHighlight transition-all hover:border-primary/50 hover:scale-102 point"
+                >
+                  View Demo
+                </button>
+              </>
+            )}
           </div>
 
           {/* Stats */}
@@ -334,159 +345,26 @@ const LandingPage = () => {
           <p className="text-lg text-textMuted mb-8">
             Join thousands of students using Qubli AI to boost their learning
           </p>
-          <button
-            onClick={() => navigate("/auth")}
-            className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 mx-auto point"
-          >
-            Get Started Free <ArrowRight className="w-5 h-5" />
-          </button>
+          {auth?.isAuthenticated ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 mx-auto point"
+            >
+              Go to Dashboard <ArrowRight className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/auth")}
+              className="px-10 py-4 rounded-xl bg-primary text-white font-bold text-lg hover:bg-blue-700 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 flex items-center justify-center gap-2 mx-auto point"
+            >
+              Get Started Free <ArrowRight className="w-5 h-5" />
+            </button>
+          )}
           <p className="text-textMuted text-sm mt-4">
             No credit card required. Free forever for basic features.
           </p>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-surface border-t border-border py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8 text-center md:text-left">
-            {/* Brand */}
-            <div>
-              <div className="flex items-center gap-2 font-bold text-lg text-primary dark:text-blue-400 mb-4 justify-center md:justify-start">
-                <img
-                  src="/icons/favicon-main.png"
-                  className="w-10 h-10"
-                  alt="Brand Icon"
-                  loading="lazy"
-                />
-                <span>Qubli AI</span>
-              </div>
-              <p className="text-textMuted text-sm">
-                Making learning smarter with AI-powered quizzes and flashcards.
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <span className="font-bold text-[17px]">Product</span>
-              <ul className="space-y-2 mt-2.5 text-textMuted text-sm">
-                <li>
-                  <Link
-                    to="/features"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/pricing"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
-                    Blog
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <span className="font-bold text-[17px]">Company</span>
-              <ul className="space-y-2 mt-2.5 text-textMuted text-sm">
-                <li>
-                  <Link
-                    to="/about"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-textMain transition-colors">
-                    Careers
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <span className="font-bold text-[17px]">Legal</span>
-              <ul className="space-y-2 mt-2.5 text-textMuted text-sm">
-                <li>
-                  <Link
-                    to="/policies"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    Policies
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/terms"
-                    className="hover:text-textMain transition-colors"
-                  >
-                    Terms
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-border py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-textMuted text-sm">
-                &copy; {new Date().getFullYear()} Qubli AI | All rights
-                reserved.
-              </p>
-              <div className="flex gap-6">
-                <a
-                  href="#"
-                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
-                  aria-label="Github"
-                >
-                  <Github className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-textMuted hover:text-primary dark:hover:text-blue-400 transition-colors"
-                  aria-label="Email"
-                >
-                  <Mail className="w-5 h-5" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

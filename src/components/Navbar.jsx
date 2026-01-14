@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({ auth }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -55,6 +55,16 @@ const Navbar = () => {
             Features
           </Link>
           <Link
+            to="/blogs"
+            className={`transition-colors duration-200 ${
+              isActive("/blogs") || isActive("/blogs/") // match sub-routes loosely if needed, or just exact
+                ? "text-primary dark:text-blue-500 font-semibold"
+                : "text-textMuted hover:text-textMain"
+            }`}
+          >
+            Blogs
+          </Link>
+          <Link
             to="/testimonials"
             className={`transition-colors duration-200 ${
               isActive("/testimonials")
@@ -64,12 +74,22 @@ const Navbar = () => {
           >
             Testimonials
           </Link>
-          <button
-            onClick={() => navigate("/auth")}
-            className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20 point"
-          >
-            Get Started
-          </button>
+
+          {auth?.isAuthenticated ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20 point"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/auth")}
+              className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20 point"
+            >
+              Get Started
+            </button>
+          )}
         </div>
       </div>
 
@@ -94,6 +114,17 @@ const Navbar = () => {
             Features
           </Link>
           <Link
+            to="/blogs"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`pl-2 pr-4 py-3 rounded-[5px] transition-all text-textMain duration-200 border-b border-border ${
+              isActive("/blogs")
+                ? "bg-surfaceHighlight text-textMain/80 font-semibold pl-5"
+                : "hover:text-textMain hover:bg-surfaceHighlight hover:translate-x-1"
+            }`}
+          >
+            Blogs
+          </Link>
+          <Link
             to="/testimonials"
             onClick={() => setMobileMenuOpen(false)}
             className={`pl-2 pr-4 py-3 rounded-[5px] transition-all text-textMain duration-200 border-b border-border ${
@@ -104,15 +135,28 @@ const Navbar = () => {
           >
             Testimonials
           </Link>
-          <button
-            onClick={() => {
-              navigate("/auth");
-              setMobileMenuOpen(false);
-            }}
-            className="px-6 py-3 rounded-[5px] bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
-          >
-            Get Started
-          </button>
+
+          {auth?.isAuthenticated ? (
+            <button
+              onClick={() => {
+                navigate("/dashboard");
+                setMobileMenuOpen(false);
+              }}
+              className="px-6 py-3 rounded-[5px] bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
+            >
+              Go to Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                navigate("/auth");
+                setMobileMenuOpen(false);
+              }}
+              className="px-6 py-3 rounded-[5px] bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
+            >
+              Get Started
+            </button>
+          )}
         </div>
       </div>
     </nav>
