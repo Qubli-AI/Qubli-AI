@@ -184,6 +184,7 @@ const AuthForm = ({ onLogin }) => {
             className="w-18 h-18 xs:w-20 xs:h-20 mb-4 mx-auto"
             alt="Brand Icon"
             loading="lazy"
+            decoding="async"
           />
           <h1 className="text-3xl font-bold text-textMain mb-2">
             {isLogin ? "Welcome Back" : "Join Qubli AI"}

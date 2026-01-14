@@ -135,6 +135,7 @@ const TestimonialsPage = () => {
                       src={testimonial.image}
                       alt={testimonial.name}
                       loading="lazy"
+                      decoding="async"
                     />
                   )}
                   <div>

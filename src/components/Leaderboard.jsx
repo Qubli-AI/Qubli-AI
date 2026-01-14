@@ -18,6 +18,7 @@ const Medal = ({ type }) => {
       alt={`${type} medal`}
       className="w-8 h-8 object-contain"
       loading="lazy"
+      decoding="async"
     />
   );
 };
@@ -279,6 +280,7 @@ const Leaderboard = ({ user }) => {
                               alt={player.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             player.name.charAt(0)

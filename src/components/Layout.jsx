@@ -140,6 +140,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                     className="w-11 h-11 mx-auto"
                     alt="Brand Icon"
                     loading="lazy"
+                    decoding="async"
                   />
                   {!sidebarCollapsed && (
                     <span
@@ -478,6 +479,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                 className="w-11 h-11"
                 alt="Brand Icon"
                 loading="lazy"
+                decoding="async"
               />
               <span>Qubli AI</span>
             </button>

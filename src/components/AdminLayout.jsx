@@ -177,6 +177,7 @@ export default function AdminLayout() {
                     className="w-11 h-11"
                     alt="Brand Icon"
                     loading="lazy"
+                    decoding="async"
                   />
                   {!sidebarCollapsed && (
                     <span

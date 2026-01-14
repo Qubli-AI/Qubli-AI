@@ -25,6 +25,7 @@ const Navbar = ({ auth }) => {
             className="w-11 h-11"
             alt="Brand Icon"
             loading="lazy"
+            decoding="async"
           />
           <span>Qubli AI</span>
         </button>

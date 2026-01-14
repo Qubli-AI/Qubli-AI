@@ -97,6 +97,7 @@ const FeaturesPage = () => {
                       alt={feature.title}
                       className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 ) : null}
@@ -142,6 +143,7 @@ const FeaturesPage = () => {
                       alt={feature.title}
                       className="w-full h-64 object-cover rounded-xl hover:scale-105 transition-transform duration-300"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 ) : null}

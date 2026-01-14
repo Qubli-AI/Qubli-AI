@@ -247,6 +247,7 @@ function AdminUserDetail() {
                   alt={user.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 user.name.charAt(0).toUpperCase()

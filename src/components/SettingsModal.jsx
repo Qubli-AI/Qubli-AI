@@ -1768,6 +1768,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                             alt="2FA QR Code"
                             className="w-48 h-48"
                             loading="lazy"
+decoding="async"
                           />
                         </div>
                       )}

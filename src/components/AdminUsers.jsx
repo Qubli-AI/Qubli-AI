@@ -739,6 +739,7 @@ export default function AdminUsers() {
                               alt={u.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             u.name.charAt(0)

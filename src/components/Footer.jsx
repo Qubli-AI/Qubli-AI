@@ -21,6 +21,7 @@ const Footer = () => {
                 className="w-10 h-10"
                 alt="Brand Icon"
                 loading="lazy"
+                decoding="async"
               />
               <span>Qubli AI</span>
             </div>

@@ -245,6 +245,7 @@ const LandingPage = ({ auth }) => {
                   src="/images/review-sarah.png"
                   alt="Sarah Chen"
                   loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <div className="font-semibold text-textMain">Sarah Chen</div>
@@ -277,6 +278,7 @@ const LandingPage = ({ auth }) => {
                   src="/images/review-smith.png"
                   alt="James Smith"
                   loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <div className="font-semibold text-textMain">James Smith</div>
@@ -309,6 +311,7 @@ const LandingPage = ({ auth }) => {
                   src="/images/review-emily.png"
                   alt="Doctor Emily Rodriguez"
                   loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <div className="font-semibold text-textMain">
