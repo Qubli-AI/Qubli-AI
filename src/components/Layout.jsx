@@ -224,7 +224,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         <div className="p-4 border-t border-border">
           {user && (
             <div
-              className={`p-3 mb-4 ${
+              className={`p-3 mb-5 ${
                 sidebarCollapsed
                   ? "flex items-center justify-center"
                   : "bg-surfaceHighlight p-4 rounded-xl border border-border/50 shadow-md-custom"
@@ -407,7 +407,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
           <button
             onClick={() => setShowSettings(true)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1.5 text-[15px] font-medium text-textMuted hover:bg-indigo-100/60 hover:text-indigo-600 dark:hover:bg-blue-800/30 dark:hover:text-blue-400 rounded-xl transition-all point ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 mb-2 text-[15px] font-medium text-textMuted hover:bg-indigo-100/60 hover:text-indigo-600 dark:hover:bg-blue-800/30 dark:hover:text-blue-400 rounded-xl transition-all point ${
               !sidebarCollapsed ? "justify-start" : "justify-center"
             }`}
           >

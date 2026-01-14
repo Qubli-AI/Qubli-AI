@@ -1030,8 +1030,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                   </div>
 
                   {/* Hover overlay with camera icon */}
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer">
-                    <div className="flex flex-col items-center text-white">
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer">
+                    <div className="flex flex-col items-center text-textMain dark:text-textMain/95">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-6 h-6"
@@ -1065,7 +1065,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                   {/* Loading overlay */}
                   {isUpdatingPicture && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full">
-                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      <Loader2 className="w-8 h-8 text-textMain dark:text-textMain/95 animate-spin" />
                     </div>
                   )}
                 </div>
@@ -1086,7 +1086,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     className={`px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer transition-all shadow-sm hover:shadow-md ${
                       isUpdatingPicture
                         ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                        : "bg-primary text-white hover:bg-blue-700 active:scale-[0.98]"
+                        : "bg-primary dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-700/80 active:scale-[0.98]"
                     }`}
                   >
                     {isUpdatingPicture ? (
@@ -1110,7 +1110,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       type="button"
                       onClick={handleRemovePicture}
                       disabled={isUpdatingPicture}
-                      className="px-5 py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]"
+                      className="px-5 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 dark:bg-red-800/30 dark:text-red-500 hover:bg-red-100 dark:hover:bg-red-800/45 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]"
                     >
                       Remove
                     </button>
@@ -1130,14 +1130,12 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
 
               {/* Profile Details Section */}
               <div>
-                <h3 className="text-lg font-bold text-textMain mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-textMain mb-4">
                   Profile Details
                 </h3>
-                <div className="space-y-5">
-                  {/* Full Name Field */}
-                  <div className="bg-surfaceHighlight/50 rounded-xl p-4 border border-border/50">
-                    <label className="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-textMuted mb-2">
                       Full Name
                     </label>
                     <div className="flex items-center gap-2">
@@ -1145,7 +1143,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         type="text"
                         value={user?.name || ""}
                         readOnly
-                        className="flex-1 px-4 py-2.5 rounded-lg bg-surface border border-border text-textMain font-medium focus:outline-none"
+                        className="flex-1 px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                       <button
                         type="button"
@@ -1154,7 +1152,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                           setNewFullName(user?.name || "");
                           setFullNameError("");
                         }}
-                        className="p-2.5 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surface rounded-lg transition-all cursor-pointer shrink-0"
+                        className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer shrink-0"
                         title={
                           showFullNameEdit ? "Close form" : "Edit full name"
                         }
@@ -1174,9 +1172,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.25 }}
-                          className="space-y-3 mt-4 overflow-hidden"
+                          className="space-y-2 mt-4 overflow-hidden p-1"
                         >
-                          <div className="relative">
+                          <div className="relative group">
                             <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                             <input
                               type="text"
@@ -1185,40 +1183,36 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 setNewFullName(e.target.value);
                                 setFullNameError("");
                               }}
-                              placeholder="Enter new full name"
+                              placeholder="Enter full name"
                               autoFocus
-                              className={`w-full pl-11 pr-4 py-3 bg-surface border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                              className={`w-full pl-12 pr-4 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 ${
                                 fullNameError
-                                  ? "border-red-300 dark:border-red-500"
+                                  ? "border-red-300 dark:border-red-400 bg-red-50/10"
                                   : newFullName && newFullName.length >= 6
-                                  ? "border-green-400 dark:border-green-600"
+                                  ? "border-green-300 dark:border-green-600 bg-green-50/10"
                                   : "border-border"
                               }`}
                             />
                           </div>
                           {newFullName && (
-                            <div
-                              className={`text-xs font-medium flex items-center gap-1 ${
-                                newFullName.length >= 6
-                                  ? "text-green-500"
-                                  : "text-red-500"
-                              }`}
-                            >
-                              {newFullName.length >= 6 ? (
-                                <Check className="w-3 h-3" />
-                              ) : (
-                                <X className="w-3 h-3" />
-                              )}
-                              Min 6 characters
+                            <div className="text-xs font-medium space-y-1">
+                              <div
+                                className={`${
+                                  newFullName.length >= 6
+                                    ? "text-green-500 dark:text-green-400"
+                                    : "text-red-500 dark:text-red-400"
+                                }`}
+                              >
+                                ✓ Min 6 characters
+                              </div>
                             </div>
                           )}
                           {fullNameError && (
-                            <div className="text-xs text-red-500 flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
+                            <div className="text-xs text-red-500">
                               {fullNameError}
                             </div>
                           )}
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 pt-2">
                             <button
                               type="submit"
                               disabled={
@@ -1226,15 +1220,20 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 newFullName.length < 6 ||
                                 isUpdatingFullName
                               }
-                              className="flex-1 font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 bg-primary text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className={`flex-1 font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer bg-primary dark:bg-blue-700 text-white hover:text-white/90 hover:bg-blue-700 dark:hover:bg-blue-700/80 ${
+                                !newFullName ||
+                                ((newFullName.length < 6 ||
+                                  isUpdatingFullName) &&
+                                  "disabled:opacity-50 disabled:cursor-not-allowed")
+                              }`}
                             >
                               {isUpdatingFullName ? (
                                 <>
                                   <Loader2 className="w-4 h-4 animate-spin" />
-                                  Saving...
+                                  Updating...
                                 </>
                               ) : (
-                                "Save Changes"
+                                "Change Full Name"
                               )}
                             </button>
                             <button
@@ -1244,7 +1243,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 setNewFullName("");
                                 setFullNameError("");
                               }}
-                              className="px-4 py-2.5 rounded-xl font-semibold bg-gray-100 dark:bg-gray-700 text-textMain hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                              className="flex-1 font-semibold py-2 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 text-textMain hover:bg-gray-300 dark:hover:bg-gray-600/80 cursor-pointer"
                             >
                               Cancel
                             </button>
@@ -1253,24 +1252,17 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                       )}
                     </AnimatePresence>
                   </div>
-
-                  {/* Username Field */}
-                  <div className="bg-surfaceHighlight/50 rounded-xl p-4 border border-border/50">
-                    <label className="block text-xs font-semibold text-textMuted uppercase tracking-wider mb-2">
+                  <div>
+                    <label className="block text-sm font-medium text-textMuted mb-2">
                       Username
                     </label>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 flex items-center">
-                        <span className="px-3 py-2.5 bg-gray-100 dark:bg-gray-800 text-textMuted rounded-l-lg border border-r-0 border-border">
-                          @
-                        </span>
-                        <input
-                          type="text"
-                          value={user?.username || user?.name || ""}
-                          readOnly
-                          className="flex-1 px-3 py-2.5 rounded-r-lg bg-surface border border-border text-textMain font-medium focus:outline-none"
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        value={user?.username || user?.name || ""}
+                        readOnly
+                        className="flex-1 px-4 py-2 rounded-lg bg-surfaceHighlight border border-border text-textMain focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
                       <button
                         type="button"
                         onClick={() => {
@@ -1281,7 +1273,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                           setNewUsername(pref);
                           setUsernameError("");
                         }}
-                        className="p-2.5 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surface rounded-lg transition-all cursor-pointer shrink-0"
+                        className="p-2 text-textMuted hover:text-primary dark:hover:text-blue-400 hover:bg-surfaceHighlight rounded-lg transition-all cursor-pointer shrink-0"
                         title={
                           showUsernameEdit ? "Close form" : "Edit username"
                         }
@@ -1300,13 +1292,11 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-3 mt-4 overflow-hidden"
+                          transition={{ duration: 0.3 }}
+                          className="space-y-2 mt-4 overflow-hidden p-1"
                         >
-                          <div className="relative">
-                            <span className="absolute left-3 top-3 text-gray-400 font-medium">
-                              @
-                            </span>
+                          <div className="relative group">
+                            <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                             <input
                               type="text"
                               value={newUsername}
@@ -1317,105 +1307,89 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 setNewUsername(clean);
                                 setUsernameError("");
                               }}
-                              placeholder="newusername"
+                              placeholder="Enter new username"
                               autoFocus
-                              className={`w-full pl-8 pr-10 py-3 bg-surface border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                              className={`w-full pl-12 pr-4 py-3 bg-surfaceHighlight border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 ${
                                 usernameError
-                                  ? "border-red-300 dark:border-red-500"
-                                  : newUsername &&
-                                    newUsername.length >= 6 &&
-                                    !/\s/.test(newUsername) &&
-                                    !/[A-Z]/.test(newUsername)
-                                  ? "border-green-400 dark:border-green-600"
+                                  ? "border-red-300 dark:border-red-400 bg-red-50/10"
+                                  : newUsername && newUsername.length >= 6
+                                  ? "border-green-300 dark:border-green-600 bg-green-50/10"
                                   : "border-border"
                               }`}
                             />
-                            {newUsername &&
-                              newUsername.length >= 6 &&
-                              !/\s/.test(newUsername) &&
-                              !/[A-Z]/.test(newUsername) &&
-                              !usernameError && (
-                                <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500" />
-                              )}
-                          </div>
-
-                          {/* Username suggestions */}
-                          {showUsernameEdit &&
-                            !checkingVariants &&
-                            suggestedVariants.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {suggestedVariants.slice(0, 3).map((v) => (
-                                  <button
-                                    key={v}
-                                    type="button"
-                                    onClick={() => setNewUsername(v)}
-                                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
-                                      newUsername === v
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "border-border bg-surface text-textMuted hover:border-primary/50"
-                                    }`}
-                                  >
-                                    @{v}
-                                  </button>
-                                ))}
+                            {/* Suggested sanitized username variants (3 per row) */}
+                            {showUsernameEdit && (
+                              <div className="mt-3">
+                                {checkingVariants ? (
+                                  <div className="text-sm text-textMuted">
+                                    Checking suggestions...
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {suggestedVariants.slice(0, 3).map((v) => (
+                                      <button
+                                        key={v}
+                                        type="button"
+                                        onClick={() => setNewUsername(v)}
+                                        className={`cursor-pointer px-2 py-1 text-sm rounded border overflow-hidden whitespace-nowrap truncate ${
+                                          newUsername === v
+                                            ? "border-primary bg-primary/10"
+                                            : "border-border bg-surface"
+                                        }`}
+                                      >
+                                        {v}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             )}
-
+                            {newUsername &&
+                            newUsername.length >= 6 &&
+                            !/\s/.test(newUsername) &&
+                            !/[A-Z]/.test(newUsername) &&
+                            !usernameError ? (
+                              <Check className="absolute right-3 top-3.5 w-5 h-5 text-green-500 dark:text-green-400" />
+                            ) : newUsername &&
+                              (/\s/.test(newUsername) ||
+                                /[A-Z]/.test(newUsername) ||
+                                newUsername.length < 6 ||
+                                usernameError) ? (
+                              <X className="absolute right-3 top-3.5 w-5 h-5 text-red-500 dark:text-red-400" />
+                            ) : null}
+                          </div>
                           {newUsername && (
-                            <div className="flex flex-wrap gap-3 text-xs font-medium">
+                            <div className="text-xs font-medium space-y-1">
                               <div
-                                className={`flex items-center gap-1 ${
+                                className={`${
                                   newUsername.length >= 6
-                                    ? "text-green-500"
-                                    : "text-red-500"
+                                    ? "text-green-500 dark:text-green-400"
+                                    : "text-red-500 dark:text-red-400"
                                 }`}
                               >
-                                {newUsername.length >= 6 ? (
-                                  <Check className="w-3 h-3" />
-                                ) : (
-                                  <X className="w-3 h-3" />
-                                )}
-                                6+ chars
+                                ✓ Min 6 characters
                               </div>
                               <div
-                                className={`flex items-center gap-1 ${
+                                className={`${
                                   !/\s/.test(newUsername)
-                                    ? "text-green-500"
-                                    : "text-red-500"
+                                    ? "text-green-500 dark:text-green-400"
+                                    : "text-red-500 dark:text-red-400"
                                 }`}
                               >
-                                {!/\s/.test(newUsername) ? (
-                                  <Check className="w-3 h-3" />
-                                ) : (
-                                  <X className="w-3 h-3" />
-                                )}
-                                No spaces
+                                ✓ No spaces allowed
                               </div>
                               <div
-                                className={`flex items-center gap-1 ${
+                                className={`mb-1 ${
                                   !/[A-Z]/.test(newUsername)
-                                    ? "text-green-500"
-                                    : "text-red-500"
+                                    ? "text-green-500 dark:text-green-400"
+                                    : "text-red-500 dark:text-red-400"
                                 }`}
                               >
-                                {!/[A-Z]/.test(newUsername) ? (
-                                  <Check className="w-3 h-3" />
-                                ) : (
-                                  <X className="w-3 h-3" />
-                                )}
-                                Lowercase
+                                ✓ No uppercase letters
                               </div>
                             </div>
                           )}
-
-                          {usernameError && (
-                            <div className="text-xs text-red-500 flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
-                              {usernameError}
-                            </div>
-                          )}
-
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 pt-2">
                             <button
                               type="submit"
                               disabled={
@@ -1426,15 +1400,22 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 usernameError ||
                                 isUpdatingUsername
                               }
-                              className="flex-1 font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 bg-primary text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className={`flex-1 font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer bg-primary dark:bg-blue-700 text-white hover:text-white/90 hover:bg-blue-700 dark:hover:bg-blue-700/80 ${
+                                !newUsername ||
+                                newUsername.length < 6 ||
+                                /\s/.test(newUsername) ||
+                                /[A-Z]/.test(newUsername) ||
+                                ((usernameError || isUpdatingUsername) &&
+                                  "disabled:opacity-50 disabled:cursor-not-allowed")
+                              }`}
                             >
                               {isUpdatingUsername ? (
                                 <>
                                   <Loader2 className="w-4 h-4 animate-spin" />
-                                  Saving...
+                                  Updating...
                                 </>
                               ) : (
-                                "Save Changes"
+                                "Change Username"
                               )}
                             </button>
                             <button
@@ -1444,7 +1425,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 setNewUsername("");
                                 setUsernameError("");
                               }}
-                              className="px-4 py-2.5 rounded-xl font-semibold bg-gray-100 dark:bg-gray-700 text-textMain hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                              className="flex-1 font-semibold py-2 rounded-lg transition-all bg-gray-200 dark:bg-gray-600 text-textMain hover:bg-gray-300 dark:hover:bg-gray-600/80 cursor-pointer"
                             >
                               Cancel
                             </button>
