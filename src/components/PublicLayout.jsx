@@ -6,8 +6,8 @@ const PublicLayout = ({ auth }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar auth={auth} />
-      <main className="flex-grow">
-        <Outlet />
+      <main className="grow">
+        <Outlet context={{ auth }} />
       </main>
       <Footer />
     </div>

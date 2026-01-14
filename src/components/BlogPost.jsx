@@ -1,23 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Clock,
   Calendar,
   Share2,
-  Edit,
-  Trash2,
-  EyeOff,
-  Eye,
   Loader2,
   List,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import blogService from "../services/blogService";
-import StorageService from "../services/storageService";
-import BlogEditor from "./admin/BlogEditor";
 
 const BlogPost = () => {
   const { id } = useParams();
@@ -25,19 +19,18 @@ const BlogPost = () => {
 
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
-
-  // Reading Progress
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
 
   // TOC
   const [toc, setToc] = useState([]);
+
+  // Helper to generate slugs from text
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "") // Remove special chars
+      .replace(/\s+/g, "-") // Space to dash
+      .replace(/^-+|-+$/g, ""); // Trim dashes
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,11 +45,16 @@ const BlogPost = () => {
           const headers = lines
             .filter((line) => line.startsWith("#"))
             .map((line) => {
-              const level = line.match(/^#+/)[0].length;
-              const text = line.replace(/^#+\s+/, "");
-              const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              const match = line.match(/^(#+)\s+(.*)$/);
+              if (!match) return null;
+              const level = match[1].length;
+              // Remove markdown syntax like **bold** or *italic* for the TOC text
+              let text = match[2];
+              text = text.replace(/[*_~`]/g, ""); // Simple cleanup
+              const id = generateSlug(text);
               return { level, text, id };
-            });
+            })
+            .filter(Boolean);
           setToc(headers);
         }
       } catch (error) {
@@ -66,50 +64,33 @@ const BlogPost = () => {
       }
     };
 
-    const checkAdmin = () => {
-      const user = StorageService.getCurrentUser();
-      setIsAdmin(user?.role === "admin");
-    };
-
-    checkAdmin();
     fetchData();
   }, [id]);
-
-  const handleDelete = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this blog post? This action cannot be undone."
-      )
-    ) {
-      try {
-        await blogService.deleteBlog(blog._id);
-        toast.success("Blog deleted successfully");
-        navigate("/blogs");
-      } catch {
-        toast.error("Failed to delete blog");
-      }
-    }
-  };
-
-  const handlePublishToggle = async () => {
-    try {
-      const updatedBlog = await blogService.updateBlog(blog._id, {
-        isPublished: !blog.isPublished,
-      });
-      setBlog(updatedBlog);
-      toast.success(
-        `Blog ${
-          updatedBlog.isPublished ? "published" : "unpublished"
-        } successfully`
-      );
-    } catch {
-      toast.error("Failed to update status");
-    }
-  };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Link copied to clipboard!");
+  };
+
+  // Helper component to render headers with IDs
+  const MarkdownHeading = ({ level, children, ...props }) => {
+    // Extract text content recursively
+    const getText = (node) => {
+      if (typeof node === "string") return node;
+      if (Array.isArray(node)) return node.map(getText).join("");
+      if (node?.props?.children) return getText(node.props.children);
+      return "";
+    };
+
+    const text = getText(children);
+    const id = generateSlug(text);
+    const Tag = `h${level}`;
+
+    return (
+      <Tag id={id} className="scroll-mt-32" {...props}>
+        {children}
+      </Tag>
+    );
   };
 
   if (loading) {
@@ -123,10 +104,12 @@ const BlogPost = () => {
   if (!blog) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-textMain">
-        <h1 className="text-3xl font-bold mb-4">Blog Not Found</h1>
+        <h1 className="text-4xl xs:text-4xl sm:text-5xl font-bold mb-6 sm:mb-8">
+          Blog Not Found
+        </h1>
         <button
           onClick={() => navigate("/blogs")}
-          className="text-primary hover:underline flex items-center gap-2"
+          className="text-primary bg-primary/10 py-2 px-5 font-medium rounded-xl flex items-center gap-2 point"
         >
           <ArrowLeft size={20} /> Back to Blogs
         </button>
@@ -136,55 +119,16 @@ const BlogPost = () => {
 
   return (
     <>
-      {/* Reading Progress Bar */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1.5 bg-primary origin-left z-50"
-        style={{ scaleX }}
-      />
-
-      <article className="min-h-screen pt-24 pb-0 bg-background dark:bg-gray-900 transition-colors duration-300">
-        {/* Admin Control Bar */}
-        {isAdmin && (
-          <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
-            <button
-              onClick={() => setShowEditor(true)}
-              className="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all tooltip"
-              title="Edit Blog"
-            >
-              <Edit size={24} />
-            </button>
-            <button
-              onClick={handlePublishToggle}
-              className={`p-3 rounded-full shadow-lg transition-all text-white ${
-                blog.isPublished
-                  ? "bg-amber-500 hover:bg-amber-600"
-                  : "bg-green-500 hover:bg-green-600"
-              }`}
-              title={blog.isPublished ? "Unpublish" : "Publish"}
-            >
-              {blog.isPublished ? <EyeOff size={24} /> : <Eye size={24} />}
-            </button>
-            <button
-              onClick={handleDelete}
-              className="p-3 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-all"
-              title="Delete Blog"
-            >
-              <Trash2 size={24} />
-            </button>
-          </div>
-        )}
-
+      <article className="min-h-screen pt-28 pb-0 bg-background dark:bg-gray-900 transition-colors duration-300">
         {/* Hero Section */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => navigate("/blogs")}
-            className="group flex items-center gap-2 text-textMuted hover:text-primary transition-colors mb-8"
+            className="group flex items-center gap-2 text-textMuted hover:text-textMain transition-colors mb-8 point bg-surfaceHighlight/50 hover:bg-surfaceHighlight/60 rounded-full py-2 px-4"
           >
-            <div className="p-2 rounded-full bg-surface dark:bg-gray-800 group-hover:bg-primary/10 transition-colors border border-border">
-              <ArrowLeft size={18} />
-            </div>
+            <ArrowLeft size={18} />
             <span className="font-medium">Back to Blogs</span>
           </motion.button>
 
@@ -192,12 +136,12 @@ const BlogPost = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex flex-wrap items-center gap-4 text-sm text-primary font-semibold mb-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-primary dark:text-blue-500 font-semibold mb-4">
               {blog.tags &&
                 blog.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="bg-primary/10 px-3 py-1 rounded-full"
+                    className="bg-primary/10 dark:bg-blue-800/15 px-3 py-1 rounded-full"
                   >
                     {tag}
                   </span>
@@ -208,20 +152,15 @@ const BlogPost = () => {
                   {new Date(blog.publishedAt).toLocaleDateString()}
                 </span>
               )}
-              {!blog.isPublished && (
-                <span className="text-amber-500 font-bold border border-amber-500 px-2 rounded uppercase text-xs">
-                  Draft
-                </span>
-              )}
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-bold text-textMain dark:text-white leading-tight mb-6">
+            <h1 className="text-3xl md:text-5xl font-bold text-textMain dark:text-textMain/95 leading-tight mb-6">
               {blog.title}
             </h1>
 
             <div className="flex items-center justify-between border-b border-border pb-8">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-linear-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-linear-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold text-md overflow-hidden">
                   {blog.author?.picture ? (
                     <img
                       src={blog.author.picture}
@@ -244,7 +183,7 @@ const BlogPost = () => {
 
               <button
                 onClick={handleShare}
-                className="p-2 rounded-full hover:bg-surfaceHighlight text-textMuted hover:text-primary transition-colors"
+                className="p-2 rounded-full hover:bg-primary/10 dark:hover:bg-blue-800/20 text-textMuted hover:text-primary dark:hover:text-blue-500 transition-colors point"
                 title="Share"
               >
                 <Share2 size={20} />
@@ -271,31 +210,45 @@ const BlogPost = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-12 relative">
           {/* Table of Contents - Desktop */}
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-4">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <List size={18} /> Table of Contents
-              </h3>
-              <ul className="space-y-2 text-sm border-l-2 border-border pl-4">
-                {toc.map((heading, idx) => (
-                  <li key={idx} className={`pl-${(heading.level - 1) * 2}`}>
-                    <a
-                      href={`#${heading.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        document
-                          .getElementById(heading.id)
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                      className="text-textMuted hover:text-primary transition-colors block py-0.5"
-                    >
-                      {heading.text}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+          {toc.length > 0 && (
+            <aside className="hidden lg:block w-64 shrink-0">
+              <div className="sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-4 pb-16 custom-scrollbar">
+                <h3 className="text-lg text-textMain dark:text-textMain/95 font-bold mb-4 flex items-center gap-2">
+                  <List size={18} /> Table of Contents
+                </h3>
+                <ul className="space-y-2 text-sm border-l-2 border-border pl-4">
+                  {toc.map((heading, idx) => (
+                    <li key={idx} className={`pl-${(heading.level - 1) * 2}`}>
+                      <a
+                        href={`#${heading.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const el = document.getElementById(heading.id);
+                          if (el) {
+                            // Manual scroll with offset just in case specific browsers ignore scroll-margin
+                            const offset = 100;
+                            const elementPosition =
+                              el.getBoundingClientRect().top;
+                            const offsetPosition =
+                              elementPosition + window.scrollY - offset;
+
+                            window.scrollTo({
+                              top: offsetPosition,
+                              behavior: "smooth",
+                            });
+                          }
+                        }}
+                        className="text-textMuted hover:text-primary transition-colors block py-0.5 line-clamp-1"
+                        title={heading.text}
+                      >
+                        {heading.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          )}
 
           {/* Content */}
           <div className="max-w-3xl grow mx-auto lg:mx-0">
@@ -313,32 +266,14 @@ const BlogPost = () => {
             >
               <ReactMarkdown
                 components={{
-                  h1: ({ _node, ...props }) => (
-                    <h1
-                      id={props.children
-                        ?.toString()
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")}
-                      {...props}
-                    />
+                  h1: ({ node, ...props }) => (
+                    <MarkdownHeading level={1} {...props} />
                   ),
-                  h2: ({ _node, ...props }) => (
-                    <h2
-                      id={props.children
-                        ?.toString()
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")}
-                      {...props}
-                    />
+                  h2: ({ node, ...props }) => (
+                    <MarkdownHeading level={2} {...props} />
                   ),
-                  h3: ({ _node, ...props }) => (
-                    <h3
-                      id={props.children
-                        ?.toString()
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")}
-                      {...props}
-                    />
+                  h3: ({ node, ...props }) => (
+                    <MarkdownHeading level={3} {...props} />
                   ),
                 }}
               >
@@ -348,33 +283,19 @@ const BlogPost = () => {
 
             {/* Footer Navigation */}
             <div className="mt-16 pt-8 border-t border-border flex justify-between items-center mb-12">
-              <h3 className="text-xl font-bold text-textMain dark:text-white">
+              <h3 className="text-xl font-bold text-textMain dark:text-textMain/95">
                 Continued Learning
               </h3>
               <button
                 onClick={() => navigate("/blogs")}
-                className="md:px-6 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-primary/25"
+                className="md:px-6 px-4 py-2 bg-primary dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-colors font-medium shadow-lg shadow-primary/25 point"
               >
                 Read More Articles
               </button>
             </div>
           </div>
         </div>
-
-        <Footer />
       </article>
-
-      {/* Admin Editor Modal for Editing */}
-      {showEditor && (
-        <BlogEditor
-          blog={blog}
-          onClose={() => setShowEditor(false)}
-          onSave={async () => {
-            const updated = await blogService.getBlogBySlug(id); // Re-fetch
-            setBlog(updated);
-          }}
-        />
-      )}
     </>
   );
 };

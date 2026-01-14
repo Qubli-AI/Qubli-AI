@@ -1,41 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, User, ArrowRight, Plus, Loader2 } from "lucide-react";
+import { Clock, User, ArrowRight, Loader2 } from "lucide-react";
 import blogService from "../services/blogService";
-import StorageService from "../services/storageService";
-import BlogEditor from "./admin/BlogEditor";
-import Footer from "./Footer";
 
 const BlogList = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
-
-  useEffect(() => {
-    const checkAdmin = () => {
-      const user = StorageService.getCurrentUser();
-      setIsAdmin(user?.role === "admin");
-    };
-
-    checkAdmin();
-    // Listen for user updates
-    window.addEventListener("userUpdated", checkAdmin);
-    return () => window.removeEventListener("userUpdated", checkAdmin);
-  }, []);
 
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const user = StorageService.getCurrentUser();
-      let data;
-      if (user?.role === "admin") {
-        data = await blogService.getAdminBlogs();
-      } else {
-        data = await blogService.getAllBlogs();
-      }
+      const data = await blogService.getAllBlogs();
       setBlogs(data);
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
@@ -46,7 +23,7 @@ const BlogList = () => {
 
   useEffect(() => {
     fetchBlogs();
-  }, [isAdmin]); // Re-fetch if admin status changes (e.g. login)
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-textMain animate-fade-in-up flex flex-col">
@@ -81,18 +58,6 @@ const BlogList = () => {
             Explore the latest trends in AI learning, study tips, and
             educational technology.
           </motion.p>
-
-          {isAdmin && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              onClick={() => setShowEditor(true)}
-              className="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 mx-auto"
-            >
-              <Plus size={20} /> Create New Post
-            </motion.button>
-          )}
         </div>
       </section>
 
@@ -117,19 +82,6 @@ const BlogList = () => {
                   transition={{ delay: index * 0.1 }}
                   className="group bg-surface dark:bg-gray-800 rounded-2xl overflow-hidden border border-border shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full relative"
                 >
-                  {/* Admin Status Badge */}
-                  {isAdmin && (
-                    <div
-                      className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-bold shadow-md ${
-                        blog.isPublished
-                          ? "bg-green-500 text-white"
-                          : "bg-yellow-500 text-white"
-                      }`}
-                    >
-                      {blog.isPublished ? "Published" : "Draft"}
-                    </div>
-                  )}
-
                   {/* Image Container */}
                   <div
                     className="relative h-48 overflow-hidden cursor-pointer"
@@ -186,13 +138,6 @@ const BlogList = () => {
           )}
         </div>
       </section>
-
-      <Footer />
-
-      {/* Admin Editor Modal */}
-      {showEditor && (
-        <BlogEditor onClose={() => setShowEditor(false)} onSave={fetchBlogs} />
-      )}
     </div>
   );
 };

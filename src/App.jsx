@@ -38,6 +38,7 @@ const AdminUsers = lazy(() => import("./components/AdminUsers.jsx"));
 const AdminUserDetail = lazy(() => import("./components/AdminUserDetail.jsx"));
 const AdminQuizzes = lazy(() => import("./components/AdminQuizzes.jsx"));
 const AdminQuizDetail = lazy(() => import("./components/AdminQuizDetail.jsx"));
+const AdminBlogs = lazy(() => import("./components/AdminBlogs.jsx"));
 const AdminActivity = lazy(() => import("./components/AdminActivity.jsx"));
 
 // Static pages
@@ -232,6 +233,7 @@ const App = () => {
               <Route path="users/:userId" element={<AdminUserDetail />} />
               <Route path="quizzes" element={<AdminQuizzes />} />
               <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
+              <Route path="blogs" element={<AdminBlogs />} />
               <Route path="activity" element={<AdminActivity />} />
             </Route>
 
