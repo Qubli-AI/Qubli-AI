@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import StorageService from "../services/storageService.js";
+import StorageService from "../../services/storageService.js";
 import ConfirmLogoutModal from "./ConfirmLogoutModal";
 
 const SettingsModal = ({ onClose, user, refreshUser }) => {
@@ -257,6 +257,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        // Refresh user state to sync UI immediately
+        if (refreshUser) refreshUser();
       } else {
         toast.error(
           "Failed to change password. Please check your current password."

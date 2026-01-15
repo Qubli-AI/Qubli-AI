@@ -16,16 +16,16 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import CustomTooltip from "./CustomTooltip";
-import ConfirmActionModal from "./ConfirmActionModal";
-import StorageService from "../services/storageService";
+import CustomTooltip from "../user/CustomTooltip";
+import ConfirmActionModal from "../user/ConfirmActionModal";
+import StorageService from "../../services/storageService";
 import {
   getUsers,
   toggleUserActive,
   toggleUserBan,
   promoteUserToAdmin,
   demoteAdminToUser,
-} from "../services/adminService";
+} from "../../services/adminService";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -67,87 +67,42 @@ export default function AdminUsers() {
     setCurrentUser(current);
   }, []);
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    const fetchId = ++latestFetchId.current;
+    try {
+      const res = await getUsers(
+        pagination.page,
+        pagination.limit,
+        debouncedSearch,
+        filters.role,
+        filters.status
+      );
+
+      if (!mounted.current || fetchId !== latestFetchId.current) return;
+
+      setUsers(res.users || []);
+      setPagination((p) => ({
+        ...p,
+        page: pagination.page,
+        pages: res.pagination?.pages || 1,
+        total: res.pagination?.total || 0,
+      }));
+    } catch (e) {
+      if (!mounted.current || fetchId !== latestFetchId.current) return;
+      console.error("Error fetching users:", e);
+      toast.error(`Failed to load users: ${e.message || e}`);
+      setUsers([]);
+    } finally {
+      if (mounted.current && fetchId === latestFetchId.current) {
+        setLoading(false);
+      }
+    }
+  };
+
   // Single effect that handles all data fetching
   useEffect(() => {
-    setLoading(true);
-
-    const doFetch = async () => {
-      const fetchId = ++latestFetchId.current;
-      try {
-        const res = await getUsers(
-          pagination.page,
-          pagination.limit,
-          debouncedSearch,
-          filters.role,
-          filters.status
-        );
-
-        if (!mounted.current || fetchId !== latestFetchId.current) return;
-
-        setUsers(res.users || []);
-        setPagination((p) => ({
-          ...p,
-          page: pagination.page,
-          pages: res.pagination?.pages || 1,
-          total: res.pagination?.total || 0,
-        }));
-      } catch (e) {
-        if (!mounted.current || fetchId !== latestFetchId.current) return;
-        console.error("Error fetching users:", e);
-        toast.error(`Failed to load users: ${e.message || e}`);
-        setUsers([]);
-      } finally {
-        if (mounted.current && fetchId === latestFetchId.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    doFetch();
-  }, [
-    pagination.page,
-    pagination.limit,
-    debouncedSearch,
-    filters.role,
-    filters.status,
-  ]);
-
-  // Set up auto-refresh every 15 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Refetch users without changing page
-      const doFetch = async () => {
-        const fetchId = ++latestFetchId.current;
-        try {
-          const res = await getUsers(
-            pagination.page,
-            pagination.limit,
-            debouncedSearch,
-            filters.role,
-            filters.status
-          );
-
-          if (!mounted.current || fetchId !== latestFetchId.current) return;
-
-          setUsers(res.users || []);
-          setPagination((p) => ({
-            ...p,
-            pages: res.pagination?.pages || 1,
-            total: res.pagination?.total || 0,
-          }));
-        } catch (e) {
-          console.error("Auto-refresh failed:", e);
-        } finally {
-          if (mounted.current && fetchId === latestFetchId.current) {
-            setLoading(false);
-          }
-        }
-      };
-
-      doFetch();
-    }, 15000); // 15 seconds
-
-    return () => clearInterval(interval);
+    fetchUsers();
   }, [
     pagination.page,
     pagination.limit,
@@ -204,6 +159,7 @@ export default function AdminUsers() {
     try {
       await promoteUserToAdmin(selectedUserForModal._id);
       toast.success("User promoted to admin successfully");
+      fetchUsers();
       setShowPromoteModal(false);
       setSelectedUserForModal(null);
     } catch {
@@ -230,6 +186,7 @@ export default function AdminUsers() {
     try {
       await demoteAdminToUser(selectedUserForModal._id);
       toast.success("Admin demoted to user successfully");
+      fetchUsers();
       setShowDemoteModal(false);
       setSelectedUserForModal(null);
     } catch {
@@ -262,6 +219,7 @@ export default function AdminUsers() {
           ? "Account disabled successfully"
           : "Account enabled successfully"
       );
+      fetchUsers();
       setShowDisableModal(false);
       setSelectedUserForModal(null);
     } catch {
@@ -294,6 +252,7 @@ export default function AdminUsers() {
           ? "User unbanned successfully"
           : "User banned successfully"
       );
+      fetchUsers();
       setShowBanModal(false);
       setSelectedUserForModal(null);
     } catch {
@@ -863,8 +822,9 @@ export default function AdminUsers() {
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-border bg-surfaceHighlight/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[11px] font-bold text-textMuted uppercase tracking-widest">
-            Showing <span className="text-textMain">{users.length}</span> of{" "}
-            <span className="text-textMain">{pagination.total}</span> Users
+            Showing <span className="text-textMain">{pagination.page}</span> of{" "}
+            <span className="text-textMain">{pagination.pages}</span> Page
+            {pagination.pages === 1 ? "" : "s"}
           </p>
 
           <div className="flex items-center gap-2">

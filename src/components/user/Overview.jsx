@@ -15,9 +15,9 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import StorageService from "../services/storageService.js";
-import { generateAndSaveReview } from "../services/geminiService.js";
-import { useSidebar } from "../context/SidebarContext";
+import StorageService from "../../services/storageService.js";
+import { generateAndSaveReview } from "../../services/geminiService.js";
+import { useSidebar } from "../../context/SidebarContext";
 
 const formatQuizDate = (dateString) => {
   return new Date(dateString).toLocaleDateString();
@@ -394,76 +394,97 @@ const Overview = ({ user }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {paginatedQuizzes.map((q) => {
-                const obtainedMarks =
-                  q?.score !== undefined && q?.totalMarks
-                    ? Math.round((q.score / 100) * q.totalMarks)
-                    : null;
+              {loading
+                ? /* Skeleton Loading State for Table */
+                  [...Array(5)].map((_, i) => (
+                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                      <td className="p-5 pl-6">
+                        <div className="h-4 bg-surfaceHighlight rounded w-3/4"></div>
+                      </td>
+                      <td className="p-5">
+                        <div className="h-4 bg-surfaceHighlight rounded w-1/2 mx-auto"></div>
+                      </td>
+                      <td className="p-5">
+                        <div className="h-6 bg-surfaceHighlight rounded-lg w-16 mx-auto"></div>
+                      </td>
+                      <td className="p-5">
+                        <div className="h-5 bg-surfaceHighlight rounded w-10 mx-auto"></div>
+                      </td>
+                      <td className="p-5">
+                        <div className="h-5 bg-surfaceHighlight rounded w-20 mx-auto"></div>
+                      </td>
+                    </tr>
+                  ))
+                : paginatedQuizzes.map((q) => {
+                    const obtainedMarks =
+                      q?.score !== undefined && q?.totalMarks
+                        ? Math.round((q.score / 100) * q.totalMarks)
+                        : null;
 
-                return (
-                  <tr
-                    key={q?.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors group cursor-pointer"
-                    onClick={() =>
-                      (q?._id || q?.id) && handleRowClick(q._id || q.id)
-                    }
-                  >
-                    <td className="p-5 pl-6 font-semibold text-textMain group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
-                      {truncateText(q?.title ?? "", 40)}
-                    </td>
-                    <td className="p-5 text-textMuted text-center whitespace-nowrap">
-                      {formatQuizDate(q?.createdAt ?? Date.now())}
-                    </td>
-                    <td className="p-5 text-center">
-                      <span
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 ${
-                          q?.difficulty === "Easy"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
-                            : q?.difficulty === "Medium"
-                            ? "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
-                        }`}
+                    return (
+                      <tr
+                        key={q?.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors group cursor-pointer"
+                        onClick={() =>
+                          (q?._id || q?.id) && handleRowClick(q._id || q.id)
+                        }
                       >
-                        {q?.difficulty ?? "Unknown"}
-                      </span>
-                    </td>
-                    <td className="p-5 text-center">
-                      {q?.score === undefined ? (
-                        <span className="text-textMuted">-</span>
-                      ) : (
-                        <span
-                          className={`font-bold text-base ${
-                            q?.score >= 80
-                              ? "text-green-600 dark:text-green-500"
-                              : q?.score >= 50
-                              ? "text-amber-600 dark:text-amber-500"
-                              : "text-red-600 dark:text-red-500"
-                          }`}
-                        >
-                          {q?.score}%
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-5 font-medium">
-                      {obtainedMarks !== null ? (
-                        <div className="flex items-baseline gap-1 justify-center">
-                          <span className="text-textMain font-bold text-lg">
-                            {obtainedMarks}
+                        <td className="p-5 pl-6 font-semibold text-textMain group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                          {truncateText(q?.title ?? "", 40)}
+                        </td>
+                        <td className="p-5 text-textMuted text-center whitespace-nowrap">
+                          {formatQuizDate(q?.createdAt ?? Date.now())}
+                        </td>
+                        <td className="p-5 text-center">
+                          <span
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 ${
+                              q?.difficulty === "Easy"
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                                : q?.difficulty === "Medium"
+                                ? "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
+                                : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                            }`}
+                          >
+                            {q?.difficulty ?? "Unknown"}
                           </span>
-                          <span className="text-textMuted text-xs">
-                            / {q?.totalMarks ?? 0}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-textMuted flex justify-center">
-                          -
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredQuizzes.length === 0 && (
+                        </td>
+                        <td className="p-5 text-center">
+                          {q?.score === undefined ? (
+                            <span className="text-textMuted">-</span>
+                          ) : (
+                            <span
+                              className={`font-bold text-base ${
+                                q?.score >= 80
+                                  ? "text-green-600 dark:text-green-500"
+                                  : q?.score >= 50
+                                  ? "text-amber-600 dark:text-amber-500"
+                                  : "text-red-600 dark:text-red-500"
+                              }`}
+                            >
+                              {q?.score}%
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-5 font-medium">
+                          {obtainedMarks !== null ? (
+                            <div className="flex items-baseline gap-1 justify-center">
+                              <span className="text-textMain font-bold text-lg">
+                                {obtainedMarks}
+                              </span>
+                              <span className="text-textMuted text-xs">
+                                / {q?.totalMarks ?? 0}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-textMuted flex justify-center">
+                              -
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              {!loading && filteredQuizzes.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-textMuted">
                     <BarChart3 className="w-6 h-6 mx-auto mb-3" />

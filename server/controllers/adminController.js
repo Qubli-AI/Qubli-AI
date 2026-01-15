@@ -77,6 +77,7 @@ export const adminLogin = async (req, res) => {
         name: admin.name,
         email: admin.email,
         role: admin.role,
+        picture: admin.picture,
       },
     });
   } catch (error) {
@@ -526,7 +527,7 @@ export const getQuizResults = async (req, res) => {
     }
 
     const quizzes = await Quiz.find(filter)
-      .populate("userId", "name email")
+      .populate("userId", "name email picture")
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -537,6 +538,7 @@ export const getQuizResults = async (req, res) => {
       _id: quiz._id,
       user: quiz.userId?.name || "Unknown",
       userEmail: quiz.userId?.email || "",
+      userPicture: quiz.userId?.picture || null,
       quiz: quiz.title,
       score: quiz.score || 0,
       totalMarks: quiz.totalMarks || 0,
@@ -589,7 +591,7 @@ export const getQuizzes = async (req, res) => {
     }
 
     const quizzes = await Quiz.find(filterQuery)
-      .populate("userId", "name email")
+      .populate("userId", "name email picture")
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -631,6 +633,7 @@ export const getQuizzes = async (req, res) => {
       _id: quiz._id,
       title: quiz.title,
       creator: quiz.userId?.name || "Unknown",
+      creatorPicture: quiz.userId?.picture || null,
       topic: quiz.topic,
       difficulty: quiz.difficulty,
       attempts: 1, // Each quiz doc is one attempt
@@ -689,7 +692,7 @@ export const getQuizDetail = async (req, res) => {
 export const getAdminInfo = async (req, res) => {
   try {
     const admin = await User.findById(req.adminId).select(
-      "name email role lastLogin"
+      "name email role lastLogin picture"
     );
 
     if (!admin) {

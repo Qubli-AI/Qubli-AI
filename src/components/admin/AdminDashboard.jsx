@@ -26,8 +26,8 @@ import {
   getDashboardStats,
   getQuizzes,
   getQuizResults,
-} from "../services/adminService";
-import useAdminSocket from "../hooks/useAdminSocket";
+} from "../../services/adminService";
+import useAdminSocket from "../../hooks/useAdminSocket";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -45,9 +45,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchStats();
-    // Auto-refresh every 15 seconds
-    const id = setInterval(fetchStats, 15000);
-    return () => clearInterval(id);
   }, []);
 
   useAdminSocket((evt, payload) => {
@@ -173,13 +170,17 @@ export default function AdminDashboard() {
             Welcome back, here's what's happening with your app today.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-textMuted shadow-md-custom w-fit">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          Live Updates
-        </div>
+        <button
+          onClick={fetchStats}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-xs font-bold text-textMain shadow-md-custom hover:bg-surfaceHighlight disabled:opacity-50 transition-all point"
+        >
+          <RotateCcw
+            size={14}
+            className={`${loading ? "animate-spin" : ""} text-primary`}
+          />
+          {loading ? "Refreshing..." : "Refresh Data"}
+        </button>
       </div>
 
       {/* Stats Grid */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminLogin } from "../services/adminService";
+import { adminLogin } from "../../services/adminService";
 import { toast } from "react-toastify";
 import { Mail, Lock, Loader2, LogIn, Shield } from "lucide-react";
 

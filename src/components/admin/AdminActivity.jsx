@@ -11,7 +11,7 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
-import { getQuizResults, getQuizzes } from "../services/adminService";
+import { getQuizResults, getQuizzes } from "../../services/adminService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -92,8 +92,6 @@ export default function AdminActivity() {
 
   useEffect(() => {
     fetchActivities();
-    const interval = setInterval(fetchActivities, 15000); // Poll every 15s
-    return () => clearInterval(interval);
   }, []);
 
   // Close dropdown on click outside
@@ -138,13 +136,26 @@ export default function AdminActivity() {
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-textMain tracking-tight mb-3">
-            Activity Logs
-          </h1>
-          <p className="text-textMuted mb-2">
-            Monitor system-wide events and user actions in real-time.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 w-full">
+          <div>
+            <h1 className="text-3xl font-bold text-textMain tracking-tight mb-3">
+              Activity Logs
+            </h1>
+            <p className="text-textMuted mb-2">
+              Monitor system-wide events and user actions.
+            </p>
+          </div>
+          <button
+            onClick={fetchActivities}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-xs font-bold text-textMain shadow-md-custom hover:bg-surfaceHighlight disabled:opacity-50 transition-all point mb-2"
+          >
+            <RotateCcw
+              size={14}
+              className={`${isLoading ? "animate-spin" : ""} text-primary`}
+            />
+            {isLoading ? "Refreshing..." : "Refresh Logs"}
+          </button>
         </div>
       </div>
 
@@ -351,8 +362,28 @@ export default function AdminActivity() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800/60 flex items-center justify-center text-[10px] font-bold text-primary dark:text-blue-400">
-                          {activity.user?.charAt(0)}
+                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800/60 flex items-center justify-center text-[10px] font-bold text-primary dark:text-blue-400 overflow-hidden">
+                          {activity.type === "generation" ? (
+                            activity.data.creatorPicture ? (
+                              <img
+                                src={activity.data.creatorPicture}
+                                alt={activity.user}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              activity.user?.charAt(0)
+                            )
+                          ) : activity.data.userPicture ? (
+                            <img
+                              src={activity.data.userPicture}
+                              alt={activity.user}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            activity.user?.charAt(0)
+                          )}
                         </div>
                         <span className="text-sm text-textMain dark:text-textMain/90 font-medium">
                           {activity.user}

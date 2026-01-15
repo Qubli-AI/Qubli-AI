@@ -4,20 +4,24 @@ import {
   LayoutDashboard,
   Users,
   BookOpenCheck,
-  BookOpen,
+  FileText,
   LogOut,
   Search,
   Activity,
 } from "lucide-react";
-import { getAdminInfo, getUsers, getQuizzes } from "../services/adminService";
-import StorageService from "../services/storageService";
-import ConfirmLogoutModal from "./ConfirmLogoutModal.jsx";
+import {
+  getAdminInfo,
+  getUsers,
+  getQuizzes,
+} from "../../services/adminService";
+import StorageService from "../../services/storageService";
+import ConfirmLogoutModal from "../user/ConfirmLogoutModal.jsx";
 
 const menuItems = [
   { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/quizzes", label: "Quizzes", icon: BookOpenCheck },
-  { to: "/admin/blogs", label: "Blogs", icon: BookOpen },
+  { to: "/admin/blogs", label: "Blogs", icon: FileText },
   { to: "/admin/activity", label: "Activity", icon: Activity },
 ];
 

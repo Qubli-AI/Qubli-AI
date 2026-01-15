@@ -2,16 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Clock,
-  Calendar,
-  Share2,
-  Loader2,
-  List,
-} from "lucide-react";
+import Visibility from "@mui/icons-material/Visibility";
+import { ArrowLeft, Calendar, Share2, Loader2, List } from "lucide-react";
 import { toast } from "react-toastify";
-import blogService from "../services/blogService";
+import blogService from "../../services/blogService";
 
 const BlogPost = () => {
   const { id } = useParams();
@@ -126,7 +120,7 @@ const BlogPost = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => navigate("/blogs")}
-            className="group flex items-center gap-2 text-textMuted hover:text-textMain transition-colors mb-8 point bg-surfaceHighlight/50 hover:bg-surfaceHighlight/60 rounded-full py-2 px-4"
+            className="group flex items-center gap-2 text-textMuted hover:text-textMain/80 dark:hover:text-textMain transition-colors mb-8 point bg-gray-200/50 hover:bg-gray-200/60 dark:bg-surfaceHighlight/50 dark:hover:bg-surfaceHighlight/60 rounded-full py-2 px-4"
           >
             <ArrowLeft size={18} />
             <span className="font-medium">Back to Blogs</span>
@@ -175,8 +169,11 @@ const BlogPost = () => {
                   <p className="text-sm font-semibold text-textMain dark:text-gray-200">
                     {blog.author?.name || "Qubli Team"}
                   </p>
-                  <p className="text-xs text-textMuted flex items-center gap-1">
-                    <Clock size={12} /> {blog.readTime}
+                  <p className="text-xs text-textMuted flex items-center gap-2">
+                    <Visibility
+                      sx={{ fontSize: 16, color: "var(--primary)" }}
+                    />{" "}
+                    {(blog.views || 0).toLocaleString()} views
                   </p>
                 </div>
               </div>

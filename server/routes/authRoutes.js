@@ -16,6 +16,7 @@ import {
   findOrCreateOAuthUser,
 } from "../helpers/oauthHelper.js";
 import { generateUniqueUsername } from "../helpers/usernameHelper.js";
+import { mergeDuplicateUsers } from "../helpers/mergeUsers.js";
 import protect from "../middleware/auth.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -26,8 +27,10 @@ router.post("/register", async (req, res) => {
   const defaultTier = "Free";
   const limits = TIER_LIMITS[defaultTier];
 
+  const normalizedEmail = email.toLowerCase().trim();
+
   try {
-    if (await User.findOne({ email })) {
+    if (await User.findOne({ email: normalizedEmail })) {
       return res.status(400).json({ message: "User already exists." });
     }
 
@@ -43,7 +46,7 @@ router.post("/register", async (req, res) => {
     const user = await User.create({
       name,
       username,
-      email,
+      email: normalizedEmail,
       picture: null, // Explicitly null to trigger auto-generated avatar
       password: hashedPassword,
       passwordIsUserSet: true, // User set their own password during signup
@@ -81,9 +84,10 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     if (!user.isVerified) {
@@ -197,6 +201,9 @@ router.post("/login", async (req, res) => {
 
     await user.save();
 
+    // Trigger merge of duplicates (if any) in background
+    mergeDuplicateUsers().catch(console.error);
+
     // Sign token with session id so per-session logout can be enforced
     const sessionId = user.sessions[user.sessions.length - 1]._id;
     const token = jwt.sign({ id: user._id, sessionId }, JWT_SECRET, {
@@ -209,6 +216,7 @@ router.post("/login", async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
+        picture: user.picture,
         tier: user.tier,
         stats: user.stats,
         limits: user.limits,
@@ -376,9 +384,10 @@ router.post("/confirm-password", protect, async (req, res) => {
 // Verify email with code
 router.post("/verify-email", async (req, res) => {
   const { email, code } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -448,6 +457,7 @@ router.post("/verify-email", async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
+        picture: user.picture,
         tier: user.tier,
         stats: user.stats,
         limits: user.limits,
@@ -463,9 +473,10 @@ router.post("/verify-email", async (req, res) => {
 // Resend verification code
 router.post("/resend-code", async (req, res) => {
   const { email } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -538,6 +549,15 @@ router.post("/change-password", protect, async (req, res) => {
 
     res.status(200).json({
       message: "Password changed successfully",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        tier: user.tier,
+        stats: user.stats,
+        limits: user.limits,
+        passwordIsUserSet: user.passwordIsUserSet,
+      },
     });
   } catch {
     res.status(500).json({ message: "Server error" });
@@ -840,9 +860,16 @@ router.post("/oauth/callback", async (req, res) => {
 
     await updatedUser.save();
 
+    // Trigger merge of duplicates (if any) in background
+    mergeDuplicateUsers().catch(console.error);
+
+    // Refresh user to get latest data (in case merge happened)
+    const finalUser = await User.findById(updatedUser._id);
+    const useUser = finalUser || updatedUser;
+
     // Sign token with session id
-    const sessionId = updatedUser.sessions[updatedUser.sessions.length - 1]._id;
-    const token = jwt.sign({ id: updatedUser._id, sessionId }, JWT_SECRET, {
+    const sessionId = useUser.sessions[useUser.sessions.length - 1]._id;
+    const token = jwt.sign({ id: useUser._id, sessionId }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -850,14 +877,15 @@ router.post("/oauth/callback", async (req, res) => {
       message: "OAuth authentication successful",
       token,
       user: {
-        id: updatedUser._id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        tier: updatedUser.tier,
-        stats: updatedUser.stats,
-        limits: updatedUser.limits,
-        connectedAccounts: updatedUser.connectedAccounts,
-        passwordIsUserSet: updatedUser.passwordIsUserSet,
+        id: useUser._id,
+        email: useUser.email,
+        name: useUser.name,
+        picture: useUser.picture,
+        tier: useUser.tier,
+        stats: useUser.stats,
+        limits: useUser.limits,
+        connectedAccounts: useUser.connectedAccounts,
+        passwordIsUserSet: useUser.passwordIsUserSet,
       },
     });
   } catch (err) {
@@ -895,7 +923,7 @@ router.post("/oauth/link", protect, async (req, res) => {
 
     user.connectedAccounts[provider] = {
       id: oauthUserData.providerId,
-      email: oauthUserData.email,
+      email: oauthUserData.email.toLowerCase().trim(),
       connectedAt: new Date(),
     };
 

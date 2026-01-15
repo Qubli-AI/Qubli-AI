@@ -16,16 +16,16 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import CustomTooltip from "./CustomTooltip";
-import ConfirmActionModal from "./ConfirmActionModal";
-import StorageService from "../services/storageService";
+import CustomTooltip from "../user/CustomTooltip";
+import ConfirmActionModal from "../user/ConfirmActionModal";
+import StorageService from "../../services/storageService";
 import {
   getUserDetail,
   toggleUserActive,
   toggleUserBan,
   promoteUserToAdmin,
   demoteAdminToUser,
-} from "../services/adminService";
+} from "../../services/adminService";
 
 function AdminUserDetail() {
   const { userId } = useParams();

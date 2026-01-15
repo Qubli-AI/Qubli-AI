@@ -25,12 +25,12 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-import StorageService from "../services/storageService.js";
+import StorageService from "../../services/storageService.js";
 import {
   generateAndSaveReview,
   gradeAnswer,
-} from "../services/geminiService.js";
-import { QuestionType } from "../../server/config/types.js";
+} from "../../services/geminiService.js";
+import { QuestionType } from "../../../server/config/types.js";
 import PrintView from "./PrintView.jsx";
 import AchievementCelebration from "./AchievementCelebration.jsx";
 import StudyBuddy from "./StudyBuddy.jsx";

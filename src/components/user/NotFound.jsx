@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, ArrowLeft } from "lucide-react";
-import useDarkMode, { isDarkMode } from "../hooks/useDarkMode.js";
+import useDarkMode, { isDarkMode } from "../../hooks/useDarkMode.js";
 
 export default function NotFound() {
   const navigate = useNavigate();

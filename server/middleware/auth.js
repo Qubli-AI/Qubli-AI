@@ -41,6 +41,7 @@ const protect = asyncHandler(async (req, res, next) => {
       // Verify that session is still active for the user
       const User = (await import("../models/User.js")).default;
       const user = await User.findById(req.userId);
+      req.user = user; // Attach user object for subsequent middleware (like admin)
       if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
@@ -92,10 +93,15 @@ const protect = asyncHandler(async (req, res, next) => {
 });
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  if (
+    req.user &&
+    (req.user.role === "admin" || req.user.role === "moderator")
+  ) {
     next();
   } else {
-    res.status(401).json({ message: "Not authorized as an admin" });
+    res
+      .status(401)
+      .json({ message: "Not authorized as an admin or moderator" });
   }
 };
 

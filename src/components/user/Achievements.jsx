@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Select, MenuItem, TextField } from "@mui/material";
 import confetti from "canvas-confetti";
-import StorageService from "../services/storageService.js";
-import useDarkMode, { isDarkMode } from "../hooks/useDarkMode.js";
+import StorageService from "../../services/storageService.js";
+import useDarkMode, { isDarkMode } from "../../hooks/useDarkMode.js";
 import AchievementCelebration from "./AchievementCelebration.jsx";
 
 // Confetti function with falling animation and shapes

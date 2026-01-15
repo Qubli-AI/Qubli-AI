@@ -1,4 +1,4 @@
-import { QuestionType } from "../../server/config/types.js";
+import { QuestionType } from "../../../server/config/types.js";
 
 const AnswerLines = ({ marks, type }) => {
   const linesPerMark = type === QuestionType.LongAnswer ? 4 : 2;

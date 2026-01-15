@@ -16,7 +16,6 @@ const BlogSchema = new mongoose.Schema(
     isPublished: { type: Boolean, default: false },
     publishedAt: { type: Date },
     views: { type: Number, default: 0 },
-    readTime: { type: String, default: "5 min read" },
   },
   { timestamps: true }
 );

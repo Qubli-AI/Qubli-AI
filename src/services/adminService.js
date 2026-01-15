@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/admin";
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/admin`;
 
 // Create axios instance with auth token
 const adminApi = axios.create({

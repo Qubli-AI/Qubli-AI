@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
-import StorageService from "../services/storageService";
+import StorageService from "../../services/storageService";
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

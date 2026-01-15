@@ -30,9 +30,26 @@ export const getBlogBySlug = async (req, res) => {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    // Increment views
-    blog.views += 1;
-    await blog.save({ validateBeforeSave: false });
+    // Real View Tracking System (Cookie-based, 1 hour expiry)
+    const cookieName = `viewed_blog_${blog._id}`;
+    const cookies =
+      req.headers.cookie?.split(";").reduce((acc, c) => {
+        const [key, val] = c.trim().split("=");
+        acc[key] = val;
+        return acc;
+      }, {}) || {};
+
+    if (!cookies[cookieName]) {
+      // Increment views if cookie doesn't exist
+      blog.views += 1;
+      await blog.save({ validateBeforeSave: false });
+
+      // Set cookie for 1 hour
+      res.setHeader(
+        "Set-Cookie",
+        `${cookieName}=true; Max-Age=3600; HttpOnly; Path=/; SameSite=Lax`
+      );
+    }
 
     res.status(200).json(blog);
   } catch {
@@ -45,16 +62,8 @@ export const getBlogBySlug = async (req, res) => {
 // @access  Private/Admin
 export const createBlog = async (req, res) => {
   try {
-    const {
-      title,
-      slug,
-      excerpt,
-      content,
-      image,
-      tags,
-      readTime,
-      isPublished,
-    } = req.body;
+    const { title, slug, excerpt, content, image, tags, isPublished } =
+      req.body;
 
     const existingBlog = await Blog.findOne({ slug });
     if (existingBlog) {
@@ -70,7 +79,6 @@ export const createBlog = async (req, res) => {
       content,
       image,
       tags,
-      readTime,
       isPublished,
       publishedAt: isPublished ? Date.now() : null,
       author: req.userId, // From protect middleware
@@ -89,16 +97,8 @@ export const createBlog = async (req, res) => {
 // @access  Private/Admin
 export const updateBlog = async (req, res) => {
   try {
-    const {
-      title,
-      slug,
-      excerpt,
-      content,
-      image,
-      tags,
-      readTime,
-      isPublished,
-    } = req.body;
+    const { title, slug, excerpt, content, image, tags, isPublished } =
+      req.body;
 
     const blog = await Blog.findById(req.params.id);
 
@@ -112,7 +112,6 @@ export const updateBlog = async (req, res) => {
     blog.content = content || blog.content;
     blog.image = image || blog.image;
     blog.tags = tags || blog.tags;
-    blog.readTime = readTime || blog.readTime;
 
     // Handle publishing date logic
     if (isPublished !== undefined) {
@@ -122,7 +121,11 @@ export const updateBlog = async (req, res) => {
       blog.isPublished = isPublished;
     }
 
-    const updatedBlog = await blog.save();
+    await blog.save();
+    const updatedBlog = await Blog.findById(blog._id).populate(
+      "author",
+      "name picture"
+    );
     res.status(200).json(updatedBlog);
   } catch {
     res.status(500).json({ message: "Error updating blog" });
@@ -154,7 +157,7 @@ export const getAdminBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find({})
       .populate("author", "name picture")
-      .sort({ createdAt: -1 });
+      .sort({ views: -1, createdAt: -1 });
 
     res.status(200).json(blogs);
   } catch {

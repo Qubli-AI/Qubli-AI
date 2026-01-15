@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
-import { X, Save, Eye, Layout } from "lucide-react";
+import { createPortal } from "react-dom";
+import {
+  Save,
+  Eye,
+  FileText,
+  Edit,
+  Calendar,
+  Image as ImageIcon,
+  Tag,
+  Link as LinkIcon,
+  ChevronLeft,
+  List,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
-
+import Visibility from "@mui/icons-material/Visibility";
 import blogService from "../../services/blogService";
 import { toast } from "react-toastify";
 
@@ -13,12 +25,57 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
     content: "",
     image: "",
     tags: "",
-    readTime: "5 min read",
     isPublished: false,
   });
 
   const [previewMode, setPreviewMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toc, setToc] = useState([]);
+
+  // TOC Extraction Logic
+  useEffect(() => {
+    if (previewMode && formData.content) {
+      const lines = formData.content.split("\n");
+      const headers = lines
+        .filter((line) => line.startsWith("#"))
+        .map((line) => {
+          const match = line.match(/^(#+)\s+(.*)$/);
+          if (!match) return null;
+          const level = match[1].length;
+          let text = match[2].replace(/[*_~`]/g, "");
+          const id = text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/^-+|-+$/g, "");
+          return { level, text, id };
+        })
+        .filter(Boolean);
+      setToc(headers);
+    }
+  }, [previewMode, formData.content]);
+
+  // Heading sync helper
+  const MarkdownHeading = ({ level, children, ...props }) => {
+    const getText = (node) => {
+      if (typeof node === "string") return node;
+      if (Array.isArray(node)) return node.map(getText).join("");
+      if (node?.props?.children) return getText(node.props.children);
+      return "";
+    };
+    const text = getText(children);
+    const id = text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const Tag = `h${level}`;
+    return (
+      <Tag id={id} className="scroll-mt-32" {...props}>
+        {children}
+      </Tag>
+    );
+  };
 
   useEffect(() => {
     if (blog) {
@@ -29,7 +86,6 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
         content: blog.content || "",
         image: blog.image || "",
         tags: blog.tags ? blog.tags.join(", ") : "",
-        readTime: blog.readTime || "5 min read",
         isPublished: blog.isPublished || false,
       });
     }
@@ -44,15 +100,18 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
   };
 
   const handleSlugGen = () => {
+    if (!formData.title) return;
     const generatedSlug = formData.title
       .toLowerCase()
+      .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
     setFormData((prev) => ({ ...prev, slug: generatedSlug }));
+    toast.info("Slug generated from title");
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
 
     try {
@@ -81,200 +140,387 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-background dark:bg-gray-900 w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col border border-border">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-border">
-          <h2 className="text-2xl font-bold">
-            {blog ? "Edit Blog" : "Create New Blog"}
-          </h2>
+  return createPortal(
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div className="relative bg-white dark:bg-slate-950 w-full max-w-[1100px] h-full sm:h-[95vh] sm:rounded-[32px] shadow-2xl flex flex-col overflow-hidden border border-border/40 animate-scale-in">
+        {/* Sticky Header */}
+        <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-white/80 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setPreviewMode(!previewMode)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                previewMode
-                  ? "bg-primary/20 text-primary"
-                  : "text-textMuted hover:bg-surfaceHighlight"
-              }`}
-            >
-              {previewMode ? <Layout size={18} /> : <Eye size={18} />}
-              {previewMode ? "Edit" : "Preview"}
-            </button>
-            <button
               onClick={onClose}
-              className="p-2 hover:bg-surfaceHighlight rounded-full transition-colors"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-textMuted transition-colors point"
             >
-              <X size={24} />
+              <ChevronLeft size={20} />
+            </button>
+            <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+            <span className="text-sm font-bold text-textMain hidden sm:block">
+              {blog ? "Edit Post" : "New Blog"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setPreviewMode(!previewMode)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all point bg-surfaceHighlight hover:bg-surfaceHighlight/90 dark:bg-surface/80 dark:hover:bg-surface/90 text-textMain dark:text-textMain/95"
+            >
+              {previewMode ? <Edit size={14} /> : <Eye size={14} />}
+              <span>{previewMode ? "Continue Editing" : "Preview Mode"}</span>
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-full text-xs font-bold shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save size={14} />
+              )}
+              <span>{blog ? "Save Changes" : "Publish"}</span>
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {previewMode ? (
-            <div className="prose prose-lg dark:prose-invert max-w-none mx-auto">
-              <h1>{formData.title}</h1>
-              {formData.image && (
-                <img
-                  src={formData.image}
-                  alt={formData.title}
-                  className="w-full h-64 object-cover rounded-xl my-4"
-                />
-              )}
-              <ReactMarkdown>{formData.content}</ReactMarkdown>
-            </div>
-          ) : (
-            <form
-              id="blog-form"
-              onSubmit={handleSubmit}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-            >
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
+        {/* Scrollable Container */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/20 dark:bg-slate-900/10">
+          <div className="max-w-[850px] mx-auto py-12 px-6 sm:px-12">
+            {previewMode ? (
+              /* High-Fidelity Preview Mode */
+              <div className="animate-fade-in min-h-screen">
+                <div className="max-w-4xl mx-auto px-4 mb-12">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-primary dark:text-blue-500 font-semibold mb-4">
+                    {formData.tags &&
+                      formData.tags.split(",").map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-primary/10 dark:bg-blue-800/15 px-3 py-1 rounded-full"
+                        >
+                          {tag.trim()}
+                        </span>
+                      ))}
+                    <span className="text-textMuted font-normal flex items-center gap-1">
+                      <Calendar size={14} /> {new Date().toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <h1 className="text-3xl md:text-5xl font-bold text-textMain dark:text-textMain/95 leading-tight mb-6">
+                    {formData.title || "Untitled Masterpiece"}
+                  </h1>
+
+                  <div className="flex items-center justify-between border-b border-border pb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-linear-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold text-md overflow-hidden">
+                        Q
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-textMain dark:text-gray-200">
+                          {blog?.author?.name || "Qubli Team"}
+                        </p>
+                        <p className="text-xs text-textMuted flex items-center gap-2">
+                          <Visibility
+                            sx={{ fontSize: 16, color: "var(--primary)" }}
+                          />{" "}
+                          {(blog?.views || 0).toLocaleString()} views
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {formData.image && (
+                  <div className="max-w-5xl mx-auto px-4 mb-16">
+                    <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-surface">
+                      <img
+                        src={formData.image}
+                        alt={formData.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row gap-12 relative">
+                  {/* TOC - Desktop */}
+                  {toc.length > 0 && (
+                    <aside className="hidden lg:block w-64 shrink-0">
+                      <div className="sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-4 pb-16 custom-scrollbar">
+                        <h3 className="text-lg text-textMain dark:text-textMain/95 font-bold mb-4 flex items-center gap-2">
+                          <List size={18} /> Table of Contents
+                        </h3>
+                        <ul className="space-y-2 text-sm border-l-2 border-border pl-4">
+                          {toc.map((heading, idx) => (
+                            <li
+                              key={idx}
+                              style={{
+                                paddingLeft: `${(heading.level - 1) * 12}px`,
+                              }}
+                            >
+                              <a
+                                href={`#${heading.id}`}
+                                className="text-textMuted hover:text-primary transition-colors block py-0.5 line-clamp-1"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const el = document.getElementById(
+                                    heading.id
+                                  );
+                                  if (el) {
+                                    el.scrollIntoView({
+                                      behavior: "smooth",
+                                      block: "start",
+                                    });
+                                  }
+                                }}
+                              >
+                                {heading.text}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </aside>
+                  )}
+
+                  <div className="max-w-3xl grow mx-auto lg:mx-0">
+                    <div
+                      className="prose prose-lg dark:prose-invert max-w-none 
+                        prose-headings:font-bold prose-headings:text-textMain dark:prose-headings:text-white
+                        prose-p:text-textMuted prose-p:leading-relaxed
+                        prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-textMain dark:prose-strong:text-gray-200
+                        prose-li:text-textMuted
+                        prose-img:rounded-xl prose-img:shadow-lg"
+                    >
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ ...props }) => (
+                            <MarkdownHeading level={1} {...props} />
+                          ),
+                          h2: ({ ...props }) => (
+                            <MarkdownHeading level={2} {...props} />
+                          ),
+                          h3: ({ ...props }) => (
+                            <MarkdownHeading level={3} {...props} />
+                          ),
+                        }}
+                      >
+                        {formData.content ||
+                          "*Your content will appear here...*"}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Editor Mode UI */
+              <form
+                id="blog-form"
+                onSubmit={handleSubmit}
+                className="space-y-16 pb-20 animate-fade-in"
+              >
+                {/* Visual Header Section */}
+                <section className="space-y-8">
+                  <div
+                    className={`relative w-full aspect-21/9 rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden group ${
+                      formData.image
+                        ? "border-transparent"
+                        : "border-border bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-800/20 dark:hover:bg-slate-800/30"
+                    }`}
+                  >
+                    {formData.image ? (
+                      <>
+                        <img
+                          src={formData.image}
+                          className="w-full h-full object-cover"
+                          alt="Banner"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((p) => ({ ...p, image: "" }))
+                            }
+                            className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-full text-xs font-bold backdrop-blur-md transition-all border border-white/20 point"
+                          >
+                            Remove Photo
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center group-hover:scale-105 transition-transform">
+                        <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-3xl shadow-xl flex items-center justify-center mx-auto mb-4 border border-border">
+                          <ImageIcon size={24} className="text-slate-400" />
+                        </div>
+                        <p className="text-sm font-bold text-textMain">
+                          Add Featured Image
+                        </p>
+                        <p className="text-[11px] text-textMuted mt-1">
+                          Paste a URL in the field below
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <ImageIcon
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      name="image"
+                      value={formData.image}
+                      onChange={handleChange}
+                      placeholder="Paste cover image URL..."
+                      className="w-full pl-12 pr-6 py-4 rounded-2xl bg-white dark:bg-slate-950 border border-border focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all text-sm shadow-sm"
+                    />
+                  </div>
+                </section>
+
+                {/* Content Section */}
+                <section className="space-y-8">
+                  <textarea
                     name="title"
                     value={formData.title}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      e.target.style.height = "auto";
+                      e.target.style.height = e.target.scrollHeight + "px";
+                    }}
                     onBlur={!formData.slug ? handleSlugGen : null}
-                    className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
+                    rows="1"
+                    placeholder="Blog Title"
+                    className="w-full bg-transparent text-5xl sm:text-6xl font-bold text-textMain placeholder:text-slate-200 dark:placeholder:text-slate-800 outline-none resize-none leading-[1.15] tracking-tight overflow-y-auto"
                     required
                   />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Slug</label>
-                  <input
-                    type="text"
-                    name="slug"
-                    value={formData.slug}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
-                    required
-                  />
-                </div>
+                  <div className="flex items-center gap-3 text-textMuted text-xs font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-900/40 w-fit px-4 py-2 rounded-full border border-border/50">
+                    <Visibility
+                      className="text-primary dark:text-blue-500"
+                      sx={{ fontSize: 18 }}
+                    />
+                    {(blog?.views || 0).toLocaleString()} views
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Excerpt
-                  </label>
                   <textarea
                     name="excerpt"
                     value={formData.excerpt}
                     onChange={handleChange}
-                    rows="3"
-                    className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
+                    rows="2"
+                    placeholder="Short subtitle or summary..."
+                    className="w-full bg-transparent text-lg text-textMuted font-medium leading-relaxed outline-none resize-none border-l-4 border border-border py-3 pl-5 focus:border-primary transition-colors rounded-md"
                     required
                   />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Featured Image URL
-                  </label>
-                  <input
-                    type="text"
-                    name="image"
-                    value={formData.image}
+                  <div className="h-px bg-slate-100 dark:bg-slate-800/50 w-full" />
+
+                  <textarea
+                    name="content"
+                    value={formData.content}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
+                    placeholder="Write your Blog content here..."
+                    className="w-full bg-transparent text-lg text-textMain/90 placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none resize-none min-h-[400px] leading-relaxed rounded-md border border-border py-3 pl-4"
                     required
                   />
-                </div>
+                </section>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Read Time
-                    </label>
-                    <input
-                      type="text"
-                      name="readTime"
-                      value={formData.readTime}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
-                    />
+                {/* Post Settings Cards */}
+                <section className="pt-20 border-t border-border space-y-8">
+                  <h4 className="text-md font-bold uppercase tracking-[0.15em] text-textMuted ml-1">
+                    Post Configuration
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Slug Card */}
+                    <div className="bg-white dark:bg-slate-900/40 p-6 rounded-3xl border border-border shadow-md-custom  group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-500">
+                          <LinkIcon size={16} />
+                        </div>
+                        <span className="text-md font-bold text-textMain">
+                          Permalink
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        name="slug"
+                        value={formData.slug}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-border focus:ring-2 focus:ring-primary outline-none transition-all font-mono text-sm"
+                        required
+                      />
+                    </div>
+
+                    {/* Tags Card */}
+                    <div className="bg-white dark:bg-slate-900/40 p-6 rounded-3xl border border-border shadow-md-custom group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-500">
+                          <Tag size={16} />
+                        </div>
+                        <span className="text-md font-bold text-textMain">
+                          Classification
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleChange}
+                        placeholder="Comma separated tags..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-border focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Tags (comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      name="tags"
-                      value={formData.tags}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none"
-                    />
+
+                  {/* Publish Settings */}
+                  <div className="bg-surfaceHighlight/40 dark:bg-slate-900/40 p-6 rounded-3xl border border-border flex flex-col sm:flex-row items-center justify-between gap-6 group hover:border-primary/30 transition-colors">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 bg-gray-200/60 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-textMuted group-hover:text-primary transition-colors">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <h4 className="text-md font-bold text-textMain">
+                          Visibility
+                        </h4>
+                        <p className="text-sm text-textMuted">
+                          Make this post visible to the public.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((p) => ({
+                          ...p,
+                          isPublished: !p.isPublished,
+                        }))
+                      }
+                      className={`relative point w-14 h-7 rounded-full transition-all flex items-center p-1 ${
+                        formData.isPublished
+                          ? "bg-primary"
+                          : "bg-slate-200 dark:bg-slate-700"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                          formData.isPublished
+                            ? "translate-x-7"
+                            : "translate-x-0"
+                        }`}
+                      />
+                    </button>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-4 bg-surface rounded-lg border border-border">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    id="isPublished"
-                    checked={formData.isPublished}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-primary rounded focus:ring-primary"
-                  />
-                  <label
-                    htmlFor="isPublished"
-                    className="font-medium cursor-pointer"
-                  >
-                    Publish Immediately
-                  </label>
-                </div>
-              </div>
-
-              <div className="h-full flex flex-col">
-                <label className="block text-sm font-medium mb-1">
-                  Content (Markdown)
-                </label>
-                <textarea
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  className="flex-1 w-full px-4 py-4 rounded-lg bg-surface border border-border focus:ring-2 focus:ring-primary outline-none font-mono text-sm leading-relaxed resize-none"
-                  required
-                  placeholder="# Hello World..."
-                />
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-border flex justify-end gap-3 bg-surface/30">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 rounded-lg border border-border hover:bg-surfaceHighlight transition-colors"
-          >
-            Cancel
-          </button>
-          {!previewMode && (
-            <button
-              type="submit"
-              form="blog-form"
-              disabled={loading}
-              className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
-            >
-              {loading ? (
-                "Saving..."
-              ) : (
-                <>
-                  <Save size={18} /> Save Blog
-                </>
-              )}
-            </button>
-          )}
+                </section>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

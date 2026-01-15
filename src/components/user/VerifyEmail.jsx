@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Mail, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import { request } from "../services/api.js";
+import { request } from "../../services/api.js";
 
 const VerifyEmail = () => {
   const location = useLocation();

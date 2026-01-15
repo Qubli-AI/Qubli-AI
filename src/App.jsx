@@ -12,44 +12,52 @@ import {
 } from "react-router-dom";
 
 // Lazy-loaded components for code splitting
-const Layout = lazy(() => import("./components/Layout.jsx"));
-const Dashboard = lazy(() => import("./components/Dashboard.jsx"));
-const QuizGenerator = lazy(() => import("./components/QuizGenerator.jsx"));
-const QuizTaker = lazy(() => import("./components/QuizTaker.jsx"));
-const Overview = lazy(() => import("./components/Overview.jsx"));
-const Subscription = lazy(() => import("./components/Subscription.jsx"));
-const AuthForm = lazy(() => import("./components/AuthForm.jsx"));
-const VerifyEmail = lazy(() => import("./components/VerifyEmail.jsx"));
-const OAuthCallback = lazy(() => import("./components/OAuthCallback.jsx"));
-const LandingPage = lazy(() => import("./components/LandingPage.jsx"));
-const FeaturesPage = lazy(() => import("./components/FeaturesPage.jsx"));
+const Layout = lazy(() => import("./components/user/Layout.jsx"));
+const Dashboard = lazy(() => import("./components/user/Dashboard.jsx"));
+const QuizGenerator = lazy(() => import("./components/user/QuizGenerator.jsx"));
+const QuizTaker = lazy(() => import("./components/user/QuizTaker.jsx"));
+const Overview = lazy(() => import("./components/user/Overview.jsx"));
+const Subscription = lazy(() => import("./components/user/Subscription.jsx"));
+const AuthForm = lazy(() => import("./components/user/AuthForm.jsx"));
+const VerifyEmail = lazy(() => import("./components/user/VerifyEmail.jsx"));
+const OAuthCallback = lazy(() => import("./components/user/OAuthCallback.jsx"));
+const LandingPage = lazy(() => import("./components/user/LandingPage.jsx"));
+const FeaturesPage = lazy(() => import("./components/user/FeaturesPage.jsx"));
 const TestimonialsPage = lazy(() =>
-  import("./components/TestimonialsPage.jsx")
+  import("./components/user/TestimonialsPage.jsx")
 );
-const Achievements = lazy(() => import("./components/Achievements.jsx"));
-const Leaderboard = lazy(() => import("./components/Leaderboard.jsx"));
+const Achievements = lazy(() => import("./components/user/Achievements.jsx"));
+const Leaderboard = lazy(() => import("./components/user/Leaderboard.jsx"));
 
 // Admin components
-const AdminLogin = lazy(() => import("./components/AdminLogin.jsx"));
-const AdminLayout = lazy(() => import("./components/AdminLayout.jsx"));
-const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
-const AdminUsers = lazy(() => import("./components/AdminUsers.jsx"));
-const AdminUserDetail = lazy(() => import("./components/AdminUserDetail.jsx"));
-const AdminQuizzes = lazy(() => import("./components/AdminQuizzes.jsx"));
-const AdminQuizDetail = lazy(() => import("./components/AdminQuizDetail.jsx"));
-const AdminBlogs = lazy(() => import("./components/AdminBlogs.jsx"));
-const AdminActivity = lazy(() => import("./components/AdminActivity.jsx"));
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin.jsx"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout.jsx"));
+const AdminDashboard = lazy(() =>
+  import("./components/admin/AdminDashboard.jsx")
+);
+const AdminUsers = lazy(() => import("./components/admin/AdminUsers.jsx"));
+const AdminUserDetail = lazy(() =>
+  import("./components/admin/AdminUserDetail.jsx")
+);
+const AdminQuizzes = lazy(() => import("./components/admin/AdminQuizzes.jsx"));
+const AdminQuizDetail = lazy(() =>
+  import("./components/admin/AdminQuizDetail.jsx")
+);
+const AdminBlogs = lazy(() => import("./components/admin/AdminBlogs.jsx"));
+const AdminActivity = lazy(() =>
+  import("./components/admin/AdminActivity.jsx")
+);
 
 // Static pages
-const Pricing = lazy(() => import("./components/Pricing.jsx"));
-const About = lazy(() => import("./components/About.jsx"));
-const Contact = lazy(() => import("./components/Contact.jsx"));
-const Policies = lazy(() => import("./components/Policies.jsx"));
-const Terms = lazy(() => import("./components/Terms.jsx"));
-const BlogList = lazy(() => import("./components/BlogList.jsx"));
-const BlogPost = lazy(() => import("./components/BlogPost.jsx"));
-const PublicLayout = lazy(() => import("./components/PublicLayout.jsx"));
-const NotFound = lazy(() => import("./components/NotFound.jsx"));
+const Pricing = lazy(() => import("./components/user/Pricing.jsx"));
+const About = lazy(() => import("./components/user/About.jsx"));
+const Contact = lazy(() => import("./components/user/Contact.jsx"));
+const Policies = lazy(() => import("./components/user/Policies.jsx"));
+const Terms = lazy(() => import("./components/user/Terms.jsx"));
+const BlogList = lazy(() => import("./components/user/BlogList.jsx"));
+const BlogPost = lazy(() => import("./components/user/BlogPost.jsx"));
+const PublicLayout = lazy(() => import("./components/user/PublicLayout.jsx"));
+const NotFound = lazy(() => import("./components/user/NotFound.jsx"));
 import StorageService from "./services/storageService.js";
 import { useTheme } from "./hooks/useTheme.js";
 

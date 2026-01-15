@@ -3,146 +3,126 @@ const REQUEST_TIMEOUT = 30000; // 30 second timeout
 const REQUEST_CACHE = new Map(); // Simple in-memory cache for GET requests
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for GET requests
 
+/** Centralized error handler for better DX and UX */
+function handleResponseError(status, data, isAuthEndpoint) {
+  // 401: Unauthorized (Invalid token/session)
+  if (status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    REQUEST_CACHE.clear();
+
+    if (!isAuthEndpoint) {
+      window.location.href = "/";
+    }
+    return new Error(
+      data.message || "Unauthorized access. Please login again."
+    );
+  }
+
+  // 403: Forbidden (Account disabled/banned)
+  if (status === 403) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    REQUEST_CACHE.clear();
+
+    const eventName = data.disabled ? "accountDisabled" : "accountBanned";
+    const defaultMessage = data.disabled
+      ? "Your account has been temporarily disabled. Contact support at qubli.ai.app@gmail.com"
+      : "Your account has been banned. Contact support at qubli.ai.app@gmail.com";
+
+    window.dispatchEvent(
+      new CustomEvent(eventName, {
+        detail: { message: data.message || defaultMessage },
+      })
+    );
+
+    return new Error(data.message || defaultMessage);
+  }
+
+  return new Error(data.message || `Request failed with status ${status}`);
+}
+
 /** Generic request helper with auto user storage and caching */
 async function request(endpoint, method = "GET", body) {
   const token = localStorage.getItem("token");
 
-  // Allow unauthenticated requests for auth endpoints (login, register, verify-email, resend-code)
-  const isAuthEndpoint =
-    endpoint.includes("/auth/login") ||
-    endpoint.includes("/auth/register") ||
-    endpoint.includes("/auth/verify-email") ||
-    endpoint.includes("/auth/resend-code");
+  // Allow unauthenticated requests for auth endpoints
+  const isAuthEndpoint = [
+    "/auth/login",
+    "/auth/register",
+    "/auth/verify-email",
+    "/auth/resend-code",
+  ].some((authPath) => endpoint.includes(authPath));
 
   if (!token && method !== "GET" && !isAuthEndpoint) {
-    throw new Error("Authentication token missing");
+    throw new Error("Authentication session expired.");
   }
 
   // Check cache for GET requests
   if (method === "GET" && REQUEST_CACHE.has(endpoint)) {
     const cached = REQUEST_CACHE.get(endpoint);
-    if (Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.data;
-    } else {
-      REQUEST_CACHE.delete(endpoint); // Invalidate expired cache
-    }
+    if (Date.now() - cached.timestamp < CACHE_DURATION) return cached.data;
+    REQUEST_CACHE.delete(endpoint);
   }
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-
-  // Create abort controller for timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method,
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
       body: body ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      // If token or session is invalid, clear local auth state and redirect to login
-      // BUT do not automatically redirect for auth endpoints (e.g. failed login)
-      if (res.status === 401) {
-        // Clear any stored auth state
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        REQUEST_CACHE.clear();
-        if (!isAuthEndpoint) {
-          // Only redirect when hitting protected endpoints - keep user on same page for login failures
-          window.location.href = "/";
-        }
-        throw new Error(errorData.message || "Unauthorized");
-      }
-      // Handle account disabled or banned (403 status)
-      if (res.status === 403) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        REQUEST_CACHE.clear();
-        if (errorData.disabled) {
-          // Dispatch event so App.jsx can handle redirect and show message
-          window.dispatchEvent(
-            new CustomEvent("accountDisabled", {
-              detail: {
-                message:
-                  "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at qubli.ai.app@gmail.com",
-              },
-            })
-          );
-          throw new Error(
-            "Your account has been temporarily disabled. For help restoring access, please reach out to our support team at qubli.ai.app@gmail.com"
-          );
-        }
-        if (errorData.banned) {
-          // Dispatch event so App.jsx can handle redirect and show message
-          window.dispatchEvent(
-            new CustomEvent("accountBanned", {
-              detail: {
-                message:
-                  "Your account has been banned. If you believe this is a mistake, please contact support at qubli.ai.app@gmail.com",
-              },
-            })
-          );
-          throw new Error(
-            "Your account has been banned. If you believe this is a mistake, please contact support at qubli.ai.app@gmail.com"
-          );
-        }
-      }
-      throw new Error(
-        errorData.message || `Request failed with status ${res.status}`
-      );
+      throw handleResponseError(res.status, errorData, isAuthEndpoint);
     }
 
     const data = await res.json();
 
-    // Cache GET requests
+    // Cache GET results
     if (method === "GET") {
       REQUEST_CACHE.set(endpoint, { data, timestamp: Date.now() });
     }
 
-    // Clear cache on DELETE/PUT/POST operations to ensure fresh data
-    if (
-      method === "DELETE" ||
-      method === "PUT" ||
-      (method === "POST" && endpoint.includes("/api/quizzes"))
-    ) {
-      REQUEST_CACHE.delete("/api/quizzes");
-      REQUEST_CACHE.delete("/api/flashcards");
-      REQUEST_CACHE.delete("/api/reviews");
-      REQUEST_CACHE.delete("/api/users/me");
+    // Invalidate caches on mutations
+    if (["DELETE", "PUT", "POST"].includes(method)) {
+      if (
+        endpoint.includes("/api/quizzes") ||
+        endpoint.includes("/api/flashcards") ||
+        endpoint.includes("/api/reviews")
+      ) {
+        REQUEST_CACHE.clear(); // Safe full clear on data mutation
+      }
     }
 
+    // Global user state sync
     if (data.user) {
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Invalidate user-related caches on updates
       REQUEST_CACHE.delete("/api/users/me");
 
-      // Dispatch events based on the endpoint
+      // Dispatch specific limit events
       if (endpoint.includes("/limits/decrement/")) {
-        if (endpoint.includes("flashcard")) {
-          window.dispatchEvent(new Event("quizGenerated"));
-        } else if (endpoint.includes("pdfupload")) {
-          window.dispatchEvent(new Event("pdfUploaded"));
-        } else if (endpoint.includes("pdfexport")) {
-          window.dispatchEvent(new Event("pdfExported"));
-        }
+        const events = {
+          flashcard: "quizGenerated",
+          pdfupload: "pdfUploaded",
+          pdfexport: "pdfExported",
+        };
+        const type = Object.keys(events).find((k) => endpoint.includes(k));
+        if (type) window.dispatchEvent(new Event(events[type]));
       }
     }
 
     return data;
   } catch (err) {
-    if (err.name === "AbortError") {
-      // Request aborted due to timeout (handled by throwing a descriptive error)
-      throw new Error("Request timeout. The server took too long to respond.");
-    }
-    // Propagate error to caller for centralized handling
+    if (err.name === "AbortError")
+      throw new Error("Request timeout. Server is taking too long.");
     throw err;
   } finally {
     clearTimeout(timeoutId);

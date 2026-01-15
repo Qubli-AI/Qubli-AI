@@ -137,7 +137,8 @@ export const linkOAuthAccount = async (user, provider, providerId, email) => {
  * Find or create user from OAuth data
  */
 export const findOrCreateOAuthUser = async (User, oauthData) => {
-  let user = await User.findOne({ email: oauthData.email });
+  const normalizedEmail = oauthData.email.toLowerCase().trim();
+  let user = await User.findOne({ email: normalizedEmail });
 
   if (user) {
     // Link OAuth account to existing user
@@ -145,7 +146,7 @@ export const findOrCreateOAuthUser = async (User, oauthData) => {
       user,
       oauthData.provider,
       oauthData.providerId,
-      oauthData.email
+      normalizedEmail
     );
     return user;
   }
@@ -161,7 +162,7 @@ export const findOrCreateOAuthUser = async (User, oauthData) => {
   user = new User({
     name: oauthData.name,
     username, // Set generated username
-    email: oauthData.email,
+    email: normalizedEmail,
     picture: oauthData.picture,
     password: hashedPassword,
     passwordIsUserSet: false, // Mark as OAuth-generated password
@@ -174,7 +175,7 @@ export const findOrCreateOAuthUser = async (User, oauthData) => {
     connectedAccounts: {
       [oauthData.provider]: {
         id: oauthData.providerId,
-        email: oauthData.email,
+        email: normalizedEmail,
         connectedAt: new Date(),
       },
     },

@@ -1,8 +1,8 @@
 import { Crown, Check, Zap, Star } from "lucide-react";
 import { toast } from "react-toastify";
 
-import StorageService from "../services/storageService.js";
-import { SubscriptionTier } from "../../server/config/types.js";
+import StorageService from "../../services/storageService.js";
+import { SubscriptionTier } from "../../../server/config/types.js";
 
 const TIER_DATA = {
   [SubscriptionTier.Free]: {

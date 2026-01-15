@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { CheckCircle, Clock, RotateCcw } from "lucide-react";
 
-import StorageService from "../services/storageService.js";
+import StorageService from "../../services/storageService.js";
 
 const RATING_BUTTONS = [
   {

@@ -19,7 +19,7 @@ import {
   Search,
   ArrowDownUp,
 } from "lucide-react";
-import { chatWithAI } from "../services/geminiService";
+import { chatWithAI } from "../../services/geminiService";
 import ReactMarkdown from "react-markdown";
 import { v4 as uuidv4 } from "uuid";
 import remarkGfm from "remark-gfm";

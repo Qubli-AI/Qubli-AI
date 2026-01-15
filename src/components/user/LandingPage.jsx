@@ -10,6 +10,8 @@ import {
   Star,
 } from "lucide-react";
 
+import OptimizedImage from "./OptimizedImage";
+
 const LandingPage = ({ auth }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -236,13 +238,13 @@ const LandingPage = ({ auth }) => {
                 information way better."
               </p>
               <div className="flex items-center gap-3 pt-6 border-t border-border">
-                <img
-                  className="w-12 h-12 rounded-full"
-                  src="/images/review-sarah.png"
-                  alt="Sarah Chen"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <div className="w-12 h-12">
+                  <OptimizedImage
+                    className="w-12 h-12 rounded-full"
+                    src="/images/review-sarah.png"
+                    alt="Sarah Chen"
+                  />
+                </div>
                 <div>
                   <div className="font-semibold text-textMain">Sarah Chen</div>
                   <div className="text-sm text-textMuted">Pre-Med Student</div>
@@ -269,13 +271,13 @@ const LandingPage = ({ auth }) => {
                 on, and the study recommendations were spot-on."
               </p>
               <div className="flex items-center gap-3 pt-6 border-t border-border">
-                <img
-                  className="w-12 h-12 rounded-full"
-                  src="/images/review-smith.png"
-                  alt="James Smith"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <div className="w-12 h-12">
+                  <OptimizedImage
+                    className="w-12 h-12 rounded-full"
+                    src="/images/review-smith.png"
+                    alt="James Smith"
+                  />
+                </div>
                 <div>
                   <div className="font-semibold text-textMain">James Smith</div>
                   <div className="text-sm text-textMuted">College Student</div>
@@ -302,13 +304,13 @@ const LandingPage = ({ auth }) => {
                 incredibly accurate. My students love the interactive format!"
               </p>
               <div className="flex items-center gap-3 pt-6 border-t border-border">
-                <img
-                  className="w-12 h-12 rounded-full"
-                  src="/images/review-emily.png"
-                  alt="Doctor Emily Rodriguez"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <div className="w-12 h-12">
+                  <OptimizedImage
+                    className="w-12 h-12 rounded-full"
+                    src="/images/review-emily.png"
+                    alt="Dr. Emily Rodriguez"
+                  />
+                </div>
                 <div>
                   <div className="font-semibold text-textMain">
                     Dr. Emily Rodriguez

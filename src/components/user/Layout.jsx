@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
-import SidebarContext from "../context/SidebarContext.js";
+import SidebarContext from "../../context/SidebarContext.js";
 
 // Lazy-loaded heavy components
 const SettingsModal = lazy(() => import("./SettingsModal.jsx"));

@@ -14,7 +14,7 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getQuizDetail } from "../services/adminService";
+import { getQuizDetail } from "../../services/adminService";
 
 function AdminQuizDetail() {
   const { quizId } = useParams();

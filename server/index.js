@@ -11,6 +11,8 @@ import cors from "cors";
 import nodemailer from "nodemailer";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import helmet from "helmet";
+import compression from "compression";
 
 // 2. Models
 import User from "./models/User.js";
@@ -38,6 +40,12 @@ const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
 
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disabling CSP for now to avoid breaking existing integrations
+  })
+);
+app.use(compression());
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
@@ -67,7 +75,7 @@ import blogRoutes from "./routes/blogRoutes.js";
 
 app.get("/api/users/me", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.userId).select("-password").lean();
     if (!user) return res.status(404).json({ message: "User not found." });
 
     const updatedUser = await checkMonthlyReset(user, TIER_LIMITS);

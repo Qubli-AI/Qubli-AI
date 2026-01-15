@@ -15,18 +15,18 @@ import {
   X,
   Image as ImageIcon,
 } from "lucide-react";
-import { useSidebar } from "../context/SidebarContext";
+import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 
-import { generateQuiz } from "../services/geminiService.js";
-import StorageService from "../services/storageService.js";
-import { TIER_LIMITS, EXAM_STYLES } from "../../server/config/constants.js";
+import { generateQuiz } from "../../services/geminiService.js";
+import StorageService from "../../services/storageService.js";
+import { TIER_LIMITS, EXAM_STYLES } from "../../../server/config/constants.js";
 import {
   SubscriptionTier,
   Difficulty,
   QuestionType,
-} from "../../server/config/types.js";
+} from "../../../server/config/types.js";
 
 const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const navigate = useNavigate();

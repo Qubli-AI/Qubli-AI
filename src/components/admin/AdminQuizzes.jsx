@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -24,7 +25,7 @@ import {
   enableQuiz,
   disableQuiz,
   deleteQuiz,
-} from "../services/adminService";
+} from "../../services/adminService";
 import { toast } from "react-toastify";
 
 export default function AdminQuizzes() {
@@ -49,6 +50,7 @@ export default function AdminQuizzes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const latestFetchId = useRef(0);
   const mounted = useRef(true);
 
@@ -68,12 +70,6 @@ export default function AdminQuizzes() {
 
   useEffect(() => {
     fetchQuizzes();
-    // Set up interval to fetch stats every 15 seconds
-    const interval = setInterval(() => {
-      fetchQuizzes();
-    }, 15000);
-
-    return () => clearInterval(interval);
   }, [selectedDifficulty, pagination.page, debouncedSearchTerm]);
 
   const fetchQuizzes = async () => {
@@ -131,7 +127,8 @@ export default function AdminQuizzes() {
     const percentChange =
       ((numCurrent - numPrevious) / Math.abs(numPrevious)) * 100;
     if (isNaN(percentChange) || !isFinite(percentChange)) return null;
-    return `${Math.round(percentChange)}%`;
+    const rounded = Math.round(percentChange);
+    return `${rounded > 0 ? "+" : ""}${rounded}%`;
   };
 
   return (
@@ -184,7 +181,7 @@ export default function AdminQuizzes() {
                 onClick={() =>
                   setShowDifficultyDropdown(!showDifficultyDropdown)
                 }
-                className="flex items-center justify-between gap-3 px-4 py-2.5 bg-surfaceHighlight/30 border border-border rounded-xl text-sm font-semibold text-textMain dark:text-textMain/90 hover:bg-surfaceHighlight/50 transition-all point min-w-[140px] w-full shadow-md-custom"
+                className="flex items-center justify-between gap-3 px-4 py-2.5 bg-surfaceHighlight/30 border border-border rounded-xl text-sm font-semibold text-textMuted hover:bg-surfaceHighlight/50 transition-all point min-w-[140px] w-full shadow-md-custom"
               >
                 <div className="flex items-center gap-2">
                   {!selectedDifficulty ? (
@@ -220,7 +217,7 @@ export default function AdminQuizzes() {
                       setShowDifficultyDropdown(false);
                       setPagination((p) => ({ ...p, page: 1 }));
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-surfaceHighlight/50 ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-surfaceHighlight/50 point ${
                       selectedDifficulty === null
                         ? "text-primary dark:text-blue-500 font-bold bg-primary/5 dark:bg-blue-500/5"
                         : "text-textMain font-medium"
@@ -248,7 +245,7 @@ export default function AdminQuizzes() {
                         setShowDifficultyDropdown(false);
                         setPagination((p) => ({ ...p, page: 1 }));
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-surfaceHighlight/50 ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-surfaceHighlight/50 point ${
                         selectedDifficulty === diff
                           ? "text-primary dark:text-blue-500 font-bold bg-primary/5 dark:bg-blue-500/5"
                           : "text-textMain font-medium"
@@ -327,8 +324,21 @@ export default function AdminQuizzes() {
                 <stat.icon size={25} />
               </div>
               {stat.trend && (
-                <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
-                  <ArrowUpRight size={14} />
+                <span
+                  className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                    stat.trend.startsWith("-")
+                      ? "text-red-600 bg-red-50 dark:bg-red-900/20"
+                      : "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
+                  }`}
+                >
+                  <ArrowUpRight
+                    size={14}
+                    style={{
+                      transform: stat.trend.startsWith("-")
+                        ? "rotate(180deg)"
+                        : "none",
+                    }}
+                  />
                   {stat.trend}
                 </span>
               )}
@@ -468,6 +478,12 @@ export default function AdminQuizzes() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            const rect =
+                              e.currentTarget.getBoundingClientRect();
+                            setDropdownPos({
+                              top: rect.bottom + window.scrollY,
+                              left: rect.right + window.scrollX,
+                            });
                             setOpenDropdown(
                               openDropdown === quiz._id ? null : quiz._id
                             );
@@ -476,79 +492,90 @@ export default function AdminQuizzes() {
                         >
                           <MoreVertical size={18} />
                         </button>
-                        {openDropdown === quiz._id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-500 dark:bg-slate-900">
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  if (!quiz.isActive) {
-                                    await disableQuiz(quiz._id);
-                                    toast.success("Quiz disabled successfully");
-                                  } else {
-                                    await enableQuiz(quiz._id);
-                                    toast.success("Quiz enabled successfully");
-                                  }
-                                  // Update quiz state locally
-                                  setQuizzes(
-                                    quizzes.map((q) =>
-                                      q._id === quiz._id
-                                        ? { ...q, isActive: !q.isActive }
-                                        : q
-                                    )
-                                  );
-                                  setOpenDropdown(null);
-                                } catch (error) {
-                                  toast.error(
-                                    error.response?.data?.message ||
-                                      `Failed to ${
-                                        !quiz.isActive ? "disable" : "enable"
-                                      } quiz`
-                                  );
-                                }
+                        {openDropdown === quiz._id &&
+                          createPortal(
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: `${dropdownPos.top}px`,
+                                left: `${dropdownPos.left}px`,
+                                transform: "translateX(-100%)",
                               }}
-                              className="w-full text-left px-4 py-2.5 text-sm text-textMain dark:text-textMain/90 hover:bg-surfaceHighlight/50 transition-colors flex items-center gap-2 first:rounded-t-lg point"
+                              className="mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-9999 overflow-hidden animate-slide-in-top dark:bg-slate-900"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {!quiz.isActive ? (
-                                <>
-                                  <EyeOff size={16} />
-                                  Disable
-                                </>
-                              ) : (
-                                <>
-                                  <Eye size={16} />
-                                  Enable
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (
-                                  window.confirm(
-                                    "Are you sure you want to delete this quiz?"
-                                  )
-                                ) {
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
                                   try {
-                                    await deleteQuiz(quiz._id);
-                                    toast.success("Quiz deleted successfully");
+                                    if (!quiz.isActive) {
+                                      await disableQuiz(quiz._id);
+                                      toast.success(
+                                        "Quiz disabled successfully"
+                                      );
+                                    } else {
+                                      await enableQuiz(quiz._id);
+                                      toast.success(
+                                        "Quiz enabled successfully"
+                                      );
+                                    }
+                                    // Fetch quizzes to get updated stats and state
                                     fetchQuizzes();
                                     setOpenDropdown(null);
                                   } catch (error) {
                                     toast.error(
                                       error.response?.data?.message ||
-                                        "Failed to delete quiz"
+                                        `Failed to ${
+                                          !quiz.isActive ? "disable" : "enable"
+                                        } quiz`
                                     );
                                   }
-                                }
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2 last:rounded-b-lg point"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-textMain dark:text-textMain/90 hover:bg-surfaceHighlight/50 transition-colors flex items-center gap-2 first:rounded-t-lg point"
+                              >
+                                {!quiz.isActive ? (
+                                  <>
+                                    <EyeOff size={16} />
+                                    Disable
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye size={16} />
+                                    Enable
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (
+                                    window.confirm(
+                                      "Are you sure you want to delete this quiz?"
+                                    )
+                                  ) {
+                                    try {
+                                      await deleteQuiz(quiz._id);
+                                      toast.success(
+                                        "Quiz deleted successfully"
+                                      );
+                                      fetchQuizzes();
+                                      setOpenDropdown(null);
+                                    } catch (error) {
+                                      toast.error(
+                                        error.response?.data?.message ||
+                                          "Failed to delete quiz"
+                                      );
+                                    }
+                                  }
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2 last:rounded-b-lg point"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>,
+                            document.body
+                          )}
                       </div>
                     </td>
                   </tr>
@@ -561,8 +588,9 @@ export default function AdminQuizzes() {
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-border bg-surfaceHighlight/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[11px] font-bold text-textMuted uppercase tracking-widest">
-            Showing <span className="text-textMain">{quizzes.length}</span> of{" "}
-            <span className="text-textMain">{pagination.total}</span> Quizzes
+            Showing <span className="text-textMain">{pagination.page}</span> of{" "}
+            <span className="text-textMain">{pagination.pages}</span> Page
+            {pagination.pages === 1 ? "" : "s"}
           </p>
 
           <div className="flex items-center gap-2">

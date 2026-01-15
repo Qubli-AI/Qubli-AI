@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Select, MenuItem } from "@mui/material";
-import StorageService from "../services/storageService.js";
-import useDarkMode, { isDarkMode } from "../hooks/useDarkMode.js";
+import StorageService from "../../services/storageService.js";
+import useDarkMode, { isDarkMode } from "../../hooks/useDarkMode.js";
 
 // Medal Image Component
 const Medal = ({ type }) => {

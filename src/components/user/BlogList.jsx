@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, User, ArrowRight, Loader2 } from "lucide-react";
-import blogService from "../services/blogService";
+import Visibility from "@mui/icons-material/Visibility";
+import { User, ArrowRight, Loader2 } from "lucide-react";
+import blogService from "../../services/blogService";
 
 const BlogList = () => {
   const navigate = useNavigate();
@@ -108,9 +109,11 @@ const BlogList = () => {
                         <User size={14} />
                         <span>{blog.author?.name || "Qubli Team"}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock size={14} />
-                        <span>{blog.readTime}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Visibility
+                          sx={{ fontSize: 16, color: "var(--primary)" }}
+                        />
+                        <span>{(blog.views || 0).toLocaleString()} views</span>
                       </div>
                     </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSidebar } from "../context/SidebarContext";
+import { useSidebar } from "../../context/SidebarContext";
 
 import {
   BarChart,
@@ -33,9 +33,9 @@ import {
   XCircle,
 } from "lucide-react";
 
-import StorageService from "../services/storageService.js";
-import { generateQuiz } from "../services/geminiService.js";
-import { Difficulty, QuestionType } from "../../server/config/types.js";
+import StorageService from "../../services/storageService.js";
+import { generateQuiz } from "../../services/geminiService.js";
+import { Difficulty, QuestionType } from "../../../server/config/types.js";
 import StudyBuddy from "./StudyBuddy.jsx";
 
 // --- LOADER COMPONENT ---

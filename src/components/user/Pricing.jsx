@@ -133,8 +133,34 @@ const Pricing = () => {
     ],
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: pricingData.faq.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+      {/* SEO Section */}
+      <section>
+        <title>Pricing | Qubli AI - Flexible Study Plans</title>
+        <meta
+          name="description"
+          content="Choose the perfect plan for your learning. From Free Starter to Pro Mastermind."
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      </section>
+
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
