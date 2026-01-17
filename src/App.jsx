@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { ToastContainer, Zoom } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { LazyMotion, domMax } from "framer-motion";
 
 import {
   BrowserRouter as Router,
@@ -14,11 +15,11 @@ import {
 // Lazy-loaded components for code splitting
 // Core components (Directly imported to avoid lazy-loading issues for modals/layout)
 import Layout from "./components/user/Layout.jsx";
-import Dashboard from "./components/user/Dashboard.jsx";
-import QuizGenerator from "./components/user/QuizGenerator.jsx";
-import QuizTaker from "./components/user/QuizTaker.jsx";
-import Overview from "./components/user/Overview.jsx";
-import Subscription from "./components/user/Subscription.jsx";
+const Dashboard = lazy(() => import("./components/user/Dashboard.jsx"));
+const QuizGenerator = lazy(() => import("./components/user/QuizGenerator.jsx"));
+const QuizTaker = lazy(() => import("./components/user/QuizTaker.jsx"));
+const Overview = lazy(() => import("./components/user/Overview.jsx"));
+const Subscription = lazy(() => import("./components/user/Subscription.jsx"));
 
 // Other User components (Keep lazy for bundle size)
 const AuthForm = lazy(() => import("./components/user/AuthForm.jsx"));
@@ -216,200 +217,202 @@ const App = () => {
       />
       <Analytics />
       <SpeedInsights />
-      <Router>
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-screen bg-background">
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 border-3 border-primary/20 rounded-full"></div>
-                <div className="absolute inset-0 border-3 border-primary rounded-full border-t-transparent animate-spin"></div>
+      <LazyMotion features={domMax} strict={false}>
+        <Router>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center h-screen bg-background">
+                <div className="relative w-10 h-10">
+                  <div className="absolute inset-0 border-3 border-primary/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-3 border-primary rounded-full border-t-transparent animate-spin"></div>
+                </div>
               </div>
-            </div>
-          }
-        >
-          <Routes>
-            <Route path="/oauth/callback" element={<OAuthCallback />} />
+            }
+          >
+            <Routes>
+              <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route
-              path="/admin"
-              element={<Navigate to="/admin/dashboard" replace />}
-            />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminLayout />
-                </ProtectedAdminRoute>
-              }
-            >
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="users/:userId" element={<AdminUserDetail />} />
-              <Route path="quizzes" element={<AdminQuizzes />} />
-              <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
-              <Route path="blogs" element={<AdminBlogs />} />
-              <Route path="activity" element={<AdminActivity />} />
-            </Route>
-
-            <Route
-              path="/auth"
-              element={
-                auth.isAuthenticated ? (
-                  <Navigate to="/dashboard" replace />
-                ) : (
-                  <AuthForm onLogin={handleLoginSuccess} />
-                )
-              }
-            />
-
-            <Route path="/auth/verify-email" element={<VerifyEmail />} />
-
-            <Route element={<PublicLayout auth={auth} />}>
-              <Route path="/features" element={<FeaturesPage />} />
-              <Route path="/testimonials" element={<TestimonialsPage />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/policies" element={<Policies />} />
-              <Route path="/privacy" element={<Policies />} />
-              <Route path="/terms" element={<Terms />} />
-
-              {/* Blog Routes */}
-              <Route path="/blogs" element={<BlogList />} />
-              <Route path="/blogs/:id" element={<BlogPost />} />
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin"
+                element={<Navigate to="/admin/dashboard" replace />}
+              />
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminLayout />
+                  </ProtectedAdminRoute>
+                }
+              >
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="users/:userId" element={<AdminUserDetail />} />
+                <Route path="quizzes" element={<AdminQuizzes />} />
+                <Route path="quizzes/:quizId" element={<AdminQuizDetail />} />
+                <Route path="blogs" element={<AdminBlogs />} />
+                <Route path="activity" element={<AdminActivity />} />
+              </Route>
 
               <Route
-                path="/"
+                path="/auth"
                 element={
-                  <LandingPage auth={auth} onLogin={handleLoginSuccess} />
+                  auth.isAuthenticated ? (
+                    <Navigate to="/dashboard" replace />
+                  ) : (
+                    <AuthForm onLogin={handleLoginSuccess} />
+                  )
                 }
               />
-            </Route>
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <Dashboard user={auth.user} />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
 
-            <Route
-              path="/generate"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <QuizGenerator
+              <Route element={<PublicLayout auth={auth} />}>
+                <Route path="/features" element={<FeaturesPage />} />
+                <Route path="/testimonials" element={<TestimonialsPage />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/policies" element={<Policies />} />
+                <Route path="/privacy" element={<Policies />} />
+                <Route path="/terms" element={<Terms />} />
+
+                {/* Blog Routes */}
+                <Route path="/blogs" element={<BlogList />} />
+                <Route path="/blogs/:id" element={<BlogPost />} />
+
+                <Route
+                  path="/"
+                  element={
+                    <LandingPage auth={auth} onLogin={handleLoginSuccess} />
+                  }
+                />
+              </Route>
+
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
                       user={auth.user}
-                      onGenerateSuccess={refreshUser}
-                    />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <Dashboard user={auth.user} />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/quiz/:id"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <QuizTaker
+              <Route
+                path="/generate"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
                       user={auth.user}
-                      onComplete={refreshUser}
-                      onLimitUpdate={refreshUser}
-                    />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <QuizGenerator
+                        user={auth.user}
+                        onGenerateSuccess={refreshUser}
+                      />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/overview"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <Overview user={auth.user} />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/quiz/:id"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
+                      user={auth.user}
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <QuizTaker
+                        user={auth.user}
+                        onComplete={refreshUser}
+                        onLimitUpdate={refreshUser}
+                      />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/subscription"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <Subscription user={auth.user} onUpgrade={refreshUser} />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/overview"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
+                      user={auth.user}
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <Overview user={auth.user} />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/achievements"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <Achievements user={auth.user} />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/subscription"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
+                      user={auth.user}
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <Subscription user={auth.user} onUpgrade={refreshUser} />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/leaderboard"
-              element={
-                <ProtectedRoute auth={auth}>
-                  <Layout
-                    user={auth.user}
-                    onLogout={handleLogout}
-                    refreshUser={refreshUser}
-                  >
-                    <Leaderboard user={auth.user} />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/achievements"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
+                      user={auth.user}
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <Achievements user={auth.user} />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/flashcards"
-              element={<Navigate to="/overview" replace />}
-            />
+              <Route
+                path="/leaderboard"
+                element={
+                  <ProtectedRoute auth={auth}>
+                    <Layout
+                      user={auth.user}
+                      onLogout={handleLogout}
+                      refreshUser={refreshUser}
+                    >
+                      <Leaderboard user={auth.user} />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch-all 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </Router>
+              <Route
+                path="/flashcards"
+                element={<Navigate to="/overview" replace />}
+              />
+
+              {/* Catch-all 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </LazyMotion>
     </>
   );
 };

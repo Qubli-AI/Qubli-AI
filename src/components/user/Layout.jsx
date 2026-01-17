@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,8 +14,8 @@ import {
 import { AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import SidebarContext from "../../context/SidebarContext.js";
-import SettingsModal from "./SettingsModal.jsx";
-import ConfirmLogoutModal from "./ConfirmLogoutModal.jsx";
+const SettingsModal = lazy(() => import("./SettingsModal.jsx"));
+const ConfirmLogoutModal = lazy(() => import("./ConfirmLogoutModal.jsx"));
 
 const getProgressWidth = (remaining, max) => {
   if (max === Infinity) return "0%";
@@ -528,28 +528,30 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
         </div>
       </main>
 
-      {/* Settings Modal */}
-      <AnimatePresence>
-        {showSettings && (
-          <SettingsModal
-            onClose={() => setShowSettings(false)}
-            user={user}
-            refreshUser={refreshUser}
-          />
-        )}
-      </AnimatePresence>
+      <Suspense fallback={null}>
+        {/* Settings Modal */}
+        <AnimatePresence>
+          {showSettings && (
+            <SettingsModal
+              onClose={() => setShowSettings(false)}
+              user={user}
+              refreshUser={refreshUser}
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Logout Modal - Always rendered, controls its own visibility */}
-      <ConfirmLogoutModal
-        open={logoutModalOpen}
-        onClose={() => setLogoutModalOpen(false)}
-        onConfirm={handleConfirmLogout}
-        isProcessing={isLoggingOut}
-        title="Logout"
-        description="Are you sure you want to logout from this device?"
-        confirmLabel="Logout"
-        cancelLabel="Cancel"
-      />
+        {/* Logout Modal - Always rendered, controls its own visibility */}
+        <ConfirmLogoutModal
+          open={logoutModalOpen}
+          onClose={() => setLogoutModalOpen(false)}
+          onConfirm={handleConfirmLogout}
+          isProcessing={isLoggingOut}
+          title="Logout"
+          description="Are you sure you want to logout from this device?"
+          confirmLabel="Logout"
+          cancelLabel="Cancel"
+        />
+      </Suspense>
     </div>
   );
 };

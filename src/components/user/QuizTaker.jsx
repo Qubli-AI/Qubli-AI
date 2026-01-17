@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import CircularProgress from "@mui/material/CircularProgress";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 
 import {
   Check,
@@ -678,8 +676,11 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
   if (isFetching || !quiz) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <CircularProgress sx={{ color: "#2563eb" }} />
+      <div className="flex justify-center items-center h-screen bg-background">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+        </div>
       </div>
     );
   }
@@ -2229,7 +2230,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 : "text-textMuted hover:text-textMain/85"
             }`}
           >
-            <AssignmentIcon sx={{ width: 20, height: 20 }} /> Quiz Mode
+            <FileText className="w-5 h-5" /> Quiz Mode
           </button>
           <button
             onClick={() => status === "completed" && setActiveTab("flashcards")}
