@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import Visibility from "@mui/icons-material/Visibility";
+import { m as motion } from "framer-motion";
 import { User, ArrowRight, Loader2 } from "lucide-react";
 import blogService from "../../services/blogService";
 import SEO from "./SEO";
@@ -115,9 +114,7 @@ const BlogList = () => {
                         <span>{blog.author?.name || "Qubli Team"}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Visibility
-                          sx={{ fontSize: 16, color: "var(--primary)" }}
-                        />
+                        <Eye className="w-4 h-4" />
                         <span>{(blog.views || 0).toLocaleString()} views</span>
                       </div>
                     </div>

@@ -273,9 +273,9 @@ const LandingPage = ({ auth }) => {
                     </div>
                   )}
                   <div>
-                    <h4 className="font-semibold text-textMain dark:text-textMain/95">
+                    <span className="font-semibold text-textMain dark:text-textMain/95">
                       {testimonial.name}
-                    </h4>
+                    </span>
                     <p className="text-sm text-textMuted">{testimonial.role}</p>
                   </div>
                 </div>

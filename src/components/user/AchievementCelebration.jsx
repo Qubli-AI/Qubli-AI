@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 
 const AchievementCelebration = ({ achievement, onClose }) => {
   const [showButton, setShowButton] = useState(false);
@@ -192,7 +192,7 @@ const Confetti = () => {
         >
           <div
             className={`w-${Math.floor(piece.size / 4)} h-${Math.floor(
-              piece.size / 4
+              piece.size / 4,
             )} rounded-full`}
             style={{
               width: `${piece.size}px`,

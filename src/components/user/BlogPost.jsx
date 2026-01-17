@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { motion } from "framer-motion";
-import Visibility from "@mui/icons-material/Visibility";
+import { m as motion } from "framer-motion";
 import { ArrowLeft, Calendar, Share2, Loader2, List } from "lucide-react";
 import { toast } from "react-toastify";
 import blogService from "../../services/blogService";
@@ -239,9 +238,7 @@ const BlogPost = () => {
                     {blog.author?.name || "Qubli Team"}
                   </p>
                   <p className="text-xs text-textMuted flex items-center gap-2">
-                    <Visibility
-                      sx={{ fontSize: 16, color: "var(--primary)" }}
-                    />{" "}
+                    <Eye className="w-5 h-5 text-primary" />
                     {(blog.views || 0).toLocaleString()} views
                   </p>
                 </div>

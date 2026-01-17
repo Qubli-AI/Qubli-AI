@@ -1,8 +1,13 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { ToastContainer, Zoom } from "react-toastify";
+const ToastContainer = lazy(() =>
+  import("react-toastify").then((m) => ({ default: m.ToastContainer })),
+);
+const Zoom = lazy(() =>
+  import("react-toastify").then((m) => ({ default: m.Zoom })),
+);
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { LazyMotion, domMax } from "framer-motion";
+import { LazyMotion, domAnimation } from "framer-motion";
 
 import {
   BrowserRouter as Router,
@@ -194,30 +199,32 @@ const App = () => {
 
   return (
     <>
-      <ToastContainer
-        position="top-center"
-        autoClose={2000}
-        limit={2}
-        hideProgressBar={true}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable={false}
-        pauseOnHover
-        theme="light"
-        transition={Zoom}
-        toastStyle={{
-          width: "auto",
-          color: "#000",
-          padding: "0 40px 0 30px",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-          fontWeight: "500",
-        }}
-      />
+      <Suspense fallback={null}>
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          limit={2}
+          hideProgressBar={true}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable={false}
+          pauseOnHover
+          theme="light"
+          transition={Zoom}
+          toastStyle={{
+            width: "auto",
+            color: "#000",
+            padding: "0 40px 0 30px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            fontWeight: "500",
+          }}
+        />
+      </Suspense>
       <Analytics />
       <SpeedInsights />
-      <LazyMotion features={domMax} strict={false}>
+      <LazyMotion features={domAnimation} strict={false}>
         <Router>
           <Suspense
             fallback={
