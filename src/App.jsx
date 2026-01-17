@@ -29,6 +29,7 @@ const Subscription = lazy(() => import("./components/user/Subscription.jsx"));
 // Other User components (Keep lazy for bundle size)
 const AuthForm = lazy(() => import("./components/user/AuthForm.jsx"));
 const VerifyEmail = lazy(() => import("./components/user/VerifyEmail.jsx"));
+const DemoPage = lazy(() => import("./components/user/DemoPage.jsx"));
 const OAuthCallback = lazy(() => import("./components/user/OAuthCallback.jsx"));
 const LandingPage = lazy(() => import("./components/user/LandingPage.jsx"));
 const FeaturesPage = lazy(() => import("./components/user/FeaturesPage.jsx"));
@@ -284,6 +285,7 @@ const App = () => {
                 <Route path="/policies" element={<Policies />} />
                 <Route path="/privacy" element={<Policies />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/demo" element={<DemoPage />} />
 
                 {/* Blog Routes */}
                 <Route path="/blogs" element={<BlogList />} />

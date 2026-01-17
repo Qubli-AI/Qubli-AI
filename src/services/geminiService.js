@@ -54,7 +54,7 @@ export const generateQuiz = async (
   examStyleId = "standard",
   fileData,
   onProgress,
-  extraOptions = {}
+  extraOptions = {},
 ) => {
   const payload = {
     topic,
@@ -114,7 +114,7 @@ export const generateQuiz = async (
                       onProgress(
                         data.percentage,
                         data.stage,
-                        data.questionsGenerated
+                        data.questionsGenerated,
                       );
                     }
                   } else if (data.type === "complete") {
@@ -127,7 +127,7 @@ export const generateQuiz = async (
                     "Error parsing SSE message:",
                     err,
                     "Line:",
-                    line
+                    line,
                   );
                 }
               }
@@ -139,6 +139,70 @@ export const generateQuiz = async (
           }
         };
 
+        read();
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        reject(err);
+      });
+  });
+};
+
+/**
+ * Generates a demo quiz (public endpoint, strict limits).
+ */
+export const generateDemoQuiz = async (topic, onProgress) => {
+  return new Promise((resolve, reject) => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/ai/demo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    })
+      .then((response) => {
+        if (!response.ok)
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return response.body;
+      })
+      .then((body) => {
+        if (!body) throw new Error("No response body");
+        const reader = body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        const read = async () => {
+          try {
+            const { done, value } = await reader.read();
+            if (done) return;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.type === "progress") {
+                    if (onProgress)
+                      onProgress(
+                        data.percentage,
+                        data.stage,
+                        data.questionsGenerated,
+                      );
+                  } else if (data.type === "complete") {
+                    resolve(data.data);
+                  } else if (data.type === "error") {
+                    reject(new Error(data.message));
+                  }
+                } catch (err) {
+                  console.error("Error parsing SSE message:", err, line);
+                }
+              }
+            }
+            await read();
+          } catch (err) {
+            reject(err);
+          }
+        };
         read();
       })
       .catch((err) => {

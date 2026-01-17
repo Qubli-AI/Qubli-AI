@@ -229,8 +229,11 @@ app.post("/api/subscription/upgrade", protect, async (req, res) => {
       message: `Successfully upgraded to ${tier} tier.`,
       user: { ...user.toObject(), password: undefined },
     });
-  } catch {
-    res.status(500).json({ message: "Server error during upgrade." });
+  } catch (error) {
+    console.error("Upgrade error:", error);
+    res
+      .status(500)
+      .json({ message: error.message || "Server error during upgrade." });
   }
 });
 

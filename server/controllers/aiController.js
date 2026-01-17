@@ -32,7 +32,7 @@ export const generateQuizEndpoint = async (req, res) => {
             stage,
             percentage,
             questionsGenerated,
-          })}\n\n`
+          })}\n\n`,
         );
       } catch (err) {
         console.error("Error writing progress:", err);
@@ -52,7 +52,7 @@ export const generateQuizEndpoint = async (req, res) => {
       `data: ${JSON.stringify({
         type: "complete",
         data: quizData,
-      })}\n\n`
+      })}\n\n`,
     );
 
     // Only decrement limits for non-admin users
@@ -69,7 +69,7 @@ export const generateQuizEndpoint = async (req, res) => {
         `data: ${JSON.stringify({
           type: "error",
           message: error.message || "Internal server error",
-        })}\n\n`
+        })}\n\n`,
       );
     } catch (err) {
       console.error("Error writing error response:", err);
@@ -98,6 +98,85 @@ export const chatWithAIEndpoint = asyncHandler(async (req, res) => {
   const reply = await chatWithAIHelper(user, messages, context);
   res.status(200).json({ reply });
 });
+
+export const generateDemoEndpoint = async (req, res) => {
+  try {
+    const { topic } = req.body;
+    if (!topic || !topic.trim()) {
+      return res.status(400).json({ message: "Topic is required" });
+    }
+
+    // Hardcoded "Demo User" - effectively free tier
+    const demoUser = {
+      _id: "demo",
+      name: "Demo User",
+      role: "user",
+      tier: "Free",
+      limits: { generationsRemaining: 1 }, // Virtual limit
+    };
+
+    // Hardcoded strict limits for demo
+    const demoPayload = {
+      topic,
+      difficulty: "Easy",
+      questionCount: 5,
+      types: ["MCQ"],
+      totalMarks: 5,
+      examStyleId: "standard",
+    };
+
+    // Function to send progress updates (optional for demo, but good UX)
+    const sendProgress = (stage, percentage, questionsGenerated = null) => {
+      try {
+        res.write(
+          `data: ${JSON.stringify({
+            type: "progress",
+            stage,
+            percentage,
+            questionsGenerated,
+          })}\n\n`,
+        );
+      } catch (err) {
+        console.error("Error writing progress:", err);
+      }
+    };
+
+    // Set up SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+
+    const quizData = await generateQuizHelper(
+      demoPayload,
+      demoUser,
+      sendProgress,
+    );
+
+    // Send final result
+    res.write(
+      `data: ${JSON.stringify({
+        type: "complete",
+        data: quizData,
+      })}\n\n`,
+    );
+
+    res.end();
+  } catch (error) {
+    console.error("Demo generation error:", error);
+    try {
+      res.write(
+        `data: ${JSON.stringify({
+          type: "error",
+          message: error.message || "Internal server error",
+        })}\n\n`,
+      );
+    } catch (err) {
+      console.error("Error writing error response:", err);
+    }
+    res.end();
+  }
+};
 
 export const gradeAnswerEndpoint = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);

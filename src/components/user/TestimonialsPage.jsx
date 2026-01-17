@@ -24,7 +24,7 @@ const TestimonialsPage = () => {
       role: "High School Teacher",
       rating: 5,
       text: "As a teacher, I use Qubli AI to create assessments for my students. It saves me so much time and the AI suggestions are incredibly accurate. My students love the interactive format!",
-      image: "/images/review-emily.png",
+      image: "/images/review-emily.avif",
     },
     {
       name: "James Lee",
@@ -157,7 +157,7 @@ const TestimonialsPage = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
+            <div className="p-6 rounded-2xl bg-surface/80 glass border border-border hover:shadow-sm-custom hover:scale-104 transition-all duration-300">
               <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 10K+
               </div>
@@ -165,7 +165,7 @@ const TestimonialsPage = () => {
                 Happy Students
               </div>
             </div>
-            <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
+            <div className="p-6 rounded-2xl bg-surface/80 glass border border-border hover:shadow-sm-custom hover:scale-104 transition-all duration-300">
               <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 4.9/5
               </div>
@@ -173,7 +173,7 @@ const TestimonialsPage = () => {
                 Average Rating
               </div>
             </div>
-            <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
+            <div className="p-6 rounded-2xl bg-surface/80 glass border border-border hover:shadow-sm-custom hover:scale-104 transition-all duration-300">
               <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 100K+
               </div>

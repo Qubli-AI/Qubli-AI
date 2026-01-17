@@ -192,7 +192,7 @@ const Subscription = ({ user, onUpgrade }) => {
 
   const handleUpgrade = async (tier) => {
     const confirmPayment = window.confirm(
-      `Proceed to change plan to ${TIER_DATA[tier].title} for ${TIER_DATA[tier].price}/month? (Simulated)`
+      `Proceed to change plan to ${TIER_DATA[tier].title} for ${TIER_DATA[tier].price}/month? (Simulated)`,
     );
     if (!confirmPayment) return;
 
@@ -200,18 +200,18 @@ const Subscription = ({ user, onUpgrade }) => {
       await StorageService.upgradeTier(tier);
       const updatedUser = await StorageService.refreshUser();
       window.dispatchEvent(
-        new CustomEvent("userUpdated", { detail: updatedUser })
+        new CustomEvent("userUpdated", { detail: updatedUser }),
       );
       toast.success(`Plan updated to ${updatedUser.tier}`);
       if (onUpgrade) onUpgrade();
-    } catch {
-      toast.error("Failed to update plan");
+    } catch (err) {
+      toast.error(err.message || "Failed to update plan");
     }
   };
 
   const handleRefund = async () => {
     const confirmRefund = window.confirm(
-      "Request a refund? You will lose access to premium features immediately. This action cannot be undone."
+      "Request a refund? You will lose access to premium features immediately. This action cannot be undone.",
     );
     if (!confirmRefund) return;
 

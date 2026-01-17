@@ -231,7 +231,7 @@ const LandingPage = ({ auth }) => {
               {
                 name: "Dr. Emily Rodriguez",
                 role: "High School Teacher",
-                image: "/images/review-emily.png",
+                image: "/images/review-emily.avif",
                 rating: 5,
                 review:
                   "As a teacher, I use Qubli AI to create assessments for my students. It saves me so much time and the AI suggestions are incredibly accurate. My students love the interactive format!",
