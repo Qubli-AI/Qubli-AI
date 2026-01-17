@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -16,74 +16,42 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Qubli AI",
-        "operatingSystem": "Web",
-        "applicationCategory": "EducationalApplication",
-        "sameAs": ["https://x.com/Qubli_AI", "https://github.com/Qubli-AI"],
-        "url": "https://qubli-ai.vercel.app/",
-        "description": "AI-powered learning platform that turns notes and PDFs into quizzes, flashcards, and practice tests using active recall.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Qubli AI",
-        "alternateName": ["Qubli"],
-        "url": "https://qubli-ai.vercel.app/"
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "itemListElement": [
+        "@graph": [
           {
-            "@type": "SiteNavigationElement",
-            "position": 1,
-            "name": "Features",
-            "url": "https://qubli-ai.vercel.app/features"
+            "@type": "Organization",
+            "@id": "https://qubli-ai.vercel.app/#organization",
+            "name": "Qubli AI",
+            "url": "https://qubli-ai.vercel.app/",
+            "logo": "https://qubli-ai.vercel.app/icons/favicon-ico.avif",
+            "sameAs": ["https://x.com/Qubli_AI", "https://github.com/Qubli-AI"]
           },
           {
-            "@type": "SiteNavigationElement",
-            "position": 2,
-            "name": "Pricing",
-            "url": "https://qubli-ai.vercel.app/pricing"
+            "@type": "WebSite",
+            "@id": "https://qubli-ai.vercel.app/#website",
+            "url": "https://qubli-ai.vercel.app/",
+            "name": "Qubli AI",
+            "alternateName": "Qubli",
+            "publisher": { "@id": "https://qubli-ai.vercel.app/#organization" }
           },
           {
-            "@type": "SiteNavigationElement",
-            "position": 3,
-            "name": "Blogs",
-            "url": "https://qubli-ai.vercel.app/blogs"
-          },
-          {
-            "@type": "SiteNavigationElement",
-            "position": 4,
-            "name": "Get Started",
-            "url": "https://qubli-ai.vercel.app/auth"
-          },
-          {
-            "@type": "SiteNavigationElement",
-            "position": 5,
-            "name": "Contact",
-            "url": "https://qubli-ai.vercel.app/contact"
-          },
-          {
-            "@type": "SiteNavigationElement",
-            "position": 6,
-            "name": "Policies",
-            "url": "https://qubli-ai.vercel.app/policies"
+            "@type": "SoftwareApplication",
+            "@id": "https://qubli-ai.vercel.app/#software",
+            "name": "Qubli AI",
+            "operatingSystem": "Web",
+            "applicationCategory": "EducationalApplication",
+            "description": "AI-powered learning platform that turns notes and PDFs into quizzes, flashcards, and practice tests using active recall.",
+            "url": "https://qubli-ai.vercel.app/",
+            "author": { "@id": "https://qubli-ai.vercel.app/#organization" },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
           }
         ]
       }
     </script>
-    <title>Qubli AI — Turn Notes Into Quizzes & Flashcards</title>
+    <title>Qubli AI - AI-Powered Study Platform</title>
 
     <!-- Preconnect to external origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -119,7 +87,7 @@
       crossorigin
     />
 
-    <link rel="icon" href="/icons/favicon-ico.png" type="image/x-icon" />
+    <link rel="icon" href="/icons/favicon-ico.avif" type="image/avif" />
     <link rel="canonical" href="https://qubli-ai.vercel.app/" />
 
     <!-- Initialize theme immediately to prevent FOUC -->
@@ -133,7 +101,7 @@
           htmlElement.classList.remove("dark");
         } else {
           const prefersDark = window.matchMedia(
-            "(prefers-color-scheme: dark)"
+            "(prefers-color-scheme: dark)",
           ).matches;
           if (prefersDark) {
             htmlElement.classList.add("dark");
@@ -145,22 +113,19 @@
     </script>
 
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content="Qubli AI — Turn Notes Into Quizzes & Flashcards"
-    />
+    <meta property="og:title" content="Qubli AI — AI-Powered Study Platform" />
     <meta
       property="og:description"
-      content="Upload PDFs, notes or topics and instantly generate quizzes, flashcards and practice tests using AI."
+      content="Qubli AI helps students pass exams by turning their notes, PDFs, and topics into instant quizzes, flashcards, and practice tests. Instead of rereading notes for hours, Qubli forces active recall — the same technique used by top students — so you learn faster, remember longer, and walk into the exam hall confident."
     />
     <meta property="og:url" content="https://qubli-ai.vercel.app/" />
     <meta property="og:image" content="https://qubli-ai.vercel.app/og.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Qubli AI — AI Study Assistant" />
+    <meta name="twitter:title" content="Qubli AI — AI-Powered Study Platform" />
     <meta
       name="twitter:description"
-      content="Turn notes & PDFs into quizzes, flashcards & practice tests."
+      content="Qubli AI helps students pass exams by turning their notes, PDFs, and topics into instant quizzes, flashcards, and practice tests. Instead of rereading notes for hours, Qubli forces active recall — the same technique used by top students — so you learn faster, remember longer, and walk into the exam hall confident."
     />
     <meta name="twitter:image" content="https://qubli-ai.vercel.app/og.png" />
   </head>
@@ -168,14 +133,21 @@
     <div id="root">
       <noscript>
         <div style="padding: 20px; text-align: center">
-          <h1>Qubli AI — AI-Powered Study Platform for Students</h1>
+          <h1>Qubli AI — AI-Powered Study Platform</h1>
           <p>
-            Qubli AI turns your notes, PDFs and topics into quizzes, flashcards
-            and practice tests using active recall so you learn faster and
-            remember longer.
+            Qubli AI helps students pass exams by turning their notes, PDFs, and
+            topics into instant quizzes, flashcards, and practice tests. Instead
+            of rereading notes for hours, Qubli forces active recall — the same
+            technique used by top students — so you learn faster, remember
+            longer, and walk into the exam hall confident.
           </p>
           <p>Please enable JavaScript to use the full features of Qubli AI.</p>
         </div>
+        <nav>
+          <a href="/features">Features</a> | <a href="/pricing">Pricing</a> |
+          <a href="/blogs">Blogs</a> | <a href="/auth">Get Started</a> |
+          <a href="/contact">Contact</a> | <a href="/policies">Policies</a>
+        </nav>
       </noscript>
     </div>
     <script type="module" src="/src/index.jsx"></script>

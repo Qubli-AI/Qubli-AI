@@ -1,5 +1,35 @@
-import { request } from "./api.js";
 import StorageService from "./storageService.js";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Simple request helper since api.js is deprecated
+const request = async (endpoint, method = "GET", body) => {
+  const token = localStorage.getItem("token");
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid JSON.");
+  }
+
+  if (!res.ok) {
+    throw new Error(data.message || `Request failed with status ${res.status}`);
+  }
+
+  return data;
+};
 
 /**
  * Generates a quiz by calling the secure backend endpoint with SSE support.

@@ -40,6 +40,27 @@ const formatUpdateTime = () => {
   });
 };
 
+function useTailwindDark() {
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 const StatCard = ({
   icon: Icon,
   title,
@@ -60,7 +81,7 @@ const StatCard = ({
       <p
         className={`${
           diffClass ? "text-xl" : "text-2xl"
-        } font-bold text-textMain`}
+        } font-bold text-textMain dark:text-textMain/95`}
       >
         {loading ? "..." : value}
       </p>
@@ -75,6 +96,7 @@ const Overview = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [timeframe, setTimeframe] = useState("weekly");
   const itemsPerPage = 8;
 
   const { completedQuizzes, avgScore } = useMemo(() => {
@@ -147,7 +169,8 @@ const Overview = ({ user }) => {
   };
 
   const chartData = useMemo(() => {
-    const last7Days = [...Array(7)]
+    const days = timeframe === "weekly" ? 7 : 30;
+    const lastDays = [...Array(days)]
       .map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - i);
@@ -155,23 +178,37 @@ const Overview = ({ user }) => {
       })
       .reverse();
 
-    return last7Days.map((date) => {
+    return lastDays.map((date) => {
       const dayQuizzes = completedQuizzes.filter(
-        (q) => new Date(q.createdAt).toISOString().split("T")[0] === date
+        (q) => new Date(q.createdAt).toISOString().split("T")[0] === date,
       );
       const avg = dayQuizzes.length
         ? Math.round(
             dayQuizzes.reduce((acc, q) => acc + (q.score || 0), 0) /
-              dayQuizzes.length
+              dayQuizzes.length,
           )
         : 0;
 
+      const dateObj = new Date(date);
       return {
-        name: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+        name:
+          timeframe === "weekly"
+            ? dateObj.toLocaleDateString("en-US", { weekday: "short" })
+            : dateObj.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              }),
+        fullDate: dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
         score: avg,
       };
     });
-  }, [completedQuizzes]);
+  }, [completedQuizzes, timeframe]);
+
+  const isDark = useTailwindDark();
 
   const navigate = useNavigate();
 
@@ -193,7 +230,7 @@ const Overview = ({ user }) => {
               <i key={i}>{part.slice(1, -1)}</i>
             ) : (
               part
-            )
+            ),
           )}
         </p>
       );
@@ -205,9 +242,9 @@ const Overview = ({ user }) => {
       return (
         <div className="bg-surface p-3 border border-border rounded-xl shadow-xl">
           <p className="text-xs font-bold text-textMuted uppercase mb-1">
-            {payload[0].payload.name}
+            {payload[0].payload.fullDate || payload[0].payload.name}
           </p>
-          <p className="text-lg font-bold text-primary">
+          <p className="text-lg font-bold text-primary dark:text-blue-500">
             {payload[0].value}%{" "}
             <span className="text-xs font-normal text-textMuted ml-1">
               Avg Score
@@ -222,7 +259,7 @@ const Overview = ({ user }) => {
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-bold text-textMain tracking-tight">
+        <h1 className="text-3xl font-bold text-textMain dark:text-textMain/95 tracking-tight">
           Performance Overview
         </h1>
         <div className="text-sm text-textMuted bg-surface px-4 py-2 rounded-full border border-border shadow-sm-custom flex items-center gap-2">
@@ -264,33 +301,58 @@ const Overview = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Weekly Progress Chart */}
         <div className="lg:col-span-2 bg-surface p-6 rounded-3xl border border-border shadow-md-custom">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col gap-4 xs:flex-row xs:gap-0 items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-textMain flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                Weekly Progress
+              <h3 className="text-lg font-bold text-textMain dark:text-textMain/95 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary dark:text-blue-500" />
+                {timeframe === "weekly" ? "Weekly" : "Monthly"} Progress
               </h3>
               <p className="text-sm text-textMuted">
                 Average score performance
               </p>
             </div>
-            <div className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-              Last 7 Days
+            <div className="flex bg-slate-100 dark:bg-slate-800/40 p-1 gap-2 rounded-xl border border-border/60 relative overflow-hidden">
+              <button
+                onClick={() => setTimeframe("weekly")}
+                className={`px-5 py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all duration-300 uppercase tracking-widest z-10 point ${
+                  timeframe === "weekly"
+                    ? "bg-white dark:bg-blue-600 text-primary dark:text-white shadow-md"
+                    : "text-textMuted hover:text-textMain/80 hover:bg-white/80 dark:hover:bg-slate-700/30"
+                }`}
+              >
+                Weekly
+              </button>
+              <button
+                onClick={() => setTimeframe("monthly")}
+                className={`px-5 py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all duration-300 uppercase tracking-widest z-10 point ${
+                  timeframe === "monthly"
+                    ? "bg-white dark:bg-blue-600 text-primary dark:text-white shadow-md"
+                    : "text-textMuted hover:text-textMain/80 hover:bg-white/80 dark:hover:bg-slate-700/30"
+                }`}
+              >
+                Monthly
+              </button>
+            </div>
+            <div className="hidden sm:block text-xs font-bold text-primary bg-primary/10 dark:bg-blue-800/20 dark:text-blue-500 px-3 py-1.5 rounded-full uppercase tracking-wider">
+              {timeframe === "weekly" ? "Last 7 Days" : "Last 30 Days"}
             </div>
           </div>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart
+                data={chartData}
+                margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
-                      stopColor="var(--primary)"
-                      stopOpacity={0.3}
+                      stopColor={isDark ? "#3b82f6" : "#4f46e5"}
+                      stopOpacity={0.4}
                     />
                     <stop
                       offset="95%"
-                      stopColor="var(--primary)"
+                      stopColor={isDark ? "#3b82f6" : "#4f46e5"}
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -298,23 +360,30 @@ const Overview = ({ user }) => {
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="var(--border)"
-                  opacity={0.5}
+                  stroke={isDark ? "#334155" : "#e2e8f0"}
+                  opacity={isDark ? 0.3 : 0.8}
                 />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "var(--textMuted)", fontSize: 12 }}
-                  dy={10}
+                  tick={{
+                    fill: isDark ? "#94a3b8" : "#64748b",
+                    fontSize: 10,
+                    fontWeight: 600,
+                  }}
+                  dy={12}
+                  interval={timeframe === "weekly" ? 0 : "preserveStartEnd"}
+                  minTickGap={timeframe === "weekly" ? 5 : 40}
+                  padding={{ left: 25, right: 25 }}
                 />
                 <YAxis hide={true} domain={[0, 100]} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="score"
-                  stroke="var(--primary)"
-                  strokeWidth={3}
+                  stroke={isDark ? "#3b82f6" : "#4f46e5"}
+                  strokeWidth={4}
                   fillOpacity={1}
                   fill="url(#colorScore)"
                   animationDuration={1500}
@@ -324,42 +393,65 @@ const Overview = ({ user }) => {
           </div>
         </div>
 
-        {/* AI Performance Coach - Moved to side or bottom based on screen */}
-        <div className="bg-linear-to-br from-indigo-600 to-blue-700 dark:from-indigo-900 dark:to-blue-950 p-6 rounded-3xl shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 -m-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-            <Sparkles className="w-32 h-32 text-white" />
-          </div>
-
+        {/* AI Performance Coach */}
+        <div className="relative bg-indigo-600 dark:bg-indigo-700/70 p-6 rounded-2xl shadow-lg-custom overflow-hidden h-full">
           <div className="relative z-10 flex flex-col h-full">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl text-white shadow-lg">
                 <Sparkles className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white">AI Coach</h3>
+              <h3 className="text-xl font-bold text-white drop-shadow-sm">
+                AI Coach
+              </h3>
             </div>
 
-            <div className="flex-1 text-white/90 text-sm leading-relaxed max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
-              {loading ? (
-                <div className="space-y-2 opacity-50">
-                  <div className="h-3 bg-white/20 rounded w-full animate-pulse"></div>
-                  <div className="h-3 bg-white/20 rounded w-4/5 animate-pulse"></div>
-                  <div className="h-3 bg-white/20 rounded w-full animate-pulse"></div>
-                </div>
-              ) : completedQuizzes.length > 0 ? (
-                <div className="prose prose-sm prose-invert">
-                  {formatReviewText(aiReview)}
-                </div>
-              ) : (
-                <p>Complete a quiz to unlock AI-powered insights!</p>
-              )}
-            </div>
-
-            <button
-              onClick={() => navigate("/generate")}
-              className="mt-6 w-full py-2.5 bg-white text-primary font-bold rounded-xl shadow-lg hover:bg-gray-50 transition-colors text-sm"
+            {/* Content Area */}
+            <div
+              className="flex-1 text-white/95 text-sm leading-relaxed max-h-[250px] overflow-y-auto pr-2"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor:
+                  "rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1)",
+              }}
             >
-              Start New Quiz
-            </button>
+              <style>{`
+                .ai-coach-content::-webkit-scrollbar {
+                  width: 6px;
+                }
+                .ai-coach-content::-webkit-scrollbar-track {
+                  background: rgba(255, 255, 255, 0.1);
+                  border-radius: 10px;
+                }
+                .ai-coach-content::-webkit-scrollbar-thumb {
+                  background: rgba(255, 255, 255, 0.3);
+                  border-radius: 10px;
+                }
+                .ai-coach-content::-webkit-scrollbar-thumb:hover {
+                  background: rgba(255, 255, 255, 0.4);
+                }
+              `}</style>
+              <div className="ai-coach-content h-full">
+                {loading ? (
+                  <div className="space-y-2.5">
+                    <div className="h-3 bg-white/20 rounded-full w-full animate-pulse"></div>
+                    <div className="h-3 bg-white/20 rounded-full w-4/5 animate-pulse"></div>
+                    <div className="h-3 bg-white/20 rounded-full w-full animate-pulse"></div>
+                    <div className="h-3 bg-white/20 rounded-full w-3/4 animate-pulse"></div>
+                  </div>
+                ) : completedQuizzes.length > 0 ? (
+                  <div className="text-white/90 prose prose-sm prose-invert max-w-none">
+                    {formatReviewText(aiReview)}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-white/80 text-center">
+                      Complete a quiz to unlock AI-powered insights! 🎯
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -371,7 +463,7 @@ const Overview = ({ user }) => {
           } min-[1130px]:flex-row justify-between items-center mb-6 gap-4`}
         >
           <div>
-            <h2 className="text-2xl font-bold text-textMain text-center md:text-left">
+            <h2 className="text-2xl font-bold text-textMain dark:text-textMain/95 text-center md:text-left">
               Recent History
             </h2>
             <p className="text-xs text-textMuted mt-2 mb-1">
@@ -401,8 +493,8 @@ const Overview = ({ user }) => {
                     onClick={() => setCurrentPage(i + 1)}
                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-all point shadow-sm ${
                       currentPage === i + 1
-                        ? "bg-primary text-white shadow-lg shadow-primary/20"
-                        : "text-textMuted hover:text-textMain bg-surface border border-border"
+                        ? "bg-primary dark:bg-blue-700 text-white shadow-lg shadow-primary/20"
+                        : "text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border"
                     }`}
                   >
                     {i + 1}
@@ -435,8 +527,8 @@ const Overview = ({ user }) => {
                         onClick={() => setCurrentPage(p)}
                         className={`w-8 h-8 rounded-lg text-xs font-bold transition-all shadow-sm ${
                           currentPage === p
-                            ? "bg-primary text-white shadow-lg shadow-primary/20"
-                            : "text-textMuted hover:text-textMain bg-surface border border-border"
+                            ? "bg-primary dark:bg-blue-700/80 text-white shadow-lg shadow-primary/20"
+                            : "text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border"
                         }`}
                       >
                         {p}
@@ -449,7 +541,7 @@ const Overview = ({ user }) => {
                       )}
                       <button
                         onClick={() => setCurrentPage(totalPages)}
-                        className="w-8 h-8 rounded-lg text-xs font-bold text-textMuted hover:text-textMain bg-surface border border-border transition-all shadow-sm"
+                        className="w-8 h-8 rounded-lg text-xs font-bold text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border transition-all shadow-sm"
                       >
                         {totalPages}
                       </button>
@@ -462,7 +554,7 @@ const Overview = ({ user }) => {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="flex items-center gap-1 px-3.5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3.5 py-2 bg-primary hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white dark:text-white/95 rounded-xl text-xs font-bold shadow-lg shadow-primary/20 transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
             >
               Next
               <ChevronRight size={14} />
@@ -477,11 +569,11 @@ const Overview = ({ user }) => {
                 placeholder="Search history..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm-custom"
+                className="w-full pl-9 pr-4 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm-custom text-textMain dark:text-textMain/95"
               />
               {searchTerm && (
                 <XCircle
-                  className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 point hover:text-gray-500 transition-colors"
                   onClick={() => setSearchTerm("")}
                 />
               )}
@@ -490,7 +582,7 @@ const Overview = ({ user }) => {
               <select
                 value={filterDifficulty}
                 onChange={(e) => setFilterDifficulty(e.target.value)}
-                className="pl-3 pr-8 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer w-full shadow-sm-custom font-"
+                className="pl-3 pr-8 py-2 text-sm bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer w-full shadow-sm-custom font- medium text-textMain dark:text-textMain/95"
               >
                 <option value="All">All</option>
                 <option value="Easy">Easy</option>
@@ -503,7 +595,7 @@ const Overview = ({ user }) => {
         </div>
         <div className="overflow-x-auto border border-border rounded-2xl">
           <table className="w-full text-left text-sm table-auto min-w-[600px]">
-            <thead className="bg-surfaceHighlight text-textMuted font-medium text-xs uppercase tracking-wider">
+            <thead className="bg-surfaceHighlight text-textMuted dark:text-textMuted/80 font-medium text-xs uppercase tracking-wider">
               <tr>
                 <th className="p-5 pl-6 w-55">Quiz Title</th>
                 <th className="p-5 text-center w-20">Date Taken</th>
@@ -548,7 +640,7 @@ const Overview = ({ user }) => {
                           (q?._id || q?.id) && handleRowClick(q._id || q.id)
                         }
                       >
-                        <td className="p-5 pl-6 font-semibold text-textMain group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                        <td className="p-5 pl-6 font-semibold text-textMain dark:text-textMain/95 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                           {truncateText(q?.title ?? "", 40)}
                         </td>
                         <td className="p-5 text-textMuted text-center whitespace-nowrap">
@@ -556,12 +648,12 @@ const Overview = ({ user }) => {
                         </td>
                         <td className="p-5 text-center">
                           <span
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 ${
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 ${
                               q?.difficulty === "Easy"
-                                ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                                ? "bg-green-200/70 text-green-600 dark:bg-green-800/45 dark:text-green-500"
                                 : q?.difficulty === "Medium"
-                                ? "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300"
-                                : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                                  ? "bg-orange-200/50 text-orange-600 dark:bg-orange-800/50 dark:text-amber-500"
+                                  : "bg-red-200/60 text-red-600 dark:bg-red-800/45"
                             }`}
                           >
                             {q?.difficulty ?? "Unknown"}
@@ -576,8 +668,8 @@ const Overview = ({ user }) => {
                                 q?.score >= 80
                                   ? "text-green-600 dark:text-green-500"
                                   : q?.score >= 50
-                                  ? "text-amber-600 dark:text-amber-500"
-                                  : "text-red-600 dark:text-red-500"
+                                    ? "text-amber-600 dark:text-amber-500"
+                                    : "text-red-600 dark:text-red-500"
                               }`}
                             >
                               {q?.score}%
@@ -587,7 +679,7 @@ const Overview = ({ user }) => {
                         <td className="p-5 font-medium">
                           {obtainedMarks !== null ? (
                             <div className="flex items-baseline gap-1 justify-center">
-                              <span className="text-textMain font-bold text-lg">
+                              <span className="text-textMain dark:text-textMain/95 font-bold text-lg">
                                 {obtainedMarks}
                               </span>
                               <span className="text-textMuted text-xs">

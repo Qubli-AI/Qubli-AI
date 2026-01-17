@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Mail, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import { request } from "../../services/api.js";
+import StorageService from "../../services/storageService.js";
 
 const VerifyEmail = () => {
   const location = useLocation();
@@ -41,10 +41,7 @@ const VerifyEmail = () => {
     try {
       // The 'email' passed here is already checked for null/undefined below,
       // but optional chaining ensures it's handled gracefully if the check were missed.
-      const response = await request("/api/auth/verify-email", "POST", {
-        email,
-        code,
-      });
+      const response = await StorageService.verifyEmail(email, code);
 
       localStorage.setItem("token", response.token);
       // Added optional chaining to safely stringify response.user just in case
@@ -72,7 +69,7 @@ const VerifyEmail = () => {
     setResending(true);
     try {
       // Added optional chaining to email, though it's checked in the conditional render
-      await request("/api/auth/resend-code", "POST", { email });
+      await StorageService.resendVerificationCode(email);
       toast.success("New code sent to your email!");
       setTimeLeft(1800); // Reset timer
       setCode("");

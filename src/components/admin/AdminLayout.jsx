@@ -179,7 +179,7 @@ export default function AdminLayout() {
                   title="Qubli AI"
                 >
                   <img
-                    src="/icons/favicon-main.png"
+                    src="/icons/favicon-main.avif"
                     className="w-11 h-11"
                     alt="Brand Icon"
                     loading="lazy"

@@ -296,7 +296,7 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   const el = document.getElementById(
-                                    heading.id
+                                    heading.id,
                                   );
                                   if (el) {
                                     el.scrollIntoView({
@@ -464,7 +464,7 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
                     onChange={handleChange}
                     rows="2"
                     placeholder="Short subtitle or summary..."
-                    className="w-full bg-transparent text-lg text-textMuted font-medium leading-relaxed outline-none resize-none border-l-4 border border-border py-3 pl-5 focus:border-primary transition-colors rounded-md shadow-md-custom"
+                    className="w-full bg-transparent text-lg text-textMuted font-medium leading-relaxed outline-none resize-none border-l-4 border border-border py-3 pl-5 focus:border-primary transition-colors rounded-md shadow-sm-custom"
                     required
                   />
 
@@ -474,8 +474,8 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
                     name="content"
                     value={formData.content}
                     onChange={handleChange}
-                    placeholder="Write your Blog content here..."
-                    className="w-full bg-transparent text-lg text-textMain/90 placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none resize-none min-h-[400px] leading-relaxed rounded-md border border-border py-3 pl-4 shadow-md-custom"
+                    placeholder="Write your Blog content as markdown here..."
+                    className="w-full bg-transparent text-lg text-textMain/90 placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none resize-none min-h-[400px] leading-relaxed rounded-md border border-border py-3 pl-4 shadow-sm-custom"
                     required
                   />
                 </section>
@@ -574,7 +574,7 @@ const BlogEditor = ({ blog, onClose, onSave }) => {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

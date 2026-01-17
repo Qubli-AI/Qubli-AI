@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,11 +43,8 @@ import StudyBuddy from "./StudyBuddy.jsx";
 const WeakPointsLoader = ({ isOpen, progress, stage }) => {
   if (!isOpen) return null;
 
-  return (
-    <div
-      className="fixed inset-0 bg-surface/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-fade-in"
-      style={{ zIndex: 100 }}
-    >
+  return createPortal(
+    <div className="fixed inset-0 bg-surface/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-fade-in z-1000">
       <div className="w-full max-w-md text-center space-y-8">
         <div className="relative w-24 h-24 mx-auto">
           <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
@@ -76,7 +74,8 @@ const WeakPointsLoader = ({ isOpen, progress, stage }) => {
           ></div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
@@ -133,23 +132,23 @@ const KPI_STATS = [
 // Difficulty Badge Styling Constant
 const DIFFICULTY_STYLES = {
   [Difficulty.Easy]: {
-    bg: "bg-emerald-200/70 dark:bg-emerald-800/40",
-    text: "text-emerald-600 dark:text-emerald-500",
+    bg: "bg-green-200/70 dark:bg-green-800/60",
+    text: "text-green-600 dark:text-green-500",
   },
   [Difficulty.Medium]: {
-    bg: "bg-amber-200/70 dark:bg-amber-800/30",
-    text: "text-amber-600",
+    bg: "bg-orange-200/60 dark:bg-orange-800/50",
+    text: "text-orange-600 dark:text-amber-500",
   },
   [Difficulty.Hard]: {
-    bg: "bg-red-200 dark:bg-red-800/30",
-    text: "text-red-600 dark:text-red-500",
+    bg: "bg-red-200/60 dark:bg-red-800/45",
+    text: "text-red-600",
   },
 };
 // --- END EXTRACTED CONSTANTS ---
 
 function useTailwindDark() {
   const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains("dark")
+    document.documentElement.classList.contains("dark"),
   );
 
   useEffect(() => {
@@ -333,25 +332,25 @@ const Dashboard = ({ user }) => {
       setStats({
         avgEasy: diffStats[Difficulty.Easy].total
           ? Math.round(
-              diffStats[Difficulty.Easy].sum / diffStats[Difficulty.Easy].total
+              diffStats[Difficulty.Easy].sum / diffStats[Difficulty.Easy].total,
             )
           : 0,
         avgMedium: diffStats[Difficulty.Medium].total
           ? Math.round(
               diffStats[Difficulty.Medium].sum /
-                diffStats[Difficulty.Medium].total
+                diffStats[Difficulty.Medium].total,
             )
           : 0,
         avgHard: diffStats[Difficulty.Hard].total
           ? Math.round(
-              diffStats[Difficulty.Hard].sum / diffStats[Difficulty.Hard].total
+              diffStats[Difficulty.Hard].sum / diffStats[Difficulty.Hard].total,
             )
           : 0,
         weakestTopic: weakTopic.charAt(0).toUpperCase() + weakTopic.slice(1),
         weakestType: weakType,
       });
     },
-    []
+    [],
   );
 
   const handleDeleteClick = (e, id, title) => {
@@ -400,20 +399,20 @@ const Dashboard = ({ user }) => {
       {
         name: "Easy",
         score: stats.avgEasy,
-        fill: isDark ? "#10b981" : "#10b981",
+        fill: isDark ? "#10b981" : "#059669",
       },
       {
         name: "Medium",
         score: stats.avgMedium,
-        fill: isDark ? "#f59e0b" : "#f59e0b",
+        fill: isDark ? "#f59e0b" : "#d97706",
       },
       {
         name: "Hard",
         score: stats.avgHard,
-        fill: isDark ? "#ef4444" : "#ef4444",
+        fill: isDark ? "#ef4444" : "#dc2626",
       },
     ],
-    [stats, isDark]
+    [stats, isDark],
   );
 
   const typeChartData = useMemo(() => {
@@ -461,7 +460,7 @@ const Dashboard = ({ user }) => {
     quizzes.filter((q) => q.score !== undefined).length > 0
       ? Math.round(
           quizzes.reduce((acc, q) => acc + (q.score || 0), 0) /
-            quizzes.filter((q) => q.score !== undefined).length
+            quizzes.filter((q) => q.score !== undefined).length,
         )
       : 0;
 
@@ -474,7 +473,7 @@ const Dashboard = ({ user }) => {
     <div className="space-y-8 animate-fade-in pb-20">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-textMain tracking-tight">
+          <h1 className="text-3xl font-bold text-textMain dark:text-textMain/95 tracking-tight">
             Dashboard
           </h1>
           <p className="text-textMuted mt-1">
@@ -488,7 +487,7 @@ const Dashboard = ({ user }) => {
               className={`text-lg font-bold ${
                 user.tier === "Pro"
                   ? "shimmerTextLight dark:shimmerTextDark"
-                  : "text-textMain"
+                  : "text-textMain dark:text-textMain/95"
               }`}
             >
               {user.tier} Plan
@@ -523,10 +522,10 @@ const Dashboard = ({ user }) => {
                     stat.diffClass
                       ? "text-lg"
                       : user.tier === "Pro" && stat.label === "Flashcards Left"
-                      ? "text-xl"
-                      : "text-2xl"
+                        ? "text-xl"
+                        : "text-2xl"
                   }
-                  font-bold text-textMain truncate
+                  font-bold text-textMain dark:text-textMain/95 truncate
                 `}
                 >
                   {/* Calculate value using the dataKey function from the constant */}
@@ -573,25 +572,25 @@ const Dashboard = ({ user }) => {
                     setTimeout(() => {
                       setGenerationProgress(20);
                       setGenerationStage("Preparing Questions...");
-                    }, 800)
+                    }, 800),
                   );
                   timers.push(
                     setTimeout(() => {
                       setGenerationProgress(45);
                       setGenerationStage("Generating Content...");
-                    }, 2500)
+                    }, 2500),
                   );
                   timers.push(
                     setTimeout(() => {
                       setGenerationProgress(70);
                       setGenerationStage("Structuring Quiz...");
-                    }, 4500)
+                    }, 4500),
                   );
                   timers.push(
                     setTimeout(() => {
                       setGenerationProgress(90);
                       setGenerationStage("Finalizing...");
-                    }, 6500)
+                    }, 6500),
                   );
 
                   try {
@@ -601,7 +600,7 @@ const Dashboard = ({ user }) => {
                       5, // Question Count
                       [QuestionType.MCQ], // Types
                       10, // Total Marks
-                      "standard" // Exam Style
+                      "standard", // Exam Style
                     );
 
                     setGenerationStage("Saving Quiz...");
@@ -619,7 +618,7 @@ const Dashboard = ({ user }) => {
                     // AWARD EXP (Consistency with QuizGenerator)
                     try {
                       await StorageService.awardQuizCreationExp(
-                        quiz.questions.length
+                        quiz.questions.length,
                       );
                     } catch (expErr) {
                       console.error("Error awarding EXP:", expErr);
@@ -644,7 +643,7 @@ const Dashboard = ({ user }) => {
                     console.error("Gemini Generation Error:", error);
                     toast.error(
                       error.message ||
-                        "Failed to generate targeted quiz. Please try again."
+                        "Failed to generate targeted quiz. Please try again.",
                     );
                   }
                 }}
@@ -660,7 +659,7 @@ const Dashboard = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Difficulty Chart */}
         <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom h-87.5">
-          <h2 className="text-lg font-bold text-textMain mb-6 text-center md:text-left">
+          <h2 className="text-lg font-bold text-textMain dark:text-textMain/95 mb-6 text-center md:text-left">
             Performance by Difficulty
           </h2>
           <div className="h-62.5 w-full">
@@ -713,7 +712,7 @@ const Dashboard = ({ user }) => {
 
         {/* Question Type Radar */}
         <div className="bg-surface p-6 rounded-2xl border border-border shadow-md-custom h-87.5">
-          <h2 className="text-lg font-bold text-textMain mb-2">
+          <h2 className="text-lg font-bold text-textMain dark:text-textMain/95 mb-2">
             Weak Areas by Question Type
           </h2>
           {typeChartData.length > 0 ? (
@@ -778,7 +777,7 @@ const Dashboard = ({ user }) => {
           } min-[1130px]:flex-row justify-between items-center mb-6 gap-4`}
         >
           <div>
-            <h2 className="text-2xl font-bold text-textMain text-center md:text-left">
+            <h2 className="text-2xl font-bold text-textMain dark:text-textMain/95 text-center md:text-left">
               All Quizzes
             </h2>
             <p className="text-xs text-textMuted mt-2 mb-1">
@@ -794,7 +793,7 @@ const Dashboard = ({ user }) => {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3.5 py-2 border border-border rounded-xl text-xs font-bold text-textMain hover:bg-surfaceHighlight shadow-sm transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3.5 py-2 border border-border rounded-xl text-xs font-bold text-textMain dark:text-textMain/95 hover:bg-surfaceHighlight shadow-sm transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
             >
               <ChevronLeft size={14} />
               Prev
@@ -808,8 +807,8 @@ const Dashboard = ({ user }) => {
                     onClick={() => setCurrentPage(i + 1)}
                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-all point shadow-sm ${
                       currentPage === i + 1
-                        ? "bg-primary text-white shadow-lg shadow-primary/20"
-                        : "text-textMuted hover:text-textMain bg-surface border border-border"
+                        ? "bg-primary dark:bg-blue-700 text-white shadow-lg shadow-primary/20"
+                        : "text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border"
                     }`}
                   >
                     {i + 1}
@@ -821,7 +820,7 @@ const Dashboard = ({ user }) => {
                     <>
                       <button
                         onClick={() => setCurrentPage(1)}
-                        className="w-8 h-8 rounded-lg text-xs font-bold text-textMuted hover:text-textMain bg-surface border border-border transition-all shadow-sm"
+                        className="w-8 h-8 rounded-lg text-xs font-bold text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border transition-all shadow-sm"
                       >
                         1
                       </button>
@@ -842,8 +841,8 @@ const Dashboard = ({ user }) => {
                         onClick={() => setCurrentPage(p)}
                         className={`w-8 h-8 rounded-lg text-xs font-bold transition-all shadow-sm ${
                           currentPage === p
-                            ? "bg-primary text-white shadow-lg shadow-primary/20"
-                            : "text-textMuted hover:text-textMain bg-surface border border-border"
+                            ? "bg-primary dark:bg-blue-700/80 text-white shadow-lg shadow-primary/20"
+                            : "text-textMuted hover:text-textMain dark:hover:text-textMain/95 bg-surface border border-border"
                         }`}
                       >
                         {p}
@@ -869,7 +868,7 @@ const Dashboard = ({ user }) => {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="flex items-center gap-1 px-3.5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3.5 py-2 bg-primary hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white dark:text-white/95 rounded-xl text-xs font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
             >
               Next
               <ChevronRight size={14} />
@@ -885,11 +884,11 @@ const Dashboard = ({ user }) => {
                 placeholder="Search quizzes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm shadow-md-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full pl-9 pr-4 py-2 text-sm shadow-sm-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary transition-all"
               />
               {searchTerm && (
                 <XCircle
-                  className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 point hover:text-gray-500/80 transition-colors"
                   onClick={() => setSearchTerm("")}
                 />
               )}
@@ -898,7 +897,7 @@ const Dashboard = ({ user }) => {
               <select
                 value={filterDifficulty}
                 onChange={(e) => setFilterDifficulty(e.target.value)}
-                className="pl-3 pr-8 py-2 text-sm shadow-md-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer transition-all w-full"
+                className="pl-3 pr-8 py-2 text-sm shadow-sm-custom bg-surfaceHighlight border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer transition-all w-full"
               >
                 <option value="All">All</option>
                 <option value="Easy">Easy</option>
@@ -922,7 +921,7 @@ const Dashboard = ({ user }) => {
                     No quizzes yet.{" "}
                     <Link
                       to="/generate"
-                      className="text-primary dark:text-blue-400 hover:underline"
+                      className="text-primary dark:text-blue-500 hover:underline"
                     >
                       Create one!
                     </Link>
@@ -938,12 +937,12 @@ const Dashboard = ({ user }) => {
                   initial={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
-                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-surface transition-all duration-300 border border-transparent hover:border-primary/20 shadow-sm-custom hover:shadow-md-custom hover:-translate-y-1 overflow-hidden"
+                  className="group relative bg-surfaceHighlight rounded-xl hover:bg-background dark:hover:bg-background/5 transition-all duration-300 border border-transparent hover:border-primary/20 shadow-sm-custom hover:shadow-md-custom hover:-translate-y-1 overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={(e) => handleDeleteClick(e, quiz._id, quiz.title)}
-                    className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-surfaceHighlight rounded-lg point transition-colors duration-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-surface/80 dark:hover:bg-background/30 rounded-lg point transition-colors duration-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="Delete Quiz"
                   >
                     <Trash2 className="w-4 h-4 pointer-events-none" />
@@ -967,13 +966,13 @@ const Dashboard = ({ user }) => {
                       </span>
                     </div>
                     <h3
-                      className="font-bold text-textMain truncate mb-1 pr-8 text-lg"
+                      className="font-bold text-textMain dark:text-textMain/95 truncate mb-1 pr-8 text-lg"
                       title={quiz.title}
                     >
                       {quiz.title}
                     </h3>
                     <p className="text-sm text-textMuted mb-4 flex items-center gap-2">
-                      <span className="bg-slate-200/50 dark:bg-slate-800/40 px-1.5 py-0.5 rounded text-xs font-medium">
+                      <span className="py-0.5 rounded text-xs font-medium">
                         {quiz.questions.length} Qs
                       </span>
                       <span className="text-xs text-gray-400">•</span>
@@ -984,23 +983,20 @@ const Dashboard = ({ user }) => {
                           year: "numeric",
                         })}
                       </span>
-                      {quiz.isFlashcardSet && (
-                        <BookOpen className="w-3 h-3 text-indigo-500 ml-auto" />
-                      )}
                     </p>
                     <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
                       <span className="text-xs text-textMuted font-medium">
                         {quiz.score !== undefined ? "Score" : "Incomplete"}
                       </span>
                       <span
-                        className={`text-sm font-bold ${
+                        className={`text-md font-bold ${
                           quiz.score === undefined
-                            ? "text-textMain"
+                            ? "text-textMain dark:text-textMain/95"
                             : quiz.score >= 80
-                            ? "text-green-600 dark:text-green-500"
-                            : quiz.score >= 50
-                            ? "text-orange-600 dark:text-orange-400"
-                            : "text-red-600 dark:text-red-500"
+                              ? "text-green-600 dark:text-green-500"
+                              : quiz.score >= 50
+                                ? "text-orange-600 dark:text-orange-400"
+                                : "text-red-600 dark:text-red-500"
                         }`}
                       >
                         {quiz.score !== undefined ? `${quiz.score}%` : "-"}
@@ -1015,90 +1011,92 @@ const Dashboard = ({ user }) => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteModal.isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          >
+      {deleteModal.isOpen &&
+        createPortal(
+          <AnimatePresence>
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-1000 p-4"
             >
-              <div className="p-6 text-center">
-                {deleteModal.isDeleting ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    {/* Animated gradient spinner */}
-                    <div className="relative w-16 h-16 mb-6">
-                      <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
-                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-800 animate-spin"></div>
-                      <div
-                        className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-700 animate-spin"
-                        style={{
-                          animationDirection: "reverse",
-                          animationDuration: "1.5s",
-                        }}
-                      ></div>
-                    </div>
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full"
+              >
+                <div className="p-6 text-center">
+                  {deleteModal.isDeleting ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      {/* Animated gradient spinner */}
+                      <div className="relative w-16 h-16 mb-6">
+                        <div className="absolute inset-0 rounded-full border-4 border-red-200 dark:border-red-900/40"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 dark:border-t-red-800 animate-spin"></div>
+                        <div
+                          className="absolute inset-2 rounded-full border-4 border-transparent border-b-red-400 dark:border-b-red-700 animate-spin"
+                          style={{
+                            animationDirection: "reverse",
+                            animationDuration: "1.5s",
+                          }}
+                        ></div>
+                      </div>
 
-                    {/* Status text with animation */}
-                    <p className="text-textMain font-semibold mb-2">
-                      Deleting quiz{loadingDots}
-                    </p>
-                    <p className="text-textMuted text-xs">
-                      Please wait, this won't take long
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
-                      <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
+                      {/* Status text with animation */}
+                      <p className="text-textMain font-semibold mb-2">
+                        Deleting quiz{loadingDots}
+                      </p>
+                      <p className="text-textMuted text-xs">
+                        Please wait, this won't take long
+                      </p>
                     </div>
-                    <h3 className="text-xl font-semibold text-textMain mb-3">
-                      Delete Quiz?
-                    </h3>
-                    <p className="text-textMuted text-sm mb-6">
-                      Are you sure you want to delete{" "}
-                      <span className="font-medium text-textMain">
-                        "{deleteModal.quizTitle}"
-                      </span>
-                      ? This cannot be undone.
-                    </p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                        <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-textMain mb-3">
+                        Delete Quiz?
+                      </h3>
+                      <p className="text-textMuted text-sm mb-6">
+                        Are you sure you want to delete{" "}
+                        <span className="font-medium text-textMain">
+                          "{deleteModal.quizTitle}"
+                        </span>
+                        ? This cannot be undone.
+                      </p>
 
-                    <div className="flex gap-3 w-full">
-                      <button
-                        onClick={handleCancelDelete}
-                        disabled={deleteModal.isDeleting}
-                        className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium point"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleConfirmDelete}
-                        disabled={deleteModal.isDeleting}
-                        className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-700/80 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+                      <div className="flex gap-3 w-full">
+                        <button
+                          onClick={handleCancelDelete}
+                          disabled={deleteModal.isDeleting}
+                          className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium point"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDelete}
+                          disabled={deleteModal.isDeleting}
+                          className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-700/80 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors font-medium point"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
       {/* AI Study Buddy */}
       {!isStudyBuddyOpen && (
         <button
           onClick={() => setIsStudyBuddyOpen(true)}
-          className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
+          className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/85 transition-all flex items-center gap-2 animate-fade-in-up point"
           title="Open AI Study Buddy"
         >
           <Bot className="w-6 h-6" />

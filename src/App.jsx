@@ -12,19 +12,22 @@ import {
 } from "react-router-dom";
 
 // Lazy-loaded components for code splitting
-const Layout = lazy(() => import("./components/user/Layout.jsx"));
-const Dashboard = lazy(() => import("./components/user/Dashboard.jsx"));
-const QuizGenerator = lazy(() => import("./components/user/QuizGenerator.jsx"));
-const QuizTaker = lazy(() => import("./components/user/QuizTaker.jsx"));
-const Overview = lazy(() => import("./components/user/Overview.jsx"));
-const Subscription = lazy(() => import("./components/user/Subscription.jsx"));
+// Core components (Directly imported to avoid lazy-loading issues for modals/layout)
+import Layout from "./components/user/Layout.jsx";
+import Dashboard from "./components/user/Dashboard.jsx";
+import QuizGenerator from "./components/user/QuizGenerator.jsx";
+import QuizTaker from "./components/user/QuizTaker.jsx";
+import Overview from "./components/user/Overview.jsx";
+import Subscription from "./components/user/Subscription.jsx";
+
+// Other User components (Keep lazy for bundle size)
 const AuthForm = lazy(() => import("./components/user/AuthForm.jsx"));
 const VerifyEmail = lazy(() => import("./components/user/VerifyEmail.jsx"));
 const OAuthCallback = lazy(() => import("./components/user/OAuthCallback.jsx"));
 const LandingPage = lazy(() => import("./components/user/LandingPage.jsx"));
 const FeaturesPage = lazy(() => import("./components/user/FeaturesPage.jsx"));
-const TestimonialsPage = lazy(() =>
-  import("./components/user/TestimonialsPage.jsx")
+const TestimonialsPage = lazy(
+  () => import("./components/user/TestimonialsPage.jsx"),
 );
 const Achievements = lazy(() => import("./components/user/Achievements.jsx"));
 const Leaderboard = lazy(() => import("./components/user/Leaderboard.jsx"));
@@ -32,20 +35,20 @@ const Leaderboard = lazy(() => import("./components/user/Leaderboard.jsx"));
 // Admin components
 const AdminLogin = lazy(() => import("./components/admin/AdminLogin.jsx"));
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout.jsx"));
-const AdminDashboard = lazy(() =>
-  import("./components/admin/AdminDashboard.jsx")
+const AdminDashboard = lazy(
+  () => import("./components/admin/AdminDashboard.jsx"),
 );
 const AdminUsers = lazy(() => import("./components/admin/AdminUsers.jsx"));
-const AdminUserDetail = lazy(() =>
-  import("./components/admin/AdminUserDetail.jsx")
+const AdminUserDetail = lazy(
+  () => import("./components/admin/AdminUserDetail.jsx"),
 );
 const AdminQuizzes = lazy(() => import("./components/admin/AdminQuizzes.jsx"));
-const AdminQuizDetail = lazy(() =>
-  import("./components/admin/AdminQuizDetail.jsx")
+const AdminQuizDetail = lazy(
+  () => import("./components/admin/AdminQuizDetail.jsx"),
 );
 const AdminBlogs = lazy(() => import("./components/admin/AdminBlogs.jsx"));
-const AdminActivity = lazy(() =>
-  import("./components/admin/AdminActivity.jsx")
+const AdminActivity = lazy(
+  () => import("./components/admin/AdminActivity.jsx"),
 );
 
 // Static pages
@@ -127,7 +130,7 @@ const App = () => {
       window.location.href =
         "/?message=" +
         encodeURIComponent(
-          event.detail?.message || "Your account has been disabled"
+          event.detail?.message || "Your account has been disabled",
         );
     };
 
@@ -138,7 +141,7 @@ const App = () => {
       window.location.href =
         "/?message=" +
         encodeURIComponent(
-          event.detail?.message || "Your account has been banned"
+          event.detail?.message || "Your account has been banned",
         );
     };
 

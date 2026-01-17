@@ -3,6 +3,7 @@ const router = express.Router();
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import asyncHandler from "express-async-handler";
 
 import User from "../models/User.js";
 import { TIER_LIMITS } from "../config/constants.js";
@@ -10,6 +11,7 @@ import {
   generateVerificationCode,
   sendVerificationEmail,
 } from "../helpers/emailHelper.js";
+import { createSession } from "../helpers/sessionHelper.js";
 import {
   exchangeCodeForToken,
   getOAuthUserInfo,
@@ -21,15 +23,16 @@ import protect from "../middleware/auth.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+router.post(
+  "/register",
+  asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
 
-  const defaultTier = "Free";
-  const limits = TIER_LIMITS[defaultTier];
+    const defaultTier = "Free";
+    const limits = TIER_LIMITS[defaultTier];
 
-  const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = email.toLowerCase().trim();
 
-  try {
     if (await User.findOne({ email: normalizedEmail })) {
       return res.status(400).json({ message: "User already exists." });
     }
@@ -76,18 +79,18 @@ router.post("/register", async (req, res) => {
       userId: user._id,
       email: user.email,
     });
-  } catch (err) {
-    // Server error
-    res.status(500).json({ message: err.message || "Server error" });
-  }
-});
+  })
+);
 
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const normalizedEmail = email.toLowerCase().trim();
+router.post(
+  "/login",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
-  try {
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password"
+    );
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     if (!user.isVerified) {
@@ -129,73 +132,8 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Track session - capture real IP and device info
-    const userAgent = req.headers["user-agent"] || "";
-
-    // Get real IP address - try multiple sources
-    let ipAddress =
-      req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-      req.socket?.remoteAddress ||
-      req.connection?.remoteAddress ||
-      "127.0.0.1";
-
-    // Remove IPv6 prefix if present (::ffff:)
-    if (ipAddress.includes("::")) {
-      ipAddress = ipAddress.replace(/^.*:/, "") || "127.0.0.1";
-    }
-
-    // Fallback for localhost
-    if (ipAddress === "-1" || !ipAddress) {
-      ipAddress = "127.0.0.1";
-    }
-
-    // Extract browser/device info from user agent
-    let deviceName = "";
-    if (userAgent.includes("Windows NT 10")) deviceName = "Windows 10";
-    else if (userAgent.includes("Windows NT 11")) deviceName = "Windows 11";
-    else if (userAgent.includes("Windows")) deviceName = "Windows";
-    else if (userAgent.includes("Macintosh")) deviceName = "Mac";
-    else if (userAgent.includes("iPhone")) deviceName = "iPhone";
-    else if (userAgent.includes("iPad")) deviceName = "iPad";
-    else if (userAgent.includes("Android")) deviceName = "Android";
-    else if (userAgent.includes("Linux")) deviceName = "Linux";
-    else deviceName = "Unknown Device";
-
-    // Extract browser info
-    let browserInfo = "";
-    if (userAgent.includes("Chrome") && !userAgent.includes("Chromium")) {
-      const chromeMatch = userAgent.match(/Chrome\/([\d.]+)/);
-      browserInfo = chromeMatch ? `Chrome ${chromeMatch[1]}` : "Chrome";
-    } else if (userAgent.includes("Firefox")) {
-      const firefoxMatch = userAgent.match(/Firefox\/([\d.]+)/);
-      browserInfo = firefoxMatch ? `Firefox ${firefoxMatch[1]}` : "Firefox";
-    } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
-      browserInfo = "Safari";
-    } else if (userAgent.includes("Edge")) {
-      const edgeMatch = userAgent.match(/Edg\/([\d.]+)/);
-      browserInfo = edgeMatch ? `Edge ${edgeMatch[1]}` : "Edge";
-    }
-
-    const displayDeviceName = browserInfo
-      ? `${deviceName} - ${browserInfo}`
-      : deviceName;
-
-    // Add new session
-    user.sessions = user.sessions || [];
-    const newSession = {
-      deviceName: displayDeviceName,
-      userAgent,
-      ipAddress,
-      lastActive: new Date(),
-      isCurrent: true,
-      createdAt: new Date(),
-    };
-    user.sessions.push(newSession);
-
-    // Mark old sessions as not current
-    user.sessions.forEach((session, idx) => {
-      session.isCurrent = idx === user.sessions.length - 1;
-    });
+    // Create new session via helper
+    const session = createSession(req, user);
 
     // New session created for user; session saved
 
@@ -205,7 +143,7 @@ router.post("/login", async (req, res) => {
     mergeDuplicateUsers().catch(console.error);
 
     // Sign token with session id so per-session logout can be enforced
-    const sessionId = user.sessions[user.sessions.length - 1]._id;
+    const sessionId = session._id;
     const token = jwt.sign({ id: user._id, sessionId }, JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -224,17 +162,16 @@ router.post("/login", async (req, res) => {
         passwordIsUserSet: user.passwordIsUserSet,
       },
     });
-  } catch (err) {
-    // Server error
-    res.status(500).json({ message: err.message });
-  }
-});
+  })
+);
 
 // Change full name (display name) - top-level route
-router.post("/change-fullname", protect, async (req, res) => {
-  const { newFullName } = req.body;
+router.post(
+  "/change-fullname",
+  protect,
+  asyncHandler(async (req, res) => {
+    const { newFullName } = req.body;
 
-  try {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -256,7 +193,7 @@ router.post("/change-fullname", protect, async (req, res) => {
     }
 
     // Check if full name already exists on another user
-    const existing = await User.findOne({ name: newFullName });
+    const existing = await User.findOne({ name: newFullName }).lean();
     if (existing && String(existing._id) !== String(user._id)) {
       return res.status(400).json({ message: "Full name already taken" });
     }
@@ -273,10 +210,8 @@ router.post("/change-fullname", protect, async (req, res) => {
         email: user.email,
       },
     });
-  } catch {
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 // Update profile picture
 router.post("/update-picture", protect, async (req, res) => {
@@ -360,7 +295,7 @@ router.post("/confirm-password", protect, async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId).select("+password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (!user.password) {
@@ -382,12 +317,15 @@ router.post("/confirm-password", protect, async (req, res) => {
 });
 
 // Verify email with code
-router.post("/verify-email", async (req, res) => {
-  const { email, code } = req.body;
-  const normalizedEmail = email.toLowerCase().trim();
+router.post(
+  "/verify-email",
+  asyncHandler(async (req, res) => {
+    const { email, code } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
-  try {
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+verificationCode +verificationCodeExpires"
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -408,44 +346,13 @@ router.post("/verify-email", async (req, res) => {
     user.isVerified = true;
     user.verificationCode = null;
     user.verificationCodeExpires = null;
-    await user.save();
 
-    // Create a session for this verification flow and sign a token with sessionId
-    const userAgent = req.headers["user-agent"] || "";
-    let ipAddress =
-      req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-      req.socket?.remoteAddress ||
-      req.connection?.remoteAddress ||
-      "127.0.0.1";
-
-    // Remove IPv6 prefix if present
-    if (ipAddress.includes("::")) {
-      ipAddress = ipAddress.replace(/^.*:/, "") || "127.0.0.1";
-    }
-
-    // Fallback for localhost
-    if (ipAddress === "-1" || !ipAddress) {
-      ipAddress = "127.0.0.1";
-    }
-
-    user.sessions = user.sessions || [];
-    user.sessions.push({
-      deviceName: userAgent.split(" ")[0] || "Unknown Device",
-      userAgent,
-      ipAddress,
-      lastActive: new Date(),
-      isCurrent: true,
-      createdAt: new Date(),
-    });
-
-    // Mark old sessions as not current
-    user.sessions.forEach((session, idx) => {
-      session.isCurrent = idx === user.sessions.length - 1;
-    });
+    // Create new session via helper
+    const session = createSession(req, user);
 
     await user.save();
 
-    const sessionId = user.sessions[user.sessions.length - 1]._id;
+    const sessionId = session._id;
     const token = jwt.sign({ id: user._id, sessionId }, JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -464,11 +371,8 @@ router.post("/verify-email", async (req, res) => {
         passwordIsUserSet: user.passwordIsUserSet,
       },
     });
-  } catch {
-    // Server error
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 // Resend verification code
 router.post("/resend-code", async (req, res) => {
@@ -511,7 +415,7 @@ router.post("/change-password", protect, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId).select("+password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -677,10 +581,12 @@ router.delete("/delete-account", protect, async (req, res) => {
   }
 });
 
-// Get active sessions (mock - in production, you'd track actual sessions)
-router.get("/sessions", protect, async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
+// Get active sessions
+router.get(
+  "/sessions",
+  protect,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.userId, "sessions").lean();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -697,10 +603,8 @@ router.get("/sessions", protect, async (req, res) => {
     }));
 
     res.status(200).json({ sessions });
-  } catch {
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 // Logout from specific session
 router.delete("/sessions/:sessionId/logout", protect, async (req, res) => {
@@ -815,48 +719,8 @@ router.post("/oauth/callback", async (req, res) => {
     // Refresh user to get latest data
     const updatedUser = await User.findById(user._id);
 
-    // Track session
-    const userAgent = req.headers["user-agent"] || "Unknown";
-    let ipAddress =
-      req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-      req.socket?.remoteAddress ||
-      req.connection?.remoteAddress ||
-      "127.0.0.1";
-
-    // Remove IPv6 prefix if present
-    if (ipAddress.includes("::")) {
-      ipAddress = ipAddress.replace(/^.*:/, "") || "127.0.0.1";
-    }
-
-    // Fallback for localhost
-    if (ipAddress === "-1" || !ipAddress) {
-      ipAddress = "127.0.0.1";
-    }
-
-    // Extract browser/device info from user agent
-    let deviceName = "Unknown Device";
-    if (userAgent.includes("Windows")) deviceName = "Windows Device";
-    else if (userAgent.includes("Mac")) deviceName = "Mac Device";
-    else if (userAgent.includes("iPhone")) deviceName = "iPhone";
-    else if (userAgent.includes("Android")) deviceName = "Android Device";
-    else if (userAgent.includes("Linux")) deviceName = "Linux Device";
-
-    // Add new session
-    updatedUser.sessions = updatedUser.sessions || [];
-    updatedUser.sessions.push({
-      deviceName,
-      userAgent,
-      ipAddress,
-      lastActive: new Date(),
-      isCurrent: true,
-    });
-
-    // Mark old sessions as not current
-    updatedUser.sessions.forEach((session, idx) => {
-      if (idx !== updatedUser.sessions.length - 1) {
-        session.isCurrent = false;
-      }
-    });
+    // Create new session via helper
+    const session = createSession(req, updatedUser);
 
     await updatedUser.save();
 
@@ -868,7 +732,7 @@ router.post("/oauth/callback", async (req, res) => {
     const useUser = finalUser || updatedUser;
 
     // Sign token with session id
-    const sessionId = useUser.sessions[useUser.sessions.length - 1]._id;
+    const sessionId = session._id;
     const token = jwt.sign({ id: useUser._id, sessionId }, JWT_SECRET, {
       expiresIn: "7d",
     });

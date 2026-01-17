@@ -19,10 +19,16 @@ import {
   Search,
   ArrowDownUp,
 } from "lucide-react";
+import ThumbUp from "@mui/icons-material/ThumbUp";
+import ThumbDown from "@mui/icons-material/ThumbDown";
 import { chatWithAI } from "../../services/geminiService";
 import ReactMarkdown from "react-markdown";
 import { v4 as uuidv4 } from "uuid";
 import remarkGfm from "remark-gfm";
+import FeedbackModal from "./FeedbackModal";
+import axios from "axios";
+import { toast } from "react-toastify";
+import StorageService from "../../services/storageService";
 
 // --- Constants ---
 const WORD_LIMIT = 200;
@@ -32,6 +38,7 @@ const TypewriterMessage = ({ content, onComplete, speed = 8 }) => {
   const [displayedContent, setDisplayedContent] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const intervalRef = useRef(null);
+  const contentRef = useRef(content);
 
   const stopTyping = useCallback(() => {
     if (intervalRef.current) {
@@ -42,12 +49,18 @@ const TypewriterMessage = ({ content, onComplete, speed = 8 }) => {
 
   const skipToEnd = useCallback(() => {
     stopTyping();
-    setDisplayedContent(content);
+    setDisplayedContent(contentRef.current);
     setIsComplete(true);
     if (onComplete) onComplete();
-  }, [content, onComplete, stopTyping]);
+  }, [onComplete, stopTyping]);
 
   useEffect(() => {
+    // Only restart if content actually changed
+    if (contentRef.current === content && displayedContent) {
+      return;
+    }
+
+    contentRef.current = content;
     setDisplayedContent("");
     setIsComplete(false);
     stopTyping();
@@ -67,7 +80,7 @@ const TypewriterMessage = ({ content, onComplete, speed = 8 }) => {
     }, speed);
 
     return () => stopTyping();
-  }, [content, speed, onComplete, stopTyping]);
+  }, [content, speed]);
 
   return (
     <div className="relative group w-full">
@@ -190,7 +203,7 @@ const DataTable = ({ children }) => {
     const csvContent = [
       tableData.headers.join(","),
       ...sortedRows.map((row) =>
-        tableData.headers.map((h) => `"${row[h]}"`).join(",")
+        tableData.headers.map((h) => `"${row[h]}"`).join(","),
       ),
     ].join("\n");
 
@@ -207,7 +220,7 @@ const DataTable = ({ children }) => {
     const text = [
       tableData.headers.join("\t"),
       ...sortedRows.map((row) =>
-        tableData.headers.map((h) => row[h]).join("\t")
+        tableData.headers.map((h) => row[h]).join("\t"),
       ),
     ].join("\n");
     navigator.clipboard.writeText(text);
@@ -307,6 +320,12 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
   const [recentChats, setRecentChats] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showClearHistoryModal, setShowClearHistoryModal] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({
+    isOpen: false,
+    type: "good",
+    messageIndex: -1,
+  });
   const initialPromptProcessedRef = useRef(null);
 
   const messagesEndRef = useRef(null);
@@ -336,9 +355,10 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
   useEffect(() => {
     if (!isOpen) return;
 
+    // If we have a quiz context, try to load its session
     if (context?.quizId) {
       const existingSession = recentChats.find(
-        (c) => c.quizId === context.quizId
+        (c) => c.quizId === context.quizId,
       );
       if (existingSession && currentSessionId !== existingSession.id) {
         setCurrentSessionId(existingSession.id);
@@ -347,6 +367,8 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
       }
     }
 
+    // Only create a new session if we don't have one AND no messages
+    // This prevents creating a new session when loading from history
     if (!currentSessionId && messages.length === 0) {
       const newId = uuidv4();
       setCurrentSessionId(newId);
@@ -357,10 +379,11 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
             ? "Hi! I'm ready to help you review this quiz. Ask me anything about the questions!"
             : "Hi! I'm your AI Study Buddy. I can help you understand any topic better. What's on your mind?",
           isTyping: false,
+          isWelcome: true,
         },
       ]);
     }
-  }, [isOpen, context?.quizId, currentSessionId, messages.length, recentChats]);
+  }, [isOpen, context?.quizId]);
 
   // Save Session
   useEffect(() => {
@@ -369,7 +392,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
     const timeoutId = setTimeout(() => {
       let updatedChats = [...recentChats];
       const sessionIdx = updatedChats.findIndex(
-        (c) => c.id === currentSessionId
+        (c) => c.id === currentSessionId,
       );
       const sessionData = {
         id: currentSessionId,
@@ -410,6 +433,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
         role: "model",
         content: "New session started! What would you like to discuss today?",
         isTyping: false,
+        isWelcome: true, // Also treat this as welcome
       },
     ]);
     setView("chat");
@@ -430,11 +454,10 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
   };
 
   const clearAllHistory = () => {
-    if (window.confirm("Are you sure you want to clear all chat history?")) {
-      setRecentChats([]);
-      localStorage.removeItem("qubli_ai_chats");
-      startNewChat();
-    }
+    setRecentChats([]);
+    localStorage.removeItem("qubli_ai_chats");
+    startNewChat();
+    setShowClearHistoryModal(false);
   };
 
   const handleSend = async (e) => {
@@ -478,13 +501,55 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
   const handleTypingComplete = useCallback(
     (index) => {
       setMessages((prev) =>
-        prev.map((msg, i) => (i === index ? { ...msg, isTyping: false } : msg))
+        prev.map((msg, i) => (i === index ? { ...msg, isTyping: false } : msg)),
       );
       setTypingMessageIndex(-1);
       setTimeout(() => scrollToBottom("smooth"), 100);
     },
-    [scrollToBottom]
+    [scrollToBottom],
   );
+
+  const openFeedbackModal = (index, type) => {
+    setFeedbackModal({ isOpen: true, type, messageIndex: index });
+  };
+
+  const handleFeedbackSubmit = async ({
+    type,
+    selectedReasons,
+    customMessage,
+  }) => {
+    const user = StorageService.getCurrentUser();
+    const msg = messages[feedbackModal.messageIndex];
+
+    try {
+      await axios.post("/api/support/chatbot-feedback", {
+        userEmail: user?.email || "anonymous",
+        feedbackType: type,
+        selectedReasons,
+        customMessage,
+        chatbotResponse: msg.content,
+        timestamp: new Date().toISOString(),
+      });
+
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === feedbackModal.messageIndex ? { ...m, hasFeedback: true } : m,
+        ),
+      );
+      toast.success("Thank you for your feedback!");
+      setFeedbackModal({ ...feedbackModal, isOpen: false });
+    } catch {
+      toast.error("Failed to submit feedback. Please try again.");
+    }
+  };
+
+  const isWelcomeMessage = (msg, index) => {
+    // Only hide feedback buttons on the very first message of the conversation
+    // or if the message is explicitly marked as a welcome message.
+    if (msg.isWelcome) return true;
+    if (index === 0) return true;
+    return false;
+  };
 
   // Initial Prompt Auto-send
   useEffect(() => {
@@ -534,7 +599,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
+        className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/85 transition-all flex items-center gap-2 animate-fade-in-up point"
       >
         <Bot className="w-6 h-6" />
         <span className="font-bold hidden xs:inline">Study Buddy</span>
@@ -546,8 +611,8 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
     (c) =>
       c.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.messages.some((m) =>
-        m.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+        m.content.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
   );
 
   return (
@@ -586,7 +651,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
           ) : (
             <>
               <button
-                onClick={clearAllHistory}
+                onClick={() => setShowClearHistoryModal(true)}
                 className="p-2 hover:bg-red-600/70 dark:hover:bg-red-600/60 rounded-lg transition-colors point"
                 title="Clear All History"
               >
@@ -673,6 +738,16 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
         </div>
       ) : (
         <>
+          {/* Feedback Modal at top level of view */}
+          <FeedbackModal
+            isOpen={feedbackModal.isOpen}
+            onClose={() =>
+              setFeedbackModal({ ...feedbackModal, isOpen: false })
+            }
+            type={feedbackModal.type}
+            onSubmit={handleFeedbackSubmit}
+          />
+
           <div
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50 dark:bg-gray-900/50 [overflow-anchor:none]"
@@ -687,8 +762,8 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                     msg.role === "user"
-                      ? "bg-blue-100 text-primary dark:bg-blue-800/40"
-                      : "bg-indigo-100 text-indigo-600 dark:bg-indigo-800/35"
+                      ? "bg-blue-100 text-primary dark:bg-blue-800/30 dark:text-blue-500"
+                      : "bg-indigo-100 text-indigo-600 dark:bg-indigo-800/25 dark:text-indigo-500"
                   }`}
                 >
                   {msg.role === "user" ? (
@@ -697,50 +772,84 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
                     <Bot className="w-4 h-4" />
                   )}
                 </div>
-                <div
-                  className={`max-w-[75%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                    msg.role === "user"
-                      ? "bg-primary text-white"
-                      : "bg-white dark:bg-surface border border-border text-textMain"
-                  } ${msg.isTyping ? "pb-8" : ""}`}
-                >
-                  {msg.role === "model" ? (
-                    msg.isTyping ? (
-                      <TypewriterMessage
-                        content={msg.content}
-                        onComplete={() => handleTypingComplete(idx)}
-                        speed={10}
-                      />
+                <div className="flex-1 flex flex-col items-start min-w-0">
+                  <div
+                    className={`max-w-[85%] px-3.5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm relative ${
+                      msg.role === "user"
+                        ? "bg-primary dark:bg-blue-700 text-white dark:text-white/95 ml-auto rounded-tr-none"
+                        : "bg-white dark:bg-surface border border-border text-textMain dark:text-textMain/95 rounded-tl-none"
+                    }`}
+                  >
+                    {msg.role === "model" ? (
+                      msg.isTyping ? (
+                        <TypewriterMessage
+                          content={msg.content}
+                          onComplete={() => handleTypingComplete(idx)}
+                          speed={10}
+                        />
+                      ) : (
+                        <div className="prose dark:prose-invert prose-sm max-w-none space-y-2">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ children }) => (
+                                <DataTable>{children}</DataTable>
+                              ),
+                              code({ inline, className, children, ...props }) {
+                                return (
+                                  <code
+                                    className={`${className} ${
+                                      inline
+                                        ? "bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-xs"
+                                        : "block bg-black/70 dark:bg-black/30 text-white p-2 rounded-lg my-2"
+                                    }`}
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                );
+                              },
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      )
                     ) : (
-                      <div className="prose dark:prose-invert prose-sm max-w-none space-y-2">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            table: ({ children }) => (
-                              <DataTable>{children}</DataTable>
-                            ),
-                            code({ inline, className, children, ...props }) {
-                              return (
-                                <code
-                                  className={`${className} ${
-                                    inline
-                                      ? "bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-xs"
-                                      : "block bg-black/70 dark:bg-black/30 text-white p-2 rounded-lg my-2"
-                                  }`}
-                                  {...props}
-                                >
-                                  {children}
-                                </code>
-                              );
-                            },
-                          }}
+                      msg.content
+                    )}
+                  </div>
+
+                  {/* Feedback Actions (Outside the bubble) */}
+                  {msg.role === "model" &&
+                    !isWelcomeMessage(msg, idx) &&
+                    !msg.isTyping &&
+                    !msg.hasFeedback && (
+                      <div className="flex items-center gap-2 mt-2 ml-1 animate-fade-in">
+                        <button
+                          onClick={() => openFeedbackModal(idx, "good")}
+                          className="p-1 px-2.5 rounded-full bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 text-textMuted hover:text-green-600 transition-all flex items-center gap-1.5 point border border-border hover:border-green-200 dark:hover:border-green-600 shadow-sm-custom"
+                          title="Good Response"
                         >
-                          {msg.content}
-                        </ReactMarkdown>
+                          <ThumbUp className="!w-3 !h-3" />
+                          <span className="text-[10px] font-bold">Good</span>
+                        </button>
+                        <button
+                          onClick={() => openFeedbackModal(idx, "bad")}
+                          className="p-1 px-2.5 rounded-full bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-800/20 text-textMuted hover:text-red-600 dark:hover:text-red-500 transition-all flex items-center gap-1.5 point border border-border hover:border-red-200 dark:hover:border-red-600 shadow-sm-custom"
+                          title="Bad Response"
+                        >
+                          <ThumbDown className="!w-3 !h-3" />
+                          <span className="text-[10px] font-bold">Bad</span>
+                        </button>
                       </div>
-                    )
-                  ) : (
-                    msg.content
+                    )}
+
+                  {msg.hasFeedback && (
+                    <div className="flex items-center gap-1 mt-1.5 ml-2 text-[10px] text-textMuted font-medium italic animate-fade-in">
+                      <Check className="w-3 h-3 text-green-500" />
+                      Feedback received
+                    </div>
                   )}
                 </div>
               </div>
@@ -776,7 +885,7 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
                   }
                 }}
                 placeholder="Ask me anything..."
-                className={`flex-1 bg-gray-100 dark:bg-gray-800 border rounded-xl px-4 py-3 text-sm focus:ring-2 outline-none resize-none max-h-[100px] text-textMain transition-all ${
+                className={`flex-1 bg-gray-100 dark:bg-gray-800 border rounded-xl px-4 py-3 text-sm focus:ring-2 outline-none resize-none max-h-[100px] text-textMain dark:text-textMain/95 transition-all ${
                   isOverLimit
                     ? "border-red-500 focus:ring-red-200 dark:focus:ring-red-500"
                     : "border-border focus:ring-primary/20"
@@ -804,14 +913,49 @@ const StudyBuddy = ({ context, isOpen, onClose, initialPrompt }) => {
                 isOverLimit
                   ? "text-red-500 font-bold"
                   : wordCount > WORD_LIMIT * 0.9
-                  ? "text-orange-500"
-                  : "text-textMuted"
+                    ? "text-orange-500"
+                    : "text-textMuted"
               }`}
             >
               {wordCount} / {WORD_LIMIT} words
             </div>
           </form>
         </>
+      )}
+
+      {/* Clear History Confirmation Modal */}
+      {showClearHistoryModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-9999 p-4 animate-fade-in">
+          <div className="bg-surface border border-border rounded-2xl shadow-2xl max-w-sm w-full animate-scale-in">
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-textMain mb-3">
+                Clear All History?
+              </h3>
+              <p className="text-textMuted text-sm mb-6">
+                Are you sure you want to delete all chat history? This action
+                cannot be undone.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowClearHistoryModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-border text-textMain hover:bg-surfaceHighlight transition-colors font-medium point"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={clearAllHistory}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-700/80 text-white transition-colors font-medium point"
+                >
+                  Delete All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

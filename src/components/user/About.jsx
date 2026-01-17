@@ -94,7 +94,7 @@ const About = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -111,11 +111,11 @@ const About = () => {
       </section>
 
       {/* About Content Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface dark:bg-surface/90">
         <div className="max-w-4xl mx-auto space-y-12">
           {aboutData.sections.map((section) => (
             <div key={section.id}>
-              <h2 className="text-3xl font-bold text-textMain mb-4">
+              <h2 className="text-3xl font-bold text-textMain dark:text-textMain/95 mb-4">
                 {section.title}
               </h2>
 
@@ -128,9 +128,9 @@ const About = () => {
                   {section.items.map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102"
+                      className="p-8 bg-background dark:bg-background/50 rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-md hover:shadow-primary/10 hover:scale-102"
                     >
-                      <h3 className="text-lg font-bold text-textMain mb-3">
+                      <h3 className="text-lg font-bold text-textMain dark:text-textMain/95 mb-3">
                         {item.label}
                       </h3>
                       <p className="text-textMuted">{item.description}</p>
@@ -152,9 +152,9 @@ const About = () => {
                   {section.reasons.map((reason, idx) => (
                     <div
                       key={idx}
-                      className="p-8 bg-background rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/10 hover:scale-102"
+                      className="p-8 bg-background dark:bg-background/50 rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-md hover:shadow-primary/10 hover:scale-102"
                     >
-                      <h3 className="text-lg font-bold text-textMain mb-3">
+                      <h3 className="text-lg font-bold text-textMain dark:text-textMain/95 mb-3">
                         {reason.title}
                       </h3>
                       <p className="text-textMuted">{reason.description}</p>
@@ -169,7 +169,10 @@ const About = () => {
           <div className="mt-12 pt-8 border-t border-border">
             <p className="text-textMuted">
               Want to get in touch? We'd love to hear from you. Visit our{" "}
-              <Link to="/contact" className="text-primary font-semibold">
+              <Link
+                to="/contact"
+                className="text-primary dark:text-blue-500 hover:underline font-semibold"
+              >
                 contact page
               </Link>{" "}
               to reach out with questions, feedback, or partnership inquiries.

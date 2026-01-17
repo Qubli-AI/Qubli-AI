@@ -30,7 +30,6 @@ router.post("/", protect, async (req, res) => {
       return res.status(400).json({ message: "Invalid image format" });
     }
 
-    const type = matches[1];
     const data = matches[2];
     const buffer = Buffer.from(data, "base64");
 
@@ -51,12 +50,9 @@ router.post("/", protect, async (req, res) => {
 
     const detectedType = getFileType(buffer);
     if (!detectedType) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid file type. Only PNG, JPG, GIF, and WebP are allowed.",
-        });
+      return res.status(400).json({
+        message: "Invalid file type. Only PNG, JPG, GIF, and WebP are allowed.",
+      });
     }
 
     const filename = `${uuidv4()}.${detectedType}`;

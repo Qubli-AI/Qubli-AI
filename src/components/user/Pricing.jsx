@@ -115,20 +115,20 @@ const Pricing = () => {
     ],
     faq: [
       {
-        q: "Can I change my plan anytime?",
-        a: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect almost immediately.",
+        q: "Can I change my subscription plan at any time?",
+        a: "Yes. You can upgrade or downgrade your plan whenever you want, and changes are applied almost instantly.",
       },
       {
-        q: "Is there a free trial?",
-        a: "Our Free plan is essentially a free trial with limited features. Upgrade anytime to unlock more.",
+        q: "Do you offer a free trial?",
+        a: "Yes. Our Free plan works as a trial with limited features, and you can upgrade at any time to unlock full access.",
       },
       {
-        q: "What's your refund policy?",
-        a: "We offer a 30-day money-back guarantee on all paid subscriptions. No questions asked.",
+        q: "What is your refund policy?",
+        a: "All paid subscriptions come with a 30-day money-back guarantee. You can request a refund with no questions asked.",
       },
       {
-        q: "Do you offer team or group discounts?",
-        a: "Contact us for custom pricing for teams and educational institutions.",
+        q: "Is customer support available?",
+        a: "Yes. Our support team is available to help you with any questions or issues you may have.",
       },
     ],
   };
@@ -147,7 +147,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* SEO Section */}
       <section>
         <title>Pricing | Qubli AI - Flexible Study Plans</title>
@@ -179,7 +179,7 @@ const Pricing = () => {
       {/* Pricing Cards Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pricingData.plans.map((plan) => {
               const IconComponent = plan.icon;
               const borderClasses = {
@@ -282,16 +282,16 @@ const Pricing = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-surface/70 border-b border-border">
-                  <th className="px-6 py-4 text-left font-bold text-textMain">
+                  <th className="px-6 py-4 text-left font-bold text-textMain dark:text-textMain/95">
                     Feature
                   </th>
-                  <th className="px-6 py-4 text-center font-bold text-textMain">
+                  <th className="px-6 py-4 text-center font-bold text-textMain dark:text-textMain/95">
                     Free
                   </th>
-                  <th className="px-6 py-4 text-center font-bold text-textMain">
+                  <th className="px-6 py-4 text-center font-bold text-textMain dark:text-textMain/95">
                     Basic
                   </th>
-                  <th className="px-6 py-4 text-center font-bold text-textMain">
+                  <th className="px-6 py-4 text-center font-bold text-textMain dark:text-textMain/95">
                     Pro
                   </th>
                 </tr>
@@ -300,9 +300,9 @@ const Pricing = () => {
                 {pricingData.comparison.map((row, idx) => (
                   <tr
                     key={idx}
-                    className="border-b border-border hover:bg-surface/50 transition-colors"
+                    className="border-b border-border bg-surface/20 dark:bg-surface/30 hover:bg-surface/50 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-textMain">
+                    <td className="px-6 py-4 font-medium text-textMain dark:text-textMain/95">
                       {row.feature}
                     </td>
                     <td className="px-6 py-4 text-center text-textMuted">
@@ -325,7 +325,7 @@ const Pricing = () => {
       {/* FAQ Section */}
       <section className="pt-20 pb-10 px-4 sm:px-6 lg:px-8 bg-surface">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-textMain mb-6 text-center">
+          <h2 className="text-4xl font-bold text-textMain dark:text-textMain/95 mb-6 text-center">
             Frequently Asked Questions
           </h2>
           <p className="text-textMuted text-center mb-12">
@@ -344,7 +344,7 @@ const Pricing = () => {
                   }
                   className="w-full px-6 py-4 flex items-center justify-between gap-4 hover:bg-surface/50 transition-colors text-left group point"
                 >
-                  <h3 className="font-semibold text-textMain text-sm sm:text-base group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="font-semibold text-textMain dark:text-textMain/95 text-sm sm:text-base group-hover:text-primary dark:group-hover:text-blue-500 transition-colors">
                     {item.q}
                   </h3>
                   <ChevronDown
@@ -375,7 +375,7 @@ const Pricing = () => {
             </p>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white rounded-lg font-bold hover:bg-blue-700 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-primary dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white rounded-lg font-bold hover:bg-blue-700 transition-all"
             >
               Contact Us <ArrowRight className="w-4 h-4" />
             </Link>

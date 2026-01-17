@@ -85,8 +85,8 @@ export default function AdminBlogs() {
         statusFilter === "all"
           ? true
           : statusFilter === "published"
-          ? blog.isPublished
-          : !blog.isPublished;
+            ? blog.isPublished
+            : !blog.isPublished;
       return matchesSearch && matchesStatus;
     });
   }, [blogs, searchTerm, statusFilter]);
@@ -125,11 +125,11 @@ export default function AdminBlogs() {
 
       // Update local state instead of re-fetching to avoid skeleton flash "refresh"
       setBlogs((prev) =>
-        prev.map((b) => (b._id === blog._id ? { ...b, ...updatedBlog } : b))
+        prev.map((b) => (b._id === blog._id ? { ...b, ...updatedBlog } : b)),
       );
 
       toast.success(
-        `Blog ${updatedBlog.isPublished ? "published" : "drafted"} successfully`
+        `Blog ${updatedBlog.isPublished ? "published" : "drafted"} successfully`,
       );
       setOpenDropdown(null);
     } catch {
@@ -242,7 +242,7 @@ export default function AdminBlogs() {
 
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary dark:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/25 hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-all point whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary dark:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-primary/25 hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-all point whitespace-nowrap"
             >
               <Plus size={18} />
               <span>Create Post</span>
@@ -352,7 +352,7 @@ export default function AdminBlogs() {
                         <FileText size={32} className="text-textMuted" />
                       </div>
                       <div>
-                        <p className="text-textMain font-bold">
+                        <p className="text-textMain font-bold mb-1.5">
                           No posts found
                         </p>
                         <p className="text-textMuted text-xs font-medium">
@@ -392,7 +392,7 @@ export default function AdminBlogs() {
                             <span className="text-[10px] font-bold uppercase tracking-tight flex items-center gap-1">
                               <Calendar size={10} />{" "}
                               {new Date(
-                                blog.publishedAt || blog.createdAt
+                                blog.publishedAt || blog.createdAt,
                               ).toLocaleDateString()}
                             </span>
                           </div>
@@ -458,7 +458,7 @@ export default function AdminBlogs() {
                               left: rect.right + window.scrollX,
                             });
                             setOpenDropdown(
-                              openDropdown === blog._id ? null : blog._id
+                              openDropdown === blog._id ? null : blog._id,
                             );
                           }}
                           className="hover:bg-surfaceHighlight text-textMuted p-2 rounded-xl transition-all active:scale-90 point"
@@ -509,7 +509,7 @@ export default function AdminBlogs() {
                                 Delete Post
                               </button>
                             </div>,
-                            document.body
+                            document.body,
                           )}
                       </div>
                     </td>

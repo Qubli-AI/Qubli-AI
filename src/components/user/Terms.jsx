@@ -63,7 +63,7 @@ const Terms = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -85,15 +85,18 @@ const Terms = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
         <div className="max-w-4xl mx-auto space-y-3">
           {terms.map((term, index) => (
-            <div key={index} className="border-b border-border py-4 space-y-4">
-              <h2 className="text-xl font-semibold text-textMain">
+            <div
+              key={index}
+              className="border-b border-border py-4 pb-6 space-y-4"
+            >
+              <h2 className="text-xl font-semibold text-textMain dark:text-textMain/95">
                 {index + 1}. {term.title}
               </h2>
               <p className="text-textMuted mt-2">{term.description}</p>
             </div>
           ))}
 
-          <p className="text-textMuted text-sm mt-8">
+          <p className="text-textMuted text-center text-sm mt-8">
             Last updated: Dec 25, 2025
           </p>
         </div>

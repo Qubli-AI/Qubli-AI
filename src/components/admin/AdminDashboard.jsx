@@ -28,6 +28,7 @@ import {
   getQuizResults,
 } from "../../services/adminService";
 import useAdminSocket from "../../hooks/useAdminSocket";
+import { useSidebar } from "../../context/SidebarContext";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -42,6 +43,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Completed"); // Generation, Completed, Pending
   const [filterText, setFilterText] = useState("");
+
+  const { sidebarCollapsed } = useSidebar();
 
   useEffect(() => {
     fetchStats();
@@ -173,7 +176,7 @@ export default function AdminDashboard() {
             Welcome back, here's what's happening with your app today.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-xs font-bold text-textMain shadow-md-custom hover:bg-surfaceHighlight transition-all cursor-default select-none">
+        <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-xs font-bold text-textMain dark:text-textMain/95 shadow-md-custom transition-all cursor-default select-none">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -183,7 +186,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 ${!sidebarCollapsed ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-4`}
+      >
         <MetricCard
           title="Space Usage"
           value={`${stats.storageUsedMB || "0.00"} MB / 512 MB`}
@@ -417,8 +422,8 @@ export default function AdminDashboard() {
                             activity.difficulty === "Easy"
                               ? "bg-emerald-200/70 text-emerald-600 dark:bg-emerald-800/40 dark:text-emerald-500"
                               : activity.difficulty === "Medium"
-                              ? "bg-amber-200/70 text-amber-600 dark:bg-amber-800/30"
-                              : "bg-red-200 text-red-600 dark:bg-red-800/30 dark:text-red-500"
+                                ? "bg-amber-200/70 text-amber-600 dark:bg-amber-800/30"
+                                : "bg-red-200 text-red-600 dark:bg-red-800/30 dark:text-red-500"
                           }`}
                         >
                           {activity.difficulty}
@@ -475,8 +480,8 @@ export default function AdminDashboard() {
                               activity.score >= 80
                                 ? "text-emerald-600 dark:text-emerald-500"
                                 : activity.score >= 50
-                                ? "text-amber-600"
-                                : "text-red-600 dark:text-red-500"
+                                  ? "text-amber-600"
+                                  : "text-red-600 dark:text-red-500"
                             }`}
                           >
                             {activity.score}%
@@ -493,8 +498,8 @@ export default function AdminDashboard() {
                               activity.score >= 80
                                 ? "bg-emerald-600 dark:bg-emerald-500"
                                 : activity.score >= 50
-                                ? "bg-amber-600"
-                                : "bg-red-600 dark:bg-red-500"
+                                  ? "bg-amber-600"
+                                  : "bg-red-600 dark:bg-red-500"
                             }`}
                             style={{ width: `${activity.score}%` }}
                           />

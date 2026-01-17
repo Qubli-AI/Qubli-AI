@@ -180,7 +180,7 @@ const AuthForm = ({ onLogin }) => {
       <div className="max-w-md w-full bg-surface py-8 px-5 sm:px-8 rounded-2xl border border-border shadow-2xl z-10 border-main transition-all duration-300">
         <div className="text-center mb-6">
           <img
-            src="/icons/favicon-main.png"
+            src="/icons/favicon-main.avif"
             className="w-18 h-18 xs:w-20 xs:h-20 mb-4 mx-auto"
             alt="Brand Icon"
             loading="lazy"

@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema(
     // `username` is a separate unique handle for login/mentions etc.
     username: { type: String, unique: true, sparse: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String }, // Make optional for OAuth users
+    password: { type: String, select: false }, // Make optional for OAuth users
     passwordIsUserSet: { type: Boolean, default: false }, // Track if password was set by user or OAuth
     picture: { type: String }, // Profile picture URL
     tier: {
@@ -48,8 +48,8 @@ const UserSchema = new mongoose.Schema(
 
     // Email verification fields
     isVerified: { type: Boolean, default: false },
-    verificationCode: { type: String, default: null },
-    verificationCodeExpires: { type: Number, default: null },
+    verificationCode: { type: String, default: null, select: false },
+    verificationCodeExpires: { type: Number, default: null, select: false },
 
     // OAuth connected accounts
     connectedAccounts: {
@@ -69,9 +69,9 @@ const UserSchema = new mongoose.Schema(
       enum: ["totp", "sms", "none"],
       default: "none",
     }, // totp or sms
-    twoFASecret: { type: String, default: null }, // Encrypted secret for TOTP
-    twoFAPhone: { type: String, default: null }, // Phone number for SMS
-    twoFABackupCodes: [{ type: String }], // Backup codes in case of lost device
+    twoFASecret: { type: String, default: null, select: false }, // Encrypted secret for TOTP
+    twoFAPhone: { type: String, default: null }, // Phone number for SMS - visible for UI
+    twoFABackupCodes: [{ type: String, select: false }], // Backup codes in case of lost device
 
     // Sessions
     sessions: [
@@ -127,6 +127,9 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Index sessions for faster lookups (critical for per-session logout)
+UserSchema.index({ "sessions._id": 1 });
 
 const User = mongoose.model("User", UserSchema);
 

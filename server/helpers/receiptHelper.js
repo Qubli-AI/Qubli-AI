@@ -100,6 +100,7 @@ const generateReceiptHTML = (data) => {
           font-weight: 500;
         }
         .detail-value {
+          margin-left: 6px;
           color: #1f2937;
           font-size: 14px;
           font-weight: 600;
@@ -108,7 +109,6 @@ const generateReceiptHTML = (data) => {
           display: flex;
           justify-content: space-between;
           padding: 12px 0;
-          border-top: 2px solid #e5e7eb;
           margin-top: 12px;
         }
         .price-label {
@@ -118,8 +118,9 @@ const generateReceiptHTML = (data) => {
         }
         .price-value {
           color: ${tierColor};
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 700;
+          margin-left: 6px;
         }
         .features {
           background: #f0f9ff;
@@ -134,9 +135,6 @@ const generateReceiptHTML = (data) => {
           text-transform: uppercase;
           letter-spacing: 0.5px;
           margin-bottom: 15px;
-        }
-        .features-list {
-          list-style: none;
         }
         .features-list li {
           padding: 8px 0;
@@ -184,11 +182,6 @@ const generateReceiptHTML = (data) => {
         .support a:hover {
           text-decoration: underline;
         }
-        .divider {
-          height: 1px;
-          background: #e5e7eb;
-          margin: 30px 0;
-        }
       </style>
     </head>
     <body>
@@ -210,26 +203,26 @@ const generateReceiptHTML = (data) => {
             <!-- Receipt Details -->
             <div class="receipt-details">
               <div class="detail-row">
-                <span class="detail-label">Subscription Plan </span>
+                <span class="detail-label">Subscription Plan:</span>
                 <span class="detail-value">${tier}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Billing Date </span>
+                <span class="detail-label">Billing Date:</span>
                 <span class="detail-value">${billingDate}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Next Billing Date </span>
+                <span class="detail-label">Next Billing Date:</span>
                 <span class="detail-value">${nextBillingDate}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Frequency </span>
+                <span class="detail-label">Frequency:</span>
                 <span class="detail-value">Monthly</span>
               </div>
               <div class="price-row">
-                <span class="price-label">Amount Charged </span>
+                <span class="price-label">Amount Charged:</span>
                 <span class="price-value">$${amount.toFixed(2)}</span>
               </div>
-            </div>
+            </div>  
 
             <!-- Features -->
             <div class="features">
@@ -262,13 +255,10 @@ const generateReceiptHTML = (data) => {
               <p><strong>Billing Information:</strong></p>
               <p>Email: ${email}</p>
               <p>You will be charged <strong>$${amount.toFixed(
-                2
+                2,
               )}</strong> every month on the same date until you cancel.</p>
               <p>You can manage or cancel your subscription anytime from your account settings.</p>
             </div>
-
-            <!-- Divider -->
-            <div class="divider"></div>
 
             <!-- Support -->
             <div class="support">

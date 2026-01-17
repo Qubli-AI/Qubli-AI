@@ -304,7 +304,7 @@ const BlogPost = () => {
                             });
                           }
                         }}
-                        className="text-textMuted hover:text-primary transition-colors block py-0.5 line-clamp-1"
+                        className="text-textMuted hover:text-primary dark:hover:text-blue-500 transition-colors block py-0.5 line-clamp-1"
                         title={heading.text}
                       >
                         {heading.text}
@@ -348,13 +348,13 @@ const BlogPost = () => {
             </motion.div>
 
             {/* Footer Navigation */}
-            <div className="mt-16 pt-8 border-t border-border flex justify-between items-center mb-12">
-              <h3 className="text-xl font-bold text-textMain dark:text-textMain/95">
+            <div className="mt-16 pt-8 border-t border-border flex flex-col gap-5 sm:flex-row justify-between items-center mb-12">
+              <h3 className="text-2xl font-bold text-textMain dark:text-textMain/95">
                 Continued Learning
               </h3>
               <button
                 onClick={() => navigate("/blogs")}
-                className="md:px-6 px-4 py-2 bg-primary dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-colors font-medium shadow-lg shadow-primary/25 point"
+                className="md:px-6 px-6 py-2 bg-primary dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-colors font-medium shadow-lg shadow-primary/25 point text-md"
               >
                 Read More Articles
               </button>

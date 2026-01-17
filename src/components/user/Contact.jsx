@@ -32,7 +32,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -51,59 +51,74 @@ const Contact = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface relative overflow-hidden">
+        <div className="max-w-3xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-textMain dark:text-textMain/95 mb-4 tracking-tight">
+              Get in Touch
+            </h2>
+            <p className="text-lg text-textMuted">
+              Have a question or want to work together? Drop us a message.
+            </p>
+          </div>
+
           <form
             onSubmit={submit}
-            className="space-y-6 border border-border pb-10 pt-12 px-4 sm:px-6 md:px-8 rounded-lg shadow-md"
+            className="bg-surface/50 backdrop-blur-sm border border-border/60 px-4 py-6 min-[450px]:px-6 sm:p-10 rounded-2xl shadow-xl space-y-8"
           >
-            <div>
-              <h2 className="text-4xl text-textMain text-center font-semibold mb-8">
-                Contact Us
-              </h2>
-              <label htmlFor="email" className="text-lg font-medium mb-2 flex">
-                Email
-                <span className="text-red-500 dark:text-red-400">*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-surface text-textMain focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-500"
-                placeholder="your@email.com"
-              />
+            <div className="grid grid-cols-1 gap-8">
+              {/* Email Field */}
+              <div className="group">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold uppercase tracking-wider text-textMuted mb-2 transition-colors group-focus-within:text-primary dark:group-focus-within:text-blue-500"
+                >
+                  Email Address<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-4 rounded-xl border border-border bg-surfaceHighlight/40 dark:bg-surfaceHighlight/50 text-textMain dark:text-textMain/95 dark:placeholder:text-textMain/80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 placeholder:opacity-50"
+                  placeholder="name@company.com"
+                />
+              </div>
+
+              {/* Message Field */}
+              <div className="group">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-semibold uppercase tracking-wider text-textMuted mb-2 transition-colors group-focus-within:text-primary dark:group-focus-within:text-blue-500"
+                >
+                  Your Message<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={5}
+                  required
+                  className="w-full px-4 py-4 rounded-xl border border-border bg-surfaceHighlight/40 dark:bg-surfaceHighlight/50 text-textMain dark:text-textMain/95 dark:placeholder:text-textMain/80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 resize-none placeholder:opacity-50"
+                  placeholder="How can we help you?"
+                />
+              </div>
             </div>
-            <div>
-              <label
-                htmlFor="message"
-                className="flex text-lg font-medium mb-2"
-              >
-                Message
-                <span className="text-red-500 dark:text-red-400">*</span>
-              </label>
-              <textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={6}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-border bg-surface text-textMain focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-500 resize-none"
-                placeholder="Tell us what you need help with..."
-              />
-            </div>
+
             <button
               type="submit"
               disabled={sending}
-              className={`px-8 py-3.5 rounded-lg font-semibold block mx-auto bg-primary/90 hover:bg-primary dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white hover:text-white/90 ${
-                sending ? "opacity-50 cursor-not-allowed" : "point"
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-[0.98] shadow-md hover:shadow-primary/20 ${
+                sending
+                  ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-70"
+                  : "bg-primary hover:bg-blue-700 text-white point dark:bg-blue-700 dark:hover:bg-blue-700/80"
               }`}
             >
               {sending ? (
-                <span className="flex items-center justify-center gap-2">
-                  Sending
-                  <CircularProgress size={18} sx={{ color: "white" }} />
+                <span className="flex items-center justify-center gap-3">
+                  <CircularProgress size={20} sx={{ color: "white" }} />
+                  Processing...
                 </span>
               ) : (
                 "Send Message"

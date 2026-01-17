@@ -48,7 +48,7 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(
   helmet({
     contentSecurityPolicy: false, // Disabling CSP for now to avoid breaking existing integrations
-  })
+  }),
 );
 app.use(compression());
 app.use(express.json({ limit: "20mb" }));
@@ -64,7 +64,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 
 // Serve static files from uploads directory
@@ -196,7 +196,7 @@ app.post("/api/subscription/upgrade", protect, async (req, res) => {
       });
 
       const nextBillingDate = new Date(
-        new Date().setMonth(new Date().getMonth() + 1)
+        new Date().setMonth(new Date().getMonth() + 1),
       ).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -206,8 +206,8 @@ app.post("/api/subscription/upgrade", protect, async (req, res) => {
       const receiptHTML = generateReceiptHTML({
         userName: user.name || "Valued User",
         email: user.email,
-        tier: tier === "pro" ? "Pro" : "Basic",
-        amount: getTierPrice(tier === "pro" ? "Pro" : "Basic"),
+        tier: tier === "Pro" ? "Pro" : "Basic",
+        amount: getTierPrice(tier === "Pro" ? "Pro" : "Basic"),
         billingDate,
         nextBillingDate,
       });
@@ -216,7 +216,7 @@ app.post("/api/subscription/upgrade", protect, async (req, res) => {
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: `Payment Receipt - Qubli AI ${
-          tier === "pro" ? "Pro" : "Basic"
+          tier === "Pro" ? "Pro" : "Basic"
         } Subscription`,
         html: receiptHTML,
       });
@@ -389,7 +389,7 @@ app.post(
       console.error("Error awarding quiz completion exp:", error);
       res.status(500).json({ message: "Error awarding EXP." });
     }
-  }
+  },
 );
 
 // Award EXP for flashcard creation
@@ -420,7 +420,7 @@ app.post(
       console.error("Error awarding flashcard creation exp:", error);
       res.status(500).json({ message: "Error awarding EXP." });
     }
-  }
+  },
 );
 
 // Award EXP for PDF upload
@@ -501,7 +501,7 @@ app.get("/api/gamification/leaderboard", async (req, res) => {
 
     const leaderboard = await User.find({})
       .select(
-        "name picture level totalExpEarned weeklyExp monthlyExp achievements tier"
+        "name picture level totalExpEarned weeklyExp monthlyExp achievements tier",
       )
       .sort({ [sortField]: -1 })
       .limit(100);
@@ -537,6 +537,12 @@ app.use("/api/support", supportRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/admin/upload", uploadRoutes);
+
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+
+// Error Handling Middleware
+app.use(notFound);
+app.use(errorHandler);
 
 async function startServer() {
   try {
@@ -579,7 +585,7 @@ async function startServer() {
 
     // Start server
     httpServer.listen(PORT, () =>
-      console.log(`Server running in ${process.env.NODE_ENV} mode on ${PORT}`)
+      console.log(`Server running in ${process.env.NODE_ENV} mode on ${PORT}`),
     );
   } catch (err) {
     console.error("❌ Failed to start server:", err);

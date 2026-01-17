@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,10 +14,8 @@ import {
 import { AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import SidebarContext from "../../context/SidebarContext.js";
-
-// Lazy-loaded heavy components
-const SettingsModal = lazy(() => import("./SettingsModal.jsx"));
-const ConfirmLogoutModal = lazy(() => import("./ConfirmLogoutModal.jsx"));
+import SettingsModal from "./SettingsModal.jsx";
+import ConfirmLogoutModal from "./ConfirmLogoutModal.jsx";
 
 const getProgressWidth = (remaining, max) => {
   if (max === Infinity) return "0%";
@@ -34,10 +32,10 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [quizzesLeft, setQuizzesLeft] = useState(
-    user?.role === "admin" ? Infinity : user?.limits?.generationsRemaining || 0
+    user?.role === "admin" ? Infinity : user?.limits?.generationsRemaining || 0,
   );
   const [pdfLeft, setPdfLeft] = useState(
-    user?.role === "admin" ? Infinity : user?.limits?.pdfUploadsRemaining || 0
+    user?.role === "admin" ? Infinity : user?.limits?.pdfUploadsRemaining || 0,
   );
 
   // Sync state whenever user prop changes
@@ -45,13 +43,15 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
     setQuizzesLeft(
       user?.role === "admin"
         ? Infinity
-        : user?.limits?.generationsRemaining ?? 0
+        : (user?.limits?.generationsRemaining ?? 0),
     );
   }, [user]);
 
   useEffect(() => {
     setPdfLeft(
-      user?.role === "admin" ? Infinity : user?.limits?.pdfUploadsRemaining ?? 0
+      user?.role === "admin"
+        ? Infinity
+        : (user?.limits?.pdfUploadsRemaining ?? 0),
     );
   }, [user]);
 
@@ -82,7 +82,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
       { icon: Zap, label: "Achievements", path: "/achievements" },
       { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
     ],
-    []
+    [],
   );
 
   const handleLogoutClick = () => {
@@ -115,7 +115,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
     <div className="min-h-screen bg-background text-textMain flex font-sans no-print selection:bg-primary/20 selection:text-primary">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col fixed h-full transition-all duration-300 bg-surface border-r border-border shadow-sm overflow-y-auto overflow-x-none max-w-64 ${
+        className={`hidden md:flex flex-col fixed h-full transition-all duration-300 bg-surface border-r border-border shadow-sm overflow-y-auto overflow-x-none max-w-64 z-30 ${
           sidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
@@ -136,7 +136,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                   title="Qubli AI"
                 >
                   <img
-                    src="/icons/favicon-main.png"
+                    src="/icons/favicon-main.avif"
                     className="w-11 h-11 mx-auto"
                     alt="Brand Icon"
                     loading="lazy"
@@ -279,8 +279,8 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                         user.tier === "Pro"
                           ? "bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-300"
                           : user.tier === "Basic"
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/80 dark:text-blue-300"
-                          : "bg-gray-200 text-gray-600 dark:bg-gray-900/30 dark:text-gray-300"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/80 dark:text-blue-300"
+                            : "bg-gray-200 text-gray-600 dark:bg-gray-900/30 dark:text-gray-300"
                       }
 `}
                     >
@@ -324,7 +324,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                         <span className="text-textMuted whitespace-nowrap pointer-events-none">
                           PDF Uploads Left
                         </span>
-                        <span className="font-bold text-textMain">
+                        <span className="font-bold text-textMain dark:text-textMain/95">
                           {isPro ? "∞" : pdfLeft}
                         </span>
                       </div>
@@ -351,8 +351,8 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
                       user.tier === "Free"
                         ? "bg-blue-600 dark:bg-blue-700 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-700/80"
                         : user.tier === "Basic"
-                        ? "bg-linear-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
-                        : "bg-blue-600 dark:bg-blue-700 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-700/80"
+                          ? "bg-linear-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 hover:from-amber-600/90 hover:to-orange-600 dark:hover:from-amber-700 dark:hover:to-orange-700 shadow-lg shadow-amber-500/50 dark:shadow-amber-600/30"
+                          : "bg-blue-600 dark:bg-blue-700 shadow-lg shadow-blue-500/40 dark:shadow-blue-500/30 hover:bg-blue-700 dark:hover:bg-blue-700/80"
                     }`}
                   >
                     {user.tier !== "Pro" ? (
@@ -497,7 +497,7 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
               aria-label="Go to Qubli AI Dashboard"
             >
               <img
-                src="/icons/favicon-main.png"
+                src="/icons/favicon-main.avif"
                 className="w-11 h-11"
                 alt="Brand Icon"
                 loading="lazy"
@@ -530,26 +530,26 @@ const Layout = ({ children, user, onLogout, refreshUser }) => {
 
       {/* Settings Modal */}
       <AnimatePresence>
-        <Suspense fallback={null}>
-          {showSettings && (
-            <SettingsModal
-              onClose={() => setShowSettings(false)}
-              user={user}
-              refreshUser={refreshUser}
-            />
-          )}
-          <ConfirmLogoutModal
-            open={logoutModalOpen}
-            onClose={() => setLogoutModalOpen(false)}
-            onConfirm={handleConfirmLogout}
-            isProcessing={isLoggingOut}
-            title="Logout"
-            description="Are you sure you want to logout from this device?"
-            confirmLabel="Logout"
-            cancelLabel="Cancel"
+        {showSettings && (
+          <SettingsModal
+            onClose={() => setShowSettings(false)}
+            user={user}
+            refreshUser={refreshUser}
           />
-        </Suspense>
+        )}
       </AnimatePresence>
+
+      {/* Logout Modal - Always rendered, controls its own visibility */}
+      <ConfirmLogoutModal
+        open={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+        isProcessing={isLoggingOut}
+        title="Logout"
+        description="Are you sure you want to logout from this device?"
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+      />
     </div>
   );
 };

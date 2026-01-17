@@ -77,7 +77,7 @@ const TestimonialsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -101,7 +101,7 @@ const TestimonialsPage = () => {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="p-8 bg-background rounded-2xl border border-border hover:border-primary/30 transition-all hover:shadow-lg hover:scale-102 animate-fade-in-up"
+                className="p-8 bg-background dark:bg-background/75 rounded-2xl border border-border hover:border-primary/30 transition-all hover:shadow-lg hover:scale-102 animate-fade-in-up"
                 style={{ animationDelay: `${(index % 3) * 100}ms` }}
               >
                 {/* Stars */}
@@ -158,22 +158,28 @@ const TestimonialsPage = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
-              <div className="text-4xl font-bold text-primary dark:text-blue-400 mb-2">
+              <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 10K+
               </div>
-              <div className="text-textMuted text-lg">Happy Students</div>
+              <div className="text-sm font-semibold text-textMuted uppercase tracking-wider mt-3">
+                Happy Students
+              </div>
             </div>
             <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
-              <div className="text-4xl font-bold text-primary dark:text-blue-400 mb-2">
+              <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 4.9/5
               </div>
-              <div className="text-textMuted text-lg">Average Rating</div>
+              <div className="text-sm font-semibold text-textMuted uppercase tracking-wider mt-3">
+                Average Rating
+              </div>
             </div>
             <div className="text-center p-8 bg-surface rounded-2xl border border-border hover:border-primary/50 transition-all">
-              <div className="text-4xl font-bold text-primary dark:text-blue-400 mb-2">
+              <div className="text-4xl font-bold text-primary dark:text-blue-500 mb-2">
                 100K+
               </div>
-              <div className="text-textMuted text-lg">Quizzes Created</div>
+              <div className="text-sm font-semibold text-textMuted uppercase tracking-wider mt-3">
+                Quizzes Created
+              </div>
             </div>
           </div>
         </div>
@@ -190,7 +196,7 @@ const TestimonialsPage = () => {
           </p>
           <button
             onClick={() => navigate("/auth")}
-            className="px-8 py-4 rounded-xl bg-primary dark:bg-blue-700 text-white hover:text-white/95 font-bold text-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 point"
+            className="px-10 py-3 rounded-xl bg-primary dark:bg-blue-700 text-white hover:text-white/95 font-bold text-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-colors hover:shadow-sm hover:shadow-primary/30 point"
           >
             Get Started Free
           </button>

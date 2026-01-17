@@ -175,7 +175,7 @@ const Policies = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -198,14 +198,14 @@ const Policies = () => {
         <div className="max-w-4xl mx-auto space-y-12">
           {policiesData.map((policy) => (
             <div key={policy.id}>
-              <h2 className="text-4xl font-bold text-textMain pb-6 md:pb-8 mb-10 md:mb-12 text-center border-border border-b">
+              <h2 className="text-4xl font-bold text-textMain dark:text-textMain/95 pb-6 md:pb-8 mb-10 md:mb-12 text-center border-border border-b">
                 {policy.title}
               </h2>
 
               {policy.sections.map((section, idx) => (
                 <div key={idx} className={section.heading ? "mt-6" : ""}>
                   {section.heading && (
-                    <h3 className="text-2xl font-semibold text-textMain mb-3">
+                    <h3 className="text-2xl font-semibold text-textMain dark:text-textMain/95 mb-3">
                       {section.heading}
                     </h3>
                   )}
@@ -218,7 +218,7 @@ const Policies = () => {
                           {" "}
                           <Link
                             to={section.link.to}
-                            className="text-primary dark:text-blue-400 underline"
+                            className="text-primary font-semibold dark:text-blue-500 hover:underline"
                           >
                             {section.link.text}
                           </Link>
@@ -248,7 +248,7 @@ const Policies = () => {
             </div>
           ))}
 
-          <p className="text-textMuted text-sm border-t border-border pt-6 mt-8">
+          <p className="text-textMuted text-sm border-t text-center border-border pt-6 mt-8">
             Last updated: Dec 25, 2025
           </p>
         </div>

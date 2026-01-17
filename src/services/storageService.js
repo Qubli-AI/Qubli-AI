@@ -2,6 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const REQUEST_TIMEOUT = 30000; // 30 second timeout
 const REQUEST_CACHE = new Map(); // Simple in-memory cache for GET requests
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for GET requests
+const MAX_CACHE_SIZE = 50; // Maximum number of cached requests to prevent memory leaks
 
 /** Centralized error handler for better DX and UX */
 function handleResponseError(status, data, isAuthEndpoint) {
@@ -86,8 +87,13 @@ async function request(endpoint, method = "GET", body) {
 
     const data = await res.json();
 
-    // Cache GET results
+    // Cache GET results with LRU eviction
     if (method === "GET") {
+      if (REQUEST_CACHE.size >= MAX_CACHE_SIZE) {
+        // Remove the oldest entry (first inserted)
+        const firstKey = REQUEST_CACHE.keys().next().value;
+        REQUEST_CACHE.delete(firstKey);
+      }
       REQUEST_CACHE.set(endpoint, { data, timestamp: Date.now() });
     }
 
@@ -145,6 +151,14 @@ const StorageService = {
     });
     // Registration doesn't return a token - user must verify email first
     return data;
+  },
+
+  verifyEmail: async (email, code) => {
+    return request("/api/auth/verify-email", "POST", { email, code });
+  },
+
+  resendVerificationCode: async (email) => {
+    return request("/api/auth/resend-code", "POST", { email });
   },
 
   login: async (email, password) => {

@@ -18,10 +18,10 @@ const Navbar = ({ auth }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <button
           onClick={handleLogoClick}
-          className="flex items-center gap-3 font-bold text-[1.4rem] text-primary dark:text-blue-400 hover:opacity-90 transition-opacity point"
+          className="flex items-center gap-3 font-bold text-[1.4rem] text-primary dark:text-blue-500 hover:opacity-90 transition-opacity point"
         >
           <img
-            src="/icons/favicon-main.png"
+            src="/icons/favicon-main.avif"
             className="w-11 h-11"
             alt="Brand Icon"
             loading="lazy"
@@ -50,7 +50,7 @@ const Navbar = ({ auth }) => {
             className={`transition-colors duration-200 ${
               isActive("/features")
                 ? "text-primary dark:text-blue-500 font-semibold"
-                : "text-textMuted hover:text-textMain"
+                : "text-textMuted hover:text-textMain dark:hover:text-textMain/95"
             }`}
           >
             Features
@@ -60,7 +60,7 @@ const Navbar = ({ auth }) => {
             className={`transition-colors duration-200 ${
               isActive("/blogs") || isActive("/blogs/") // match sub-routes loosely if needed, or just exact
                 ? "text-primary dark:text-blue-500 font-semibold"
-                : "text-textMuted hover:text-textMain"
+                : "text-textMuted hover:text-textMain dark:hover:text-textMain/95"
             }`}
           >
             Blogs
@@ -69,8 +69,8 @@ const Navbar = ({ auth }) => {
             to="/testimonials"
             className={`transition-colors duration-200 ${
               isActive("/testimonials")
-                ? "text-primary font-semibold"
-                : "text-textMuted hover:text-textMain"
+                ? "text-primary dark:text-blue-500 font-semibold"
+                : "text-textMuted hover:text-textMain dark:hover:text-textMain/95"
             }`}
           >
             Testimonials
@@ -79,7 +79,7 @@ const Navbar = ({ auth }) => {
           {auth?.isAuthenticated ? (
             <button
               onClick={() => navigate("/dashboard")}
-              className="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20 point"
+              className="px-7.5 py-2 rounded-lg bg-primary text-white hover:text-white/95 font-semibold hover:bg-blue-700 transition-colors dark:bg-blue-700 dark:hover:bg-blue-700/90 shadow-lg shadow-primary/20 point"
             >
               Dashboard
             </button>
@@ -143,7 +143,7 @@ const Navbar = ({ auth }) => {
                 navigate("/dashboard");
                 setMobileMenuOpen(false);
               }}
-              className="px-6 py-3 rounded-[5px] bg-primary text-white font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
+              className="px-7.5 py-3 rounded-[5px] bg-primary text-white dark:text-white/95 font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 point"
             >
               Go to Dashboard
             </button>

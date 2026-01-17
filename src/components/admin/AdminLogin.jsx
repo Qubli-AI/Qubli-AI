@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../../services/adminService";
 import { toast } from "react-toastify";
-import { Mail, Lock, Loader2, LogIn, Shield } from "lucide-react";
+import { Mail, Lock, Loader2, LogIn } from "lucide-react";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -45,10 +45,14 @@ export default function AdminLogin() {
         <div className="bg-surface/80 backdrop-blur-xl border border-border rounded-3xl shadow-2xl shadow-slate-300 dark:shadow-slate-700 px-5 py-8 xs:px-8">
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Logo Inside Form */}
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-linear-to-br from-indigo-600 to-indigo-700 dark:bg-linear-to-br dark:from-indigo-900 dark:via-indigo-800 dark:to-indigo-700 rounded-2xl shadow-lg shadow-indigo-300 dark:shadow-indigo-900 text-white">
-                <Shield size={28} strokeWidth={2.5} />
-              </div>
+            <div className="text-center mb-6">
+              <img
+                src="/icons/favicon-main.avif"
+                className="w-18 h-18 xs:w-20 xs:h-20 mx-auto"
+                alt="Brand Icon"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
             {/* Branding */}
             <div className="text-center mb-8">

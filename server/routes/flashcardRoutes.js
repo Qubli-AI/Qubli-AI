@@ -1,11 +1,14 @@
 import express from "express";
+import asyncHandler from "express-async-handler";
 const router = express.Router();
 
 import Flashcard from "../models/Flashcard.js";
 import protect from "../middleware/auth.js";
 
-router.get("/", protect, async (req, res) => {
-  try {
+router.get(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
     // Add pagination support to prevent loading too many flashcards at once
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 30);
@@ -28,14 +31,13 @@ router.get("/", protect, async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch {
-    // Failed to fetch flashcards
-    res.status(500).json({ message: "Failed to fetch flashcards." });
-  }
-});
+  })
+);
 
-router.post("/bulk", protect, async (req, res) => {
-  try {
+router.post(
+  "/bulk",
+  protect,
+  asyncHandler(async (req, res) => {
     const cardsWithUser = req.body.map((card) => ({
       ...card,
       userId: req.userId,
@@ -43,14 +45,13 @@ router.post("/bulk", protect, async (req, res) => {
     }));
     const newCards = await Flashcard.insertMany(cardsWithUser);
     res.status(201).json(newCards);
-  } catch {
-    // Bulk insert failed
-    res.status(400).json({ message: "Error saving flashcards." });
-  }
-});
+  })
+);
 
-router.put("/:id", protect, async (req, res) => {
-  try {
+router.put(
+  "/:id",
+  protect,
+  asyncHandler(async (req, res) => {
     const card = await Flashcard.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
@@ -61,9 +62,7 @@ router.put("/:id", protect, async (req, res) => {
         .status(404)
         .json({ message: "Flashcard not found or unauthorized." });
     res.status(200).json(card);
-  } catch {
-    res.status(500).json({ message: "Error updating flashcard." });
-  }
-});
+  })
+);
 
 export default router;

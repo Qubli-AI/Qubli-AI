@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -29,7 +30,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   const [activeTab, setActiveTab] = useState("account");
   const [showPassword, setShowPassword] = useState(false);
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "system"
+    () => localStorage.getItem("theme") || "system",
   );
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   }, []);
 
   const [fontSize, setFontSize] = useState(
-    () => localStorage.getItem("fontSize") || "normal"
+    () => localStorage.getItem("fontSize") || "normal",
   );
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -90,12 +91,12 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             fetch(
               `${
                 import.meta.env.VITE_API_URL
-              }/api/auth/check-username?username=${encodeURIComponent(v)}`
+              }/api/auth/check-username?username=${encodeURIComponent(v)}`,
             )
               .then((r) => r.json())
               .then((d) => ({ v, available: !!d.available }))
-              .catch(() => ({ v, available: false }))
-          )
+              .catch(() => ({ v, available: false })),
+          ),
         );
         if (!mounted) return;
         const map = {};
@@ -116,8 +117,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   }, [showUsernameEdit, suggestedVariants]);
   const [limitAlerts, setLimitAlerts] = useState(() =>
     JSON.parse(
-      localStorage.getItem("limitAlerts") || '{"enabled": true, "threshold": 1}'
-    )
+      localStorage.getItem("limitAlerts") ||
+        '{"enabled": true, "threshold": 1}',
+    ),
   );
 
   const [feedback, setFeedback] = useState("");
@@ -179,7 +181,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     } else {
       // System preference
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       if (prefersDark) {
         htmlElement.classList.add("dark");
@@ -249,7 +251,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             currentPassword: currentPassword || "",
             newPassword,
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -261,7 +263,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         if (refreshUser) refreshUser();
       } else {
         toast.error(
-          "Failed to change password. Please check your current password."
+          "Failed to change password. Please check your current password.",
         );
       }
     } catch {
@@ -317,7 +319,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           body: JSON.stringify({
             newUsername: newUsername.trim(),
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -375,7 +377,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
           body: JSON.stringify({ newFullName: newFullName.trim() }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -433,7 +435,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                 Authorization: `Bearer ${StorageService.getToken()}`,
               },
               body: JSON.stringify({ picture: base64 }),
-            }
+            },
           );
 
           if (response.ok) {
@@ -478,7 +480,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
           body: JSON.stringify({ picture: null }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -520,7 +522,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
           body: JSON.stringify({ password: pw }),
-        }
+        },
       );
 
       if (res.ok) {
@@ -559,7 +561,9 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
       const confirmed = deleteConfirmationText === "DELETE";
       setDeleteChecksDone(confirmed);
       setDeleteConfirmError(
-        deleteConfirmationText && !confirmed ? 'Type "DELETE" to confirm' : null
+        deleteConfirmationText && !confirmed
+          ? 'Type "DELETE" to confirm'
+          : null,
       );
       return;
     }
@@ -605,7 +609,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     if (!deleteChecksDone) {
       if (user?.passwordIsUserSet) {
         toast.error(
-          "Please confirm your password before deleting your account."
+          "Please confirm your password before deleting your account.",
         );
       } else {
         toast.error('Please type "DELETE" to confirm account deletion.');
@@ -622,7 +626,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           headers: {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -681,7 +685,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             feedback,
             email: user?.email,
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -707,7 +711,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           headers: {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -746,7 +750,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             token: twoFAToken,
             secret: twoFASecret,
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -769,7 +773,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
   // Handle 2FA - Disable
   const handleDisable2FA = async () => {
     const confirmed = window.confirm(
-      "Are you sure you want to disable 2FA? This will reduce your account security."
+      "Are you sure you want to disable 2FA? This will reduce your account security.",
     );
     if (!confirmed) return;
 
@@ -785,7 +789,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           body: JSON.stringify({
             password: currentPassword || "", // Optional for OAuth users
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -832,7 +836,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -875,7 +879,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           headers: {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -905,7 +909,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           headers: {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -944,7 +948,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           headers: {
             Authorization: `Bearer ${StorageService.getToken()}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -1025,7 +1029,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary to-blue-600 text-white flex items-center justify-center font-bold text-4xl">
+                      <div className="w-full h-full bg-linear-to-br from-primary to-blue-600 text-white flex items-center justify-center font-bold text-4xl">
                         {user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
                     )}
@@ -1191,8 +1195,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 fullNameError
                                   ? "border-red-300 dark:border-red-400 bg-red-50/10"
                                   : newFullName && newFullName.length >= 6
-                                  ? "border-green-300 dark:border-green-600 bg-green-50/10"
-                                  : "border-border"
+                                    ? "border-green-300 dark:border-green-600 bg-green-50/10"
+                                    : "border-border"
                               }`}
                             />
                           </div>
@@ -1315,8 +1319,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                 usernameError
                                   ? "border-red-300 dark:border-red-400 bg-red-50/10"
                                   : newUsername && newUsername.length >= 6
-                                  ? "border-green-300 dark:border-green-600 bg-green-50/10"
-                                  : "border-border"
+                                    ? "border-green-300 dark:border-green-600 bg-green-50/10"
+                                    : "border-border"
                               }`}
                             />
                             {/* Suggested sanitized username variants (3 per row) */}
@@ -1524,8 +1528,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         confirmPassword && newPassword !== confirmPassword
                           ? "border-red-300 dark:border-red-500 bg-red-50/10"
                           : confirmPassword && newPassword === confirmPassword
-                          ? "border-green-300 dark:border-green-600 bg-green-50/10"
-                          : "border-border"
+                            ? "border-green-300 dark:border-green-600 bg-green-50/10"
+                            : "border-border"
                       }`}
                     />
                     {confirmPassword && newPassword === confirmPassword ? (
@@ -1612,8 +1616,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                     user?.tier === "Pro"
                       ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-500"
                       : user?.tier === "Basic"
-                      ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-500"
-                      : "bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-400"
+                        ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-500"
+                        : "bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-400"
                   }`}
                 >
                   Active
@@ -2070,7 +2074,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(
-                              twoFABackupCodes.join("\n")
+                              twoFABackupCodes.join("\n"),
                             );
                             toast.success("Backup codes copied!");
                           }}
@@ -2130,7 +2134,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
                                   " • "}
                                 {session.lastActive &&
                                   `Last active: ${new Date(
-                                    session.lastActive
+                                    session.lastActive,
                                   ).toLocaleDateString()}`}
                               </p>
                             </div>
@@ -2257,10 +2261,10 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
     }
   };
 
-  return (
+  return createPortal(
     <>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md"
+        className="fixed inset-0 z-1000 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -2569,14 +2573,7 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
         {/* Logout All Devices Modal */}
         {showLogoutAllModal && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => !isLoggingOutAll && setShowLogoutAllModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
-            />
-            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="fixed inset-0 flex items-center justify-center z-1100 pointer-events-none">
               <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -2692,7 +2689,8 @@ const SettingsModal = ({ onClose, user, refreshUser }) => {
           cancelLabel="Cancel"
         />
       </AnimatePresence>
-    </>
+    </>,
+    document.body,
   );
 };
 

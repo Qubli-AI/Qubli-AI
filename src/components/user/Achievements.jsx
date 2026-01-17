@@ -257,22 +257,17 @@ const Achievements = ({ user }) => {
   const fetchUserStats = async () => {
     try {
       const response = await StorageService.getUserAchievements();
-      console.log("Fetched achievements:", response?.achievements?.length);
 
       // Detect newly unlocked achievements
       if (stats && response) {
         const previousIds = new Set(stats.achievements.map((a) => a.id));
-        console.log("Previous achievement IDs:", previousIds);
 
         const newly = response.achievements.filter(
           (a) => !previousIds.has(a.id)
         );
 
-        console.log("Newly unlocked achievements:", newly);
-
         if (newly.length > 0) {
           // Show celebration for the first new achievement
-          console.log("Setting celebrating achievement:", newly[0].name);
           setCelebratingAchievement(newly[0]);
           triggerConfetti();
         }

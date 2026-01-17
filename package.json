@@ -81,15 +81,15 @@
   "main": "postcss.config.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rahimsiddiqui/Qubli-AI.git"
+    "url": "git+https://github.com/Qubli-AI/Qubli-AI.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Rahimsiddiqui/Qubli-AI/issues"
+    "url": "https://github.com/Qubli-AI/Qubli-AI/issues"
   },
-  "homepage": "https://github.com/Rahimsiddiqui/Qubli-AI#readme",
+  "homepage": "https://github.com/Qubli-AI/Qubli-AI#readme",
   "engines": {
     "node": ">20"
   }

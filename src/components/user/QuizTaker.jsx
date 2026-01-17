@@ -86,10 +86,12 @@ const TrueFalseOptions = ["True", "False"];
 
 const QuizIntroView = ({ quiz, startQuiz }) => (
   <div className="bg-surface p-8 rounded-2xl border border-border shadow-xl text-center">
-    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary dark:text-blue-400">
+    <div className="w-20 h-20 bg-primary/10 dark:bg-blue-800/20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary dark:text-blue-500">
       <Layers className="w-10 h-10" />
     </div>
-    <h2 className="text-2xl font-bold text-textMain mb-2">Ready to start?</h2>
+    <h2 className="text-2xl font-bold text-textMain dark:text-textMain/95 mb-2">
+      Ready to start?
+    </h2>
     <p className="text-textMuted mb-8 max-w-md mx-auto">
       This quiz contains <strong>{quiz.questions.length}</strong> questions
       covering <strong>{truncateText(quiz.topic, 20)}</strong>. There is no time
@@ -98,18 +100,22 @@ const QuizIntroView = ({ quiz, startQuiz }) => (
 
     <div className="grid grid-cols-2 xs:grid-cols-3 gap-4 mb-8 max-w-lg mx-auto">
       <div className="p-4 bg-surfaceHighlight rounded-xl">
-        <HelpCircle className="w-6 h-6 text-primary dark:text-blue-400 mx-auto mb-2" />
-        <div className="font-bold text-textMain">{quiz.questions.length}</div>
+        <HelpCircle className="w-6 h-6 text-primary dark:text-blue-500 mx-auto mb-2" />
+        <div className="font-bold text-textMain dark:text-textMain/95">
+          {quiz.questions.length}
+        </div>
         <div className="text-xs text-textMuted">Questions</div>
       </div>
       <div className="p-4 bg-surfaceHighlight rounded-xl">
-        <BarChart2 className="w-6 h-6 text-primary dark:text-blue-400 mx-auto mb-2" />
-        <div className="font-bold text-textMain">{quiz.totalMarks || "-"}</div>
+        <BarChart2 className="w-6 h-6 text-primary dark:text-blue-500 mx-auto mb-2" />
+        <div className="font-bold text-textMain dark:text-textMain/95">
+          {quiz.totalMarks || "-"}
+        </div>
         <div className="text-xs text-textMuted">Marks</div>
       </div>
       <div className="p-4 bg-surfaceHighlight rounded-xl">
-        <Clock className="w-6 h-6 text-primary dark:text-blue-400 mx-auto mb-2" />
-        <div className="font-bold text-textMain">
+        <Clock className="w-6 h-6 text-primary dark:text-blue-500 mx-auto mb-2" />
+        <div className="font-bold text-textMain dark:text-textMain/95">
           ~{Math.ceil(quiz.questions.length * 0.5)}m
         </div>
         <div className="text-xs text-textMuted">Est. Time</div>
@@ -119,7 +125,7 @@ const QuizIntroView = ({ quiz, startQuiz }) => (
     <div className="flex flex-col md:flex-row gap-4 justify-center">
       <button
         onClick={startQuiz}
-        className="w-full md:w-auto px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] active:scale-[0.98] transition-transform flex items-center justify-center gap-2 point"
+        className="w-full md:w-auto px-8 py-3 bg-primary dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-700/85 text-white font-bold rounded-xl hover:shadow-sm shadow-primary/20 transition-all flex items-center justify-center gap-2 point"
       >
         <Play className="w-5 h-5 fill-current" /> Start Quiz
       </button>
@@ -140,14 +146,14 @@ const QuizResultsView = ({
     {/* Summary Card */}
     <div className="bg-surface p-6 md:p-8 rounded-2xl border border-border shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
       <div className="text-center md:text-left">
-        <h2 className="text-xl font-bold text-textMain mb-1">
+        <h2 className="text-xl font-bold text-textMain dark:text-textMain/95 mb-1">
           Quiz Completed!
         </h2>
         <p className="text-textMuted">Here is how you performed.</p>
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-6 w-full md:w-auto">
         <div className="text-center md:text-right">
-          <div className="text-4xl font-bold text-primary dark:text-blue-400">
+          <div className="text-4xl font-bold text-primary dark:text-blue-500">
             {quiz.score}%
           </div>
           <p className="text-xs text-textMuted uppercase tracking-wide font-semibold">
@@ -160,7 +166,7 @@ const QuizResultsView = ({
             <button
               onClick={manualCreateFlashcards}
               disabled={isCreatingFlashcards}
-              className="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 dark:bg-indigo-900/80 dark:text-indigo-300 dark:hover:bg-indigo-900 flex items-center justify-center gap-2 text-sm font-semibold transition-colors border border-indigo-100 dark:border-indigo-700 point disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-200/50 text-indigo-600 rounded-lg hover:bg-indigo-100 dark:bg-indigo-800/30 dark:text-indigo-400 dark:hover:bg-indigo-800/35 flex items-center justify-center hover:shadow-sm shadow-indigo-200/50 dark:shadow-indigo-800/30 gap-2 text-sm font-semibold transition-colors border border-indigo-200/50 dark:border-indigo-800/30 point disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isCreatingFlashcards ? (
                 <>
@@ -176,7 +182,7 @@ const QuizResultsView = ({
           ) : (
             <button
               onClick={() => setActiveTab("flashcards")}
-              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm font-bold shadow-md shadow-indigo-200 dark:shadow-indigo-900 transition-colors point"
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white dark:text-white/95 rounded-lg hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-700/90 flex items-center justify-center gap-2 text-sm font-bold hover:shadow-sm shadow-indigo-200 dark:shadow-indigo-900 transition-colors point"
             >
               <BookOpen className="w-4 h-4" /> Study Flashcards
             </button>
@@ -225,7 +231,7 @@ const QuizResultsView = ({
               )}
               <button
                 onClick={() => onAskAI(q)}
-                className="p-1.5 bg-primary/10 text-primary dark:bg-blue-400/10 dark:text-blue-400 rounded-lg hover:bg-primary/20 dark:hover:bg-blue-400/20 transition-colors mt-0.5 point"
+                className="p-1.5 bg-blue-200/60 text-primary dark:bg-blue-800/40 dark:text-blue-500 rounded-lg hover:bg-blue-200/80 dark:hover:bg-blue-800/50 transition-colors mt-0.5 point"
                 title="Ask AI about this question"
               >
                 <Bot className="w-5 h-5" />
@@ -261,7 +267,7 @@ const QuizResultsView = ({
           {/* AI Justification - for subjective questions */}
           {q.aiJustification && (
             <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800 ml-0 md:ml-11 mb-3">
-              <span className="block text-xs text-blue-600 dark:text-blue-400 mb-1 uppercase tracking-wide font-semibold">
+              <span className="block text-xs text-blue-600 dark:text-blue-500 mb-1 uppercase tracking-wide font-semibold">
                 AI Examiner Feedback
               </span>
               <div className="text-sm text-blue-800 dark:text-blue-200">
@@ -276,7 +282,9 @@ const QuizResultsView = ({
           )}
 
           <div className="pt-3 border-t border-black/10 dark:border-white/20 text-sm text-textMuted ml-0 md:ml-11">
-            <span className="font-semibold text-textMain">Explanation:</span>{" "}
+            <span className="font-semibold text-textMain dark:text-textMain/95">
+              Explanation:
+            </span>{" "}
             {q.explanation}
           </div>
         </div>
@@ -285,7 +293,7 @@ const QuizResultsView = ({
 
     <button
       onClick={() => navigate("/dashboard")}
-      className="w-full py-4 bg-surface hover:bg-surfaceHighlight text-textMain rounded-xl font-bold transition-colors border border-border shadow-sm point"
+      className="w-full py-4 bg-surface hover:bg-surfaceHighlight/60 text-textMain dark:text-textMain/95 rounded-xl font-bold transition-colors border border-border hover:shadow-sm-custom point"
     >
       Back to Dashboard
     </button>
@@ -340,7 +348,7 @@ const StudyFlashcards = ({
       } else if (e.code === "ArrowLeft" || e.key === "ArrowLeft") {
         e.preventDefault();
         setCardIndex(
-          (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
+          (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length,
         );
       } else if (e.code === "Space" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault();
@@ -406,7 +414,7 @@ const StudyFlashcards = ({
   const prevCard = () => {
     if (!quizFlashcards?.length) return;
     setCardIndex(
-      (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length
+      (prev) => (prev - 1 + quizFlashcards.length) % quizFlashcards.length,
     );
   };
 
@@ -447,7 +455,7 @@ const StudyFlashcards = ({
             </span>
             <div className="text-xl font-medium text-textMain overflow-y-auto max-h-full custom-scrollbar">
               {parseBoldText(
-                card.front || card.question || `Question ${cardIndex + 1}`
+                card.front || card.question || `Question ${cardIndex + 1}`,
               )}
             </div>
           </div>
@@ -474,13 +482,13 @@ const StudyFlashcards = ({
       <div className="flex justify-between items-center gap-4">
         <button
           onClick={prevCard}
-          className="flex-1 py-3 rounded-xl bg-surfaceHighlight hover:bg-surface border border-transparent hover:border-border transition-all font-medium text-textMain flex items-center justify-center gap-2 point"
+          className="flex-1 py-3 rounded-xl bg-surfaceHighlight hover:bg-surfaceHighlight/60 border border-transparent hover:border-border transition-all font-medium text-textMain dark:text-textMain/95 flex items-center justify-center gap-2 point"
         >
           <ChevronLeft className="w-4 h-4" /> Previous
         </button>
         <button
           onClick={nextCard}
-          className="flex-1 py-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 hover:bg-blue-700 transition-all font-bold flex items-center justify-center gap-2 point"
+          className="flex-1 py-3 rounded-xl bg-primary text-white hover:shadow-sm shadow-primary/20 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/90 transition-all font-bold flex items-center justify-center gap-2 point"
         >
           Next Card <ChevronRight className="w-4 h-4" />
         </button>
@@ -539,7 +547,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           // Check if quiz is disabled
           if (q.isActive === false) {
             toast.error(
-              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz"
+              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz",
             );
             navigate("/dashboard");
             return;
@@ -551,7 +559,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             (c) =>
               String(c.quizId) === String(qId) ||
               String(c.quizId) === String(q._id) ||
-              String(c.quizId) === String(q.id)
+              String(c.quizId) === String(q.id),
           );
           const isFlashcardSet = relevantCards.length > 0;
           const updatedQuiz = { ...q, isFlashcardSet };
@@ -594,7 +602,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
         // Use fallback pattern for quiz ID matching with string comparison
         const q = quizzes.find(
-          (qq) => String(qq._id) === String(id) || String(qq.id) === String(id)
+          (qq) => String(qq._id) === String(id) || String(qq.id) === String(id),
         );
 
         if (!q) {
@@ -612,7 +620,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         if (q.isActive === false) {
           if (isMounted) {
             toast.error(
-              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz"
+              "The quiz you selected is disabled. Please Contact support at qubli.ai.app@gmail.com to enable your quiz",
             );
             navigate("/dashboard");
           }
@@ -628,7 +636,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           (c) =>
             String(c.quizId) === String(qId) ||
             String(c.quizId) === String(q._id) ||
-            String(c.quizId) === String(q.id)
+            String(c.quizId) === String(q.id),
         );
 
         const isFlashcardSet = relevantCards.length > 0;
@@ -782,11 +790,11 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       // Calculate score based on AI-awarded marks
       const totalMarksAwarded = gradedQuestions.reduce(
         (sum, q) => sum + (q.aiMarks || 0),
-        0
+        0,
       );
       const totalMarksAvailable = gradedQuestions.reduce(
         (sum, q) => sum + (q.aiTotalMarks || q.marks || 1),
-        0
+        0,
       );
       const score =
         totalMarksAvailable > 0
@@ -815,7 +823,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       try {
         const expResult = await StorageService.awardQuizCompletionExp(
           score,
-          finalQuiz.totalMarks || 100
+          finalQuiz.totalMarks || 100,
         );
         if (
           expResult &&
@@ -830,7 +838,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           if (updatedUser) {
             localStorage.setItem("user", JSON.stringify(updatedUser));
             window.dispatchEvent(
-              new CustomEvent("userUpdated", { detail: updatedUser })
+              new CustomEvent("userUpdated", { detail: updatedUser }),
             );
           }
 
@@ -888,7 +896,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     // Check PDF export limits for non-Pro users
     if (user.tier !== "Pro" && (user.limits?.pdfExportsRemaining ?? 0) <= 0) {
       toast.error(
-        "You have reached your monthly export limit. Upgrade to Pro for unlimited exports."
+        "You have reached your monthly export limit. Upgrade to Pro for unlimited exports.",
       );
       return;
     }
@@ -896,7 +904,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     // DOCX export only for Basic and Pro tiers
     if (format === "docx" && user.tier === "Free") {
       toast.error(
-        "DOCX export is only available for Basic and Pro tiers. Upgrade to unlock this feature."
+        "DOCX export is only available for Basic and Pro tiers. Upgrade to unlock this feature.",
       );
       return;
     }
@@ -917,7 +925,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
         const success = await StorageService.decrementPdfExport();
         if (!success) {
           toast.error(
-            "Failed to decrement PDF export limit. Please try again."
+            "Failed to decrement PDF export limit. Please try again.",
           );
           setIsExporting(false);
           return;
@@ -944,7 +952,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           const success = await StorageService.decrementPdfExport();
           if (!success) {
             toast.error(
-              "Failed to decrement PDF export limit. Please try again."
+              "Failed to decrement PDF export limit. Please try again.",
             );
             setIsExporting(false);
             return;
@@ -966,7 +974,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           const success = await StorageService.decrementPdfExport();
           if (!success) {
             toast.error(
-              "You have reached your monthly export limit. Upgrade to Pro for unlimited."
+              "You have reached your monthly export limit. Upgrade to Pro for unlimited.",
             );
             setIsExporting(false);
             return;
@@ -1745,7 +1753,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     link.href = url;
     link.download = `${quiz.topic.replace(
       /\s+/g,
-      "_"
+      "_",
     )}_Quiz_${formattedDate.replace(/\s+/g, "_")}.doc`;
     document.body.appendChild(link);
     link.click();
@@ -1926,7 +1934,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             <div class="answer-number">${idx + 1}</div>
             <div style="flex: 1;">
               <div class="question-text">${cleanQuestionText(
-                q.text || q.question
+                q.text || q.question,
               )}</div>
             </div>
           </div>
@@ -1969,7 +1977,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
     link.href = url;
     link.download = `${quiz.topic.replace(
       /\s+/g,
-      "_"
+      "_",
     )}_AnswerSheet_${formattedDate.replace(/\s+/g, "_")}.doc`;
     document.body.appendChild(link);
     link.click();
@@ -1990,7 +1998,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       (user.limits?.flashcardGenerationsRemaining ?? 0) <= 0
     ) {
       toast.error(
-        "You have reached your monthly flashcard generation limit. Upgrade to Pro for unlimited generations."
+        "You have reached your monthly flashcard generation limit. Upgrade to Pro for unlimited generations.",
       );
       return;
     }
@@ -2028,14 +2036,14 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
       const success = await StorageService.decrementFlashcardGeneration();
       if (!success) {
         toast.error(
-          "Failed to decrement flashcard quota. Please try again later."
+          "Failed to decrement flashcard quota. Please try again later.",
         );
       }
 
       // Award EXP for flashcard creation
       try {
         const expResult = await StorageService.awardFlashcardCreationExp(
-          cards.length
+          cards.length,
         );
 
         // If achievements were unlocked, dispatch event to update navbar
@@ -2058,7 +2066,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           if (updatedUser) {
             localStorage.setItem("user", JSON.stringify(updatedUser));
             window.dispatchEvent(
-              new CustomEvent("userUpdated", { detail: updatedUser })
+              new CustomEvent("userUpdated", { detail: updatedUser }),
             );
           }
         }
@@ -2104,12 +2112,12 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             <div className="flex items-center gap-2 mb-1">
               <button
                 onClick={() => navigate("/dashboard")}
-                className="text-textMuted hover:text-textMain flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-surfaceHighlight point"
+                className="text-textMuted hover:text-textMain dark:hover:text-textMain/95 flex items-center gap-1.5 p-2 rounded-lg hover:bg-surfaceHighlight point"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <h1
-                className="text-2xl font-bold text-textMain truncate"
+                className="text-2xl font-bold text-textMain dark:text-textMain/95 truncate"
                 title={fullTitle}
               >
                 {fullTitle}
@@ -2119,10 +2127,10 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               <span
                 className={`px-2 py-0.5 rounded text-xs font-bold ${
                   quiz.difficulty === "Easy"
-                    ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                    ? "bg-green-200/70 text-green-600 dark:bg-green-800/45 dark:text-green-500"
                     : quiz.difficulty === "Medium"
-                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-300"
-                    : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                      ? "bg-orange-200/60 text-orange-600 dark:bg-orange-800/50 dark:text-amber-500"
+                      : "bg-red-200/60 text-red-600 dark:bg-red-800/45"
                 }
 `}
               >
@@ -2132,7 +2140,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 {quiz.examStyle || "Standard"}
               </span>
               {quiz.totalMarks && (
-                <span className="text-xs bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 px-2 py-0.5 rounded font-bold">
+                <span className="text-xs bg-gray-200/70 text-textMuted dark:bg-gray-700/60 px-2 py-0.5 rounded font-bold">
                   Max Marks: {quiz.totalMarks}
                 </span>
               )}
@@ -2147,7 +2155,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                   (user.limits?.pdfExportsRemaining ?? 0) <= 0) ||
                 isExporting
               }
-              className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all font-bold shadow-md shrink-0 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs point hover:shadow-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-primary dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-700/80 text-white dark:text-white/95 rounded-lg transition-all font-bold shadow-md shrink-0 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider min-w-fit text-xs point hover:shadow-lg"
               title={
                 status !== "completed"
                   ? "Finish quiz to export"
@@ -2217,7 +2225,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
             onClick={() => setActiveTab("exam")}
             className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 point ${
               activeTab === "exam"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-500 shadow-sm-custom"
                 : "text-textMuted hover:text-textMain/85"
             }`}
           >
@@ -2235,10 +2243,10 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
               status === "completed" ? "point" : "cursor-not-allowed"
             } ${
               activeTab === "flashcards"
-                ? "bg-surface text-primary dark:text-blue-400 shadow-sm"
+                ? "bg-surface text-primary dark:text-blue-500 shadow-sm-custom"
                 : status !== "completed"
-                ? "text-gray-500 dark:text-gray-400"
-                : "text-textMuted hover:text-textMain/85"
+                  ? "text-gray-500 dark:text-gray-400"
+                  : "text-textMuted hover:text-textMain/85"
             }`}
           >
             <Layers className="w-4 h-4" /> Flashcards
@@ -2282,8 +2290,6 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     explanation: question.explanation,
                     userAnswer: question.userAnswer,
                   });
-                  // Set predefined prompt for auto-submit
-                  // Use the stored isCorrect property (set by AI grading for subjective questions)
                   const prompt = question.isCorrect
                     ? `I got this question correct but I'd like to understand it deeper. Can you explain the concept behind: "${
                         question.text || question.question
@@ -2307,7 +2313,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                 {/* Progress Bar */}
                 <div className="w-full bg-surfaceHighlight h-2 rounded-full mb-8">
                   <div
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    className="bg-primary dark:bg-blue-700 h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${
                         ((currentIdx + 1) / quiz.questions.length) * 100
@@ -2318,7 +2324,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
 
                 <div className="min-h-75 flex flex-col">
                   <div className="flex justify-between items-start mb-4">
-                    <span className="text-sm font-bold text-primary dark:text-blue-400 tracking-wide uppercase px-2 py-1 bg-primary/5 dark:bg-primary/10 rounded">
+                    <span className="text-sm font-bold text-primary dark:text-blue-500 tracking-wide uppercase px-3 py-1.5 bg-primary/5 dark:bg-blue-800/20 rounded-md">
                       {currentQ.type}
                     </span>
                     <div className="text-right">
@@ -2333,7 +2339,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     </div>
                   </div>
 
-                  <h2 className="text-xl md:text-2xl font-medium text-textMain mb-8 leading-relaxed">
+                  <h2 className="text-xl md:text-2xl font-medium text-textMain dark:text-textMain/95 mb-8 leading-relaxed">
                     {cleanQuestionText(currentQ.text || currentQ.question) ||
                       `Question ${currentIdx + 1}`}
                   </h2>
@@ -2351,7 +2357,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                             onClick={() => handleAnswer(opt)}
                             className={`p-4 text-left rounded-xl border transition-all cursor-pointer ${
                               answers[currentQId] === opt
-                                ? "bg-primary/10 border-primary dark:border-blue-600 text-primary dark:text-blue-500 shadow-sm ring-1 ring-primary dark:ring-blue-500 font-semibold"
+                                ? "bg-primary/10 border-primary dark:border-blue-600 text-primary dark:text-blue-500 shadow-sm ring-1 ring-primary font-semibold"
                                 : "bg-surface border-border text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
                             }`}
                           >
@@ -2380,7 +2386,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                   <button
                     onClick={handlePrev}
                     disabled={currentIdx === 0}
-                    className="px-6 py-2 text-textMuted hover:text-textMain disabled:opacity-30 disabled:hover:text-textMuted cursor-pointer disabled:cursor-not-allowed"
+                    className="px-6 py-2 text-textMuted hover:text-textMain dark:hover:text-textMain/95 disabled:opacity-30 disabled:hover:text-textMuted cursor-pointer disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
@@ -2389,7 +2395,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     <button
                       onClick={handleSubmit}
                       disabled={!hasAnsweredCurrent || isSubmitting}
-                      className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+                      className="px-8 py-3 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-700/90 text-white dark:text-white/95 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors hover:shadow-sm shadow-green-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
                     >
                       {isSubmitting ? (
                         <>
@@ -2406,7 +2412,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
                     <button
                       onClick={handleNext}
                       disabled={!hasAnsweredCurrent}
-                      className="px-8 py-3 bg-primary hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+                      className="px-8 py-3 bg-primary hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/80 text-white dark:text-white/95 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors hover:shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
                     >
                       Next Question <ArrowRight className="w-5 h-5" />
                     </button>
@@ -2516,7 +2522,7 @@ const QuizTaker = ({ user, onComplete, onLimitUpdate }) => {
           {!isStudyBuddyOpen && (
             <button
               onClick={() => setIsStudyBuddyOpen(true)}
-              className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 animate-fade-in-up point"
+              className="fixed bottom-15 right-2 sm:bottom-20 md:bottom-4 md:right-4 z-50 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-700/85 transition-all flex items-center gap-2 animate-fade-in-up point"
               title="Open AI Study Buddy"
             >
               <div className="bg-white/20 p-1 rounded-lg">

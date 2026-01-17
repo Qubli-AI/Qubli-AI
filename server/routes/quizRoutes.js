@@ -1,4 +1,5 @@
 import express from "express";
+import asyncHandler from "express-async-handler";
 const router = express.Router();
 
 import Quiz from "../models/Quiz.js";
@@ -6,8 +7,10 @@ import Flashcard from "../models/Flashcard.js";
 
 import protect from "../middleware/auth.js";
 
-router.get("/", protect, async (req, res) => {
-  try {
+router.get(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
     // Add pagination support to prevent loading too many quizzes at once
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
@@ -30,14 +33,13 @@ router.get("/", protect, async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch {
-    // Failed to fetch quizzes
-    res.status(500).json({ message: "Failed to fetch quizzes." });
-  }
-});
+  })
+);
 
-router.post("/", protect, async (req, res) => {
-  try {
+router.post(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
     const newQuiz = new Quiz({ ...req.body, userId: req.userId });
     await newQuiz.save();
 
@@ -45,14 +47,13 @@ router.post("/", protect, async (req, res) => {
     const savedQuizData = newQuiz.toObject();
 
     res.status(201).json(savedQuizData);
-  } catch {
-    // Quiz creation failed
-    res.status(400).json({ message: "Error saving quiz." });
-  }
-});
+  })
+);
 
-router.put("/:id", protect, async (req, res) => {
-  try {
+router.put(
+  "/:id",
+  protect,
+  asyncHandler(async (req, res) => {
     const quiz = await Quiz.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
@@ -65,13 +66,13 @@ router.put("/:id", protect, async (req, res) => {
         .json({ message: "Quiz not found or unauthorized." });
 
     res.status(200).json(quiz);
-  } catch {
-    res.status(500).json({ message: "Error updating quiz." });
-  }
-});
+  })
+);
 
-router.delete("/:id", protect, async (req, res) => {
-  try {
+router.delete(
+  "/:id",
+  protect,
+  asyncHandler(async (req, res) => {
     const result = await Quiz.deleteOne({
       _id: req.params.id,
       userId: req.userId,
@@ -87,9 +88,7 @@ router.delete("/:id", protect, async (req, res) => {
     });
 
     res.status(200).json({ message: "Quiz deleted successfully." });
-  } catch {
-    res.status(500).json({ message: "Error deleting quiz." });
-  }
-});
+  })
+);
 
 export default router;

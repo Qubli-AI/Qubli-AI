@@ -28,7 +28,7 @@ const BlogList = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up flex flex-col">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up flex flex-col">
       <SEO
         title="AI Learning Blog"
         description="Explore the latest insights on AI-powered study techniques, exam preparation tips, and Qubli AI feature updates."
@@ -39,7 +39,7 @@ const BlogList = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6"
+            className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary dark:text-blue-500 dark:bg-blue-800/20 font-medium text-sm mb-6"
           >
             The Qubli AI Blog
           </motion.div>
@@ -86,11 +86,11 @@ const BlogList = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="group bg-surface dark:bg-gray-800 rounded-2xl overflow-hidden border border-border shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full relative"
+                  className="group bg-surface dark:bg-gray-800 rounded-2xl overflow-hidden border border-border shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full relative point"
                 >
                   {/* Image Container */}
                   <div
-                    className="relative h-48 overflow-hidden cursor-pointer"
+                    className="relative h-48 overflow-hidden"
                     onClick={() => navigate(`/blogs/${blog.slug}`)}
                   >
                     <img
@@ -123,7 +123,7 @@ const BlogList = () => {
                     </div>
 
                     <h2
-                      className="text-xl font-bold text-textMain dark:text-white mb-3 line-clamp-2 cursor-pointer group-hover:text-primary transition-colors"
+                      className="text-xl font-bold text-textMain dark:text-textMain/95 mb-3 line-clamp-2 cursor-pointer group-hover:text-primary dark:group-hover:text-blue-500 transition-colors"
                       onClick={() => navigate(`/blogs/${blog.slug}`)}
                     >
                       {blog.title}
@@ -135,7 +135,7 @@ const BlogList = () => {
 
                     <button
                       onClick={() => navigate(`/blogs/${blog.slug}`)}
-                      className="flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all"
+                      className="flex items-center gap-2 text-primary dark:text-blue-500 font-semibold text-sm group-hover:gap-3 transition-all"
                     >
                       Read Article <ArrowRight size={16} />
                     </button>

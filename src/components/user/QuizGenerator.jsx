@@ -51,7 +51,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
   const [pdfFiles, setPdfFiles] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
   const [generateFlashcards, setGenerateFlashcards] = useState(
-    user?.tier !== "Free"
+    user?.tier !== "Free",
   );
   const [isDragging, setIsDragging] = useState(false);
 
@@ -145,7 +145,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           };
           reader.onerror = reject;
           reader.readAsDataURL(fileItem);
-        })
+        }),
     );
 
     const newFiles = await Promise.all(filePromises);
@@ -200,7 +200,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
     const win = window.open("");
     if (win) {
       win.document.write(
-        `<body style="margin:0; overflow:hidden;"><iframe width="100%" height="100%" src="${url}" frameborder="0"></iframe></body>`
+        `<body style="margin:0; overflow:hidden;"><iframe width="100%" height="100%" src="${url}" frameborder="0"></iframe></body>`,
       );
       win.document.title = "PDF Preview";
     }
@@ -212,7 +212,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         ? prev.length === 1
           ? prev
           : prev.filter((t) => t !== type)
-        : [...prev, type]
+        : [...prev, type],
     );
   };
 
@@ -292,7 +292,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         examStyleId,
         filesDataPayload,
         handleProgress,
-        { youtubeUrl: mode === "youtube" ? youtubeUrl : undefined }
+        { youtubeUrl: mode === "youtube" ? youtubeUrl : undefined },
       );
 
       quiz.userId = user?.id;
@@ -312,7 +312,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       if (!quizId) {
         // Server returned an unexpected response when saving the quiz
         throw new Error(
-          "Quiz was created but server response was invalid. Please refresh."
+          "Quiz was created but server response was invalid. Please refresh.",
         );
       }
 
@@ -334,7 +334,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
         // Award EXP for flashcard creation
         try {
           const expResult = await StorageService.awardFlashcardCreationExp(
-            cards.length
+            cards.length,
           );
 
           if (
@@ -346,7 +346,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             if (updatedUser) {
               localStorage.setItem("user", JSON.stringify(updatedUser));
               window.dispatchEvent(
-                new CustomEvent("userUpdated", { detail: updatedUser })
+                new CustomEvent("userUpdated", { detail: updatedUser }),
               );
             }
           }
@@ -360,7 +360,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
       // Award EXP for quiz creation
       try {
         const expResult = await StorageService.awardQuizCreationExp(
-          quiz.questions.length
+          quiz.questions.length,
         );
 
         // If achievements were unlocked, dispatch event to update navbar
@@ -373,7 +373,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           if (updatedUser) {
             localStorage.setItem("user", JSON.stringify(updatedUser));
             window.dispatchEvent(
-              new CustomEvent("userUpdated", { detail: updatedUser })
+              new CustomEvent("userUpdated", { detail: updatedUser }),
             );
           }
         }
@@ -487,7 +487,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <div className="space-y-4">
             {mode === "text" ? (
               <div>
-                <label className="block text-sm font-bold text-textMain mb-2">
+                <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                   Quiz Topic
                 </label>
                 <input
@@ -495,12 +495,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g., Quantum Physics, French Revolution, Organic Chemistry"
-                  className="w-full p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
+                  className="w-full p-4 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-sm-custom"
                 />
               </div>
             ) : mode === "youtube" ? (
               <div>
-                <label className="block text-sm font-bold text-textMain mb-2">
+                <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                   YouTube Video URL
                 </label>
                 <div className="flex gap-2">
@@ -511,7 +511,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full pl-11 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-md-custom"
+                      className="w-full pl-11 pr-4 py-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder-gray-400 font-medium shadow-sm-custom"
                     />
                   </div>
                 </div>
@@ -522,7 +522,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-bold text-textMain mb-2">
+                <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                   Upload Study Material {mode === "pdf" ? "(PDF)" : "(Images)"}
                 </label>
                 <div
@@ -534,8 +534,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     isDragging
                       ? "border-primary bg-primary/5"
                       : files.length > 0
-                      ? "border-primary/20 bg-surface"
-                      : "border-dashed border-border bg-transparent hover:bg-surfaceHighlight"
+                        ? "border-primary/20 bg-surface"
+                        : "border-dashed border-border bg-transparent hover:bg-surfaceHighlight dark:hover:bg-surfaceHighlight/40"
                   }`}
                   aria-label="File upload area"
                 >
@@ -556,14 +556,14 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                           <div className="shrink-0">
                             <div className="w-10 h-10 rounded-lg bg-surface/80 border border-border flex items-center justify-center">
                               {mode === "pdf" ? (
-                                <FileText className="w-5 h-5 text-primary" />
+                                <FileText className="w-5 h-5 text-primary dark:text-blue-500" />
                               ) : (
                                 <ImageIcon className="w-5 h-5 text-purple-500" />
                               )}
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-sm text-textMain truncate">
+                            <div className="font-bold text-sm text-textMain dark:text-textMain/95 truncate">
                               {file.name}
                             </div>
                             <div className="text-xs text-textMuted">
@@ -604,7 +604,9 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     <div className="flex flex-col items-center justify-center py-8 gap-2 pointer-events-none">
                       <Upload
                         className={`w-12 h-12 transition-all duration-300 ${
-                          isDragging ? "text-primary" : "text-textMuted"
+                          isDragging
+                            ? "text-primary dark:text-blue-500"
+                            : "text-textMuted"
                         }`}
                         style={{
                           animation: isDragging
@@ -612,7 +614,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                             : "none",
                         }}
                       />
-                      <div className="text-sm font-semibold text-textMain">
+                      <div className="text-sm font-semibold text-textMain dark:text-textMain/95">
                         Drag & drop {mode === "pdf" ? "PDF" : "Images"} here
                       </div>
                       <div className="text-xs text-textMuted">
@@ -630,8 +632,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <div className="h-px bg-border/50 w-full" />
 
           <div>
-            <label className="text-sm font-bold text-textMain mb-3 flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-primary dark:text-blue-400" />{" "}
+            <label className="text-sm font-bold text-textMain dark:text-textMain/95 mb-3 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-primary dark:text-blue-500" />{" "}
               Exam Board / Style
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -645,10 +647,10 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                   <div
                     key={style.id}
                     onClick={() => handleExamStyleSelect(style.id, style.tier)}
-                    className={`relative p-4 rounded-xl min-h-38 border-2 transition-all cursor-pointer flex flex-col justify-between h-full shadow-md-custom ${
+                    className={`relative p-4 rounded-xl min-h-38 border-2 transition-all cursor-pointer flex flex-col justify-between h-full shadow-sm-custom ${
                       examStyleId === style.id
-                        ? "border-primary dark:border-blue-400 bg-primary/5"
-                        : "border-border bg-surface hover:bg-surfaceHighlight hover:border-primary/30 dark:hover:border-blue-400/50"
+                        ? "border-primary dark:border-blue-500 bg-primary/5"
+                        : "border-border bg-surface hover:bg-surfaceHighlight hover:border-primary/30 dark:hover:border-blue-500/50"
                     } ${isLocked ? "opacity-70 bg-gray-50" : ""}`}
                   >
                     <div>
@@ -656,8 +658,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                         <h4
                           className={`font-bold text-sm ${
                             examStyleId === style.id
-                              ? "text-primary dark:text-blue-400"
-                              : "text-textMain"
+                              ? "text-primary dark:text-blue-500"
+                              : "text-textMain dark:text-textMain/95"
                           }`}
                         >
                           {style.label}
@@ -666,7 +668,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                           <Lock className="w-4 h-4 text-textMuted" />
                         )}
                         {!isLocked && examStyleId === style.id && (
-                          <Check className="w-4 h-4 text-primary" />
+                          <Check className="w-4 h-4 text-primary dark:text-blue-500" />
                         )}
                       </div>
                       <p className="text-xs text-textMuted leading-relaxed">
@@ -674,7 +676,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                       </p>
                     </div>
                     {isLocked && (
-                      <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 dark:text-orange-200 dark:bg-orange-900/90 px-2 py-1 rounded w-fit">
+                      <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 dark:text-amber-600 dark:bg-orange-700/40 px-2 py-1 rounded w-fit">
                         {style.tier} Plan
                       </div>
                     )}
@@ -688,14 +690,14 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-textMain mb-2">
+              <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                 Difficulty
               </label>
               <div className="relative">
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer shadow-sm-custom"
+                  className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer shadow-sm-custom"
                 >
                   {Object.values(Difficulty).map((d) => (
                     <option key={d} value={d}>
@@ -708,7 +710,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-textMain mb-2">
+              <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                 Number of Questions{" "}
                 <span className="text-xs font-normal text-textMuted">
                   (Max: {userMaxQuestions})
@@ -720,12 +722,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 max={userMaxQuestions}
                 value={questionCount}
                 onChange={handleQuestionCountChange}
-                className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain outline-none focus:ring-2 focus:ring-primary placeholder-gray-400 shadow-sm-custom"
+                className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 outline-none focus:ring-2 focus:ring-primary placeholder-gray-400 shadow-sm-custom"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-textMain mb-2">
+              <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                 Total Marks{" "}
                 <span className="text-xs font-normal text-textMuted">
                   (Max: {userMaxMarks})
@@ -737,12 +739,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 max={userMaxMarks}
                 value={totalMarks}
                 onChange={handleTotalMarksChange}
-                className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain outline-none focus:ring-2 focus:ring-primary placeholder-gray-400 shadow-sm-custom"
+                className="w-full p-3 bg-surfaceHighlight border border-border rounded-xl text-textMain dark:text-textMain/95 outline-none focus:ring-2 focus:ring-primary placeholder-gray-400 shadow-sm-custom"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-textMain mb-2">
+              <label className="block text-sm font-bold text-textMain dark:text-textMain/95 mb-2">
                 Question Types
               </label>
               <div className="flex flex-wrap gap-2">
@@ -753,8 +755,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     onClick={() => toggleType(type)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-sm-custom ${
                       selectedTypes.includes(type)
-                        ? "bg-primary/10 dark:bg-blue-400/10 border-primary dark:border-blue-400 text-primary dark:text-blue-400 p-4 rounded"
-                        : "bg-surface border-border text-textMuted hover:border-primary/50 dark:hover:border-blue-400/50 hover:bg-surfaceHighlight"
+                        ? "bg-blue-200/50 text-blue-500 dark:bg-blue-400/10 border-blue-500 p-4 rounded"
+                        : "bg-surface border-border text-textMuted hover:border-primary/50 dark:hover:border-blue-500/50 hover:bg-surfaceHighlight"
                     }`}
                   >
                     {type}
@@ -768,9 +770,9 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
             <div className="flex xs:flex-row flex-col xs:items-center xs:justify-between gap-4 items-center">
               <div className="xs:flex xs:items-center xs:gap-3 flex flex-col items-center gap-0">
                 <div
-                  className={`p-3 rounded-lg shrink-0 ${
+                  className={`p-3 rounded-lg shrink-0 transition-colors ${
                     generateFlashcards
-                      ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-700/80 dark:text-indigo-300"
+                      ? "bg-indigo-200/50 text-indigo-600 dark:bg-indigo-700/50 dark:text-indigo-400"
                       : "bg-gray-200 text-gray-500 dark:bg-surface/40 dark:text-gray-300"
                   }`}
                 >
@@ -778,7 +780,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 </div>
               </div>
               <div className="flex-1 text-center xs:text-left">
-                <h3 className="font-semibold text-sm text-textMain">
+                <h3 className="font-semibold text-sm text-textMain dark:text-textMain/95">
                   Generate Flashcards
                 </h3>
                 <h4 className="font-semibold text-[12px] text-textMain/80 xs:text-textMain/80 xs:text-[11px]">
@@ -789,8 +791,8 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 className={`text-xs font-bold px-3.5 py-1.5 xs:px-2.5 rounded border whitespace-nowrap ${
                   user?.tier === "Pro" ||
                   user?.limits?.flashcardGenerationsRemaining > 0
-                    ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-400/20 dark:text-blue-300 dark:border-blue-400"
-                    : "bg-red-50 text-red-600 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-700"
+                    ? "bg-blue-200/50 text-blue-500 border-blue-200 dark:bg-blue-800/20 dark:border-blue-500"
+                    : "bg-red-200/50 text-red-500 border-red-200 dark:bg-red-800/25dark:border-red-500"
                 }`}
               >
                 {user?.tier === "Pro"
@@ -802,12 +804,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                 onClick={() => setGenerateFlashcards(!generateFlashcards)}
                 className={`relative w-12 h-6 rounded-full transition-colors point shrink-0 ${
                   generateFlashcards
-                    ? "bg-primary dark:bg-blue-600"
-                    : "bg-gray-300 dark:bg-surface/60"
+                    ? "bg-primary dark:bg-blue-700"
+                    : "bg-gray-300 dark:bg-surface/50"
                 }`}
               >
                 <span
-                  className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                  className={`absolute top-1 left-1 bg-white dark:bg-white/95 w-4 h-4 rounded-full transition-transform ${
                     generateFlashcards ? "translate-x-6" : "translate-x-0"
                   }`}
                 ></span>
@@ -818,7 +820,7 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
           <button
             type="submit"
             disabled={loading || !selectedTypes?.length}
-            className="w-full py-4 bg-primary hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-lg cursor-pointer"
+            className="w-full py-4 bg-primary dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-700/85 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-lg cursor-pointer"
           >
             {loading ? (
               <>
@@ -828,12 +830,12 @@ const QuizGenerator = ({ user, onGenerateSuccess }) => {
                     {progress < 10
                       ? "Initiating..."
                       : progress < 25
-                      ? "Processing input..."
-                      : progress < 75
-                      ? "Generating questions..."
-                      : progress < 90
-                      ? "Formatting & validating..."
-                      : "Finalizing..."}
+                        ? "Processing input..."
+                        : progress < 75
+                          ? "Generating questions..."
+                          : progress < 90
+                            ? "Formatting & validating..."
+                            : "Finalizing..."}
                   </span>
                   <span className="text-xs font-medium opacity-90">
                     {Math.round(progress)}% completed

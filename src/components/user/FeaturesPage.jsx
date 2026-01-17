@@ -16,7 +16,7 @@ const FeaturesPage = () => {
         "Customizable difficulty levels",
         "Covers all major subjects and topics",
       ],
-      image: "/images/ai-generated-quizzes.avif",
+      image: "/images/ai-generated-quiz.avif",
     },
     {
       icon: BookOpen,
@@ -60,7 +60,7 @@ const FeaturesPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-textMain animate-fade-in-up">
+    <div className="min-h-screen bg-background text-textMain dark:text-textMain/95 animate-fade-in-up">
       {/* Hero Section */}
       <section className="pt-40 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -164,7 +164,7 @@ const FeaturesPage = () => {
           </p>
           <button
             onClick={() => navigate("/auth")}
-            className="px-8 py-4 rounded-xl bg-primary dark:bg-blue-700 text-white font-bold text-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-all hover:shadow-xl hover:shadow-primary/30 active:scale-95 hover:scale-102 point"
+            className="px-10 py-3 rounded-xl bg-primary dark:bg-blue-700 text-white dark:text-white/95 font-bold text-lg hover:bg-blue-700 dark:hover:bg-blue-700/80 transition-colors hover:shadow-sm hover:shadow-primary/30 point"
           >
             Get Started Free
           </button>
